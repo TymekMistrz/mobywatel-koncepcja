@@ -135,6 +135,17 @@ const WIECEJ=[
  ['#mic','#cam'].forEach(s=>{const b=$(s);b&&b.addEventListener('click',wroc,true)});
  /* koperta w nagłówku otwiera „Twoje sprawy” */
  const mb=$('#mailBtn');if(mb)mb.onclick=()=>ustawZakladke('skrzynka');
+ /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
+ const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
+  const det=$('#detail');if(det)det.classList.remove('on');
+  if(typeof pFinish==='function')try{pFinish({ok:false})}catch(e){}
+  if(typeof closeTodo==='function')try{closeTodo()}catch(e){}
+  if(app.classList.contains('chatting'))exitChat();
+  if(TAB!=='dok'){ustawZakladke('dok');return}
+  /* już na ekranie głównym: dowód wraca na wierzch, karty lekko się „układają” */
+  if(typeof SEL!=='undefined'&&typeof STACK_ORDER!=='undefined'){SEL=STACK_ORDER.length-1;layout()}
+  const sw=$('#stackwrap');if(sw&&!SPOKOJ)sw.animate([{transform:'translateY(0)'},{transform:'translateY(6px)'},{transform:'translateY(0)'}],{duration:320,easing:'ease-out'});
+ };
  rysuj();
  if(typeof layout==='function')layout();
 })();

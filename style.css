@@ -725,3 +725,8 @@ html.ramka .tabbar{padding-bottom:24px}
 .tabbar .skan:active .kolo{transform:scale(.92)}
 .tabbar .skan .kolo{transition:transform .15s}
 @media (prefers-reduced-motion:reduce){.tabbar .wsk{transition:none}}
+
+/* ---------- ekran skanowania wjeżdża od dołu i zjeżdża w dół ---------- */
+.qrx{opacity:1;transform:translateY(102%);transition:transform .42s cubic-bezier(.32,.72,0,1)}
+.qrx.on{transform:none}
+@media (prefers-reduced-motion:reduce){.qrx{transition:none}}
