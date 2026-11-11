@@ -683,3 +683,14 @@ html.ramka .tabbar{padding-bottom:24px}
 .sheet.on{transform:none}
 #stackwrap,#reminders,#top,#title,#composer,#tabbar{transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .42s}
 .phone:has(#detail.on) #stackwrap,.phone:has(#detail.on) #reminders,.phone:has(#detail.on) #top,.phone:has(#detail.on) #title,.phone:has(#detail.on) #composer{transform:translateX(-22%);opacity:.6}
+
+/* ---------- pole czatu: szare tło wystające ponad dymek, treść pod nim płynnie się rozmywa i znika ---------- */
+.composer{background:none;padding-top:14px}
+.composer::before{content:"";position:absolute;left:0;right:0;top:-34px;bottom:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(to top,var(--bg) 0%,var(--bg) 58%,rgba(242,243,247,.85) 72%,rgba(242,243,247,0) 100%);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  -webkit-mask-image:linear-gradient(to top,#000 60%,transparent 100%);mask-image:linear-gradient(to top,#000 60%,transparent 100%)}
+/* strony przewijają się aż pod pole czatu, ostatnia pozycja da się wysunąć ponad nie */
+.page{bottom:var(--tb,0px);padding-bottom:calc(var(--compH,70px) + 28px)}
+/* na ekranie z kartami kafelek „Do załatwienia” stoi tuż nad polem — tam pas jest niższy, żeby go nie przygaszać */
+.phone:not(.nastronie):not(.chatting) .composer::before{top:-6px}
