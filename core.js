@@ -72,9 +72,13 @@ function layout(){
  const comp=$('#composer').offsetHeight;app.style.setProperty('--compH',comp+'px');
  $('#top').style.top=T+'px';
  const titleTop=T+6; $('#title').style.top=titleTop+'px';app.style.setProperty('--histTop',(T+52)+'px');app.style.setProperty('--voiceTop',(T+52)+'px');app.style.setProperty('--qtopPad',(T+6)+'px');app.style.setProperty('--menuTop',(T+56)+'px');
+ const chatting=app.classList.contains('chatting');
+ /* rozmowa: ustawiamy tylko obszar czatu; stos kart i kafelek zostają na miejscu (są ukryte),
+    więc wejście i wyjście z czatu to spokojne przenikanie, bez przestawiania elementów */
+ {const ct=T+52;$('#chat').style.top=ct+'px';$('#chat').style.height=(H-ct-comp+14)+'px'}
+ if(chatting)return;
  const n=DOCS.length;let cardW=W-32,cardH=cardW/1.5;
  const remH=$('#reminders').offsetHeight;
- const chatting=app.classList.contains('chatting');
  const stackTop=chatting?T+54:T+62;
  const remTop=H-comp-remH-6;
  const avail=remTop-14-stackTop;
@@ -100,8 +104,7 @@ function layout(){
    c.style.top=(i<=sel?i*offA:selTop+cardH+10+(i-sel-1)*pB)+'px'});
   /* zanikanie pod kafelkiem tylko wtedy, gdy karty faktycznie tam sięgają */
   app.classList.toggle('stospod',below>0||((n-1)*offA+cardH)>avail+2);
-  const ct=T+54+80;$('#chat').style.top=ct+'px';$('#chat').style.height=(H-ct-comp+14)+'px';
- }
+  }
  let used=(n-1)*off+cardH;
  
  $('#reminders').style.top=remTop+'px';

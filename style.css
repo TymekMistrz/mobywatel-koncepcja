@@ -948,3 +948,16 @@ html.okno .composer{padding-bottom:8px}
 .bar.listening .mic{box-shadow:none!important;background:transparent!important;position:relative}
 .bar.listening .mic::before{content:"";position:absolute;inset:4px;border-radius:50%;background:rgba(220,20,60,.11);box-shadow:0 0 0 calc(var(--lvl,0)*3px) rgba(220,20,60,.10);z-index:-1}
 .bar.listening .mic{z-index:0}
+
+/* ---------- czat: spokojne wejście i wyjście — jedno tempo, przenikanie zamiast przesuwania ---------- */
+.chat{transform:translateX(14px);opacity:0;transition:transform .38s cubic-bezier(.25,.1,.25,1),opacity .3s ease}
+.phone.chatting .chat{transform:none;opacity:1;transition-delay:.06s}
+.page,#stackwrap,#reminders{transition:opacity .28s ease,transform .38s cubic-bezier(.25,.1,.25,1)}
+.phone.chatting .page,.phone.chatting #reminders,.phone.chatting .stackwrap{transform:none!important;opacity:0;pointer-events:none;transition:opacity .2s ease}
+/* pole czatu i pasek nawigacji zjeżdżają razem, jednym płynnym ruchem */
+.composer{transition:bottom .38s cubic-bezier(.25,.1,.25,1),padding-bottom .38s cubic-bezier(.25,.1,.25,1)}
+.tabbar{transition:transform .38s cubic-bezier(.25,.1,.25,1)!important}
+.phone.chatting .tabbar{opacity:1;transform:translateY(100%)}
+.phone:not(.chatting) .bar{padding-left:0}
+.title{transition:opacity .25s ease!important}
+.phone.chatting .chatonly{animation:fadein .35s ease}
