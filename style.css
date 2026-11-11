@@ -627,3 +627,5 @@ html.ramka body{background:var(--bg)}
 html.ramka .phone{width:100vw;height:100vh;border-radius:0;box-shadow:none}
 html.ramka .status{display:flex!important}
 html.ramka .island,html.ramka .homebar{display:block!important}
+/* sama aplikacja (app.html) na niskim ekranie komputera: telefon nie wychodzi poza okno */
+@media (min-width:521px){html:not(.ramka) .phone{height:min(844px,calc(100dvh - 24px))}}

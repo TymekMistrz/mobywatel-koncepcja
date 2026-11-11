@@ -16,62 +16,59 @@ if(Math.min(innerWidth,screen.width)<820)location.replace('app.html'+location.se
 /* =========================================================
    WYGLĄD PANELU I RAMKI — kolory zmieniasz tutaj
    ========================================================= */
-:root{--red:#dc143c;--ink:#16181d;--ink2:#5d6472;--line:#e4e6ec;--bg:#eef0f4;--card:#fff;--sans:Inter,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+:root{--red:#dc143c;--ink:#16181d;--ink2:#5d6472;--line:#e4e6ec;--bg:#f1f2f6;--card:#fff;--sans:Inter,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{font-family:var(--sans);color:var(--ink);background:radial-gradient(1200px 700px at 75% 40%,#ffffff 0%,#e7e9ef 55%,#d9dce4 100%);overflow:hidden}
+body{font-family:var(--sans);color:var(--ink);background:radial-gradient(1200px 700px at 72% 45%,#ffffff 0%,#e9ebf0 55%,#dcdfe6 100%);overflow:hidden}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 :focus-visible{outline:3px solid #f5b700;outline-offset:2px;border-radius:10px}
 
-.stage{height:100vh;display:grid;grid-template-columns:minmax(360px,440px) 1fr;gap:24px;padding:24px 32px}
+.stage{height:100vh;display:grid;grid-template-columns:minmax(340px,400px) 1fr;gap:20px;padding:16px 24px}
 
-/* ---------- panel po lewej ---------- */
-.panel{background:var(--card);border-radius:24px;box-shadow:0 10px 40px rgba(20,30,60,.10);padding:24px 22px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
-.brand{display:flex;align-items:center;gap:12px;margin-bottom:6px}
-.brand img{width:40px;height:40px}
-.brand h1{font-size:18px;line-height:1.2;margin:0}
-.brand p{margin:2px 0 0;color:var(--ink2);font-size:13px}
-.h{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin:18px 2px 8px}
-.people{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.person{display:flex;gap:10px;align-items:center;text-align:left;padding:10px;border-radius:16px;border:2px solid var(--line);background:#fff;transition:.15s}
+/* ---------- panel po lewej: wszystko mieści się bez przewijania ---------- */
+.panel{background:var(--card);border-radius:22px;box-shadow:0 10px 40px rgba(20,30,60,.10);padding:16px 18px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:30px;height:30px}
+.brand h1{font-size:15.5px;line-height:1.2;margin:0}
+.h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink2);margin:14px 2px 7px}
+.people{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.person{display:flex;gap:9px;align-items:center;text-align:left;padding:7px 9px;border-radius:13px;border:2px solid var(--line);background:#fff;min-width:0}
 .person:hover{border-color:#c9ccd6}
 .person.on{border-color:var(--red);background:#fff5f7}
-.person .av{width:42px;height:54px;border-radius:10px;background:#dfe4ee center/cover;flex-shrink:0}
-.person b{display:block;font-size:15px}
-.person small{display:block;color:var(--ink2);font-size:12px;line-height:1.3;margin-top:2px}
+.person .av{width:32px;height:32px;border-radius:50%;background:#dfe4ee center 20%/cover;flex-shrink:0}
+.person span{min-width:0}
+.person b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.person small{display:block;color:var(--ink2);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.datebox{background:var(--bg);border-radius:18px;padding:16px}
+.datebox{background:var(--bg);border-radius:14px;padding:11px 13px 12px}
 .date{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-.date b{font-size:26px;letter-spacing:-.02em}
-.date span{color:var(--ink2);font-size:13px;font-weight:600;white-space:nowrap}
-input[type=range]{width:100%;margin:14px 0 6px;accent-color:var(--red);height:28px}
-.ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--ink2)}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;font-size:13px;font-weight:600}
+.date b{font-size:18px;letter-spacing:-.01em;white-space:nowrap}
+.date span{color:var(--ink2);font-size:12px;font-weight:700;white-space:nowrap}
+input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22px}
+.chips{display:flex;gap:5px}
+.chip{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:5px 0;font-size:12px;font-weight:600;white-space:nowrap}
 .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
 
-.events{display:flex;flex-direction:column;gap:6px}
-.ev{display:flex;gap:10px;align-items:center;text-align:left;padding:9px 12px;border-radius:12px;background:#fff;border:1.5px solid var(--line);font-size:13.5px}
+.events{display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;overflow:hidden}
+.ev{display:flex;gap:9px;align-items:center;text-align:left;padding:7px 10px;border-radius:11px;background:#fff;border:1.5px solid var(--line);font-size:13px;flex-shrink:0}
 .ev:hover{border-color:#c9ccd6}
-.ev i{font-style:normal;font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 8px;white-space:nowrap}
+.ev i{font-style:normal;font-size:11px;font-weight:700;border-radius:999px;padding:3px 7px;white-space:nowrap;min-width:68px;text-align:center}
 .ev .ok{background:#e7f4ea;color:#1b7a3d}.ev .warn{background:#fff3dc;color:#8a5100}.ev .bad{background:#fde8ec;color:#b3122e}
-.ev span{flex:1;line-height:1.3}
-.ev em{font-style:normal;color:var(--ink2);font-size:12px;white-space:nowrap}
-.hint{color:var(--ink2);font-size:12.5px;line-height:1.45;margin:4px 2px 0}
-.foot{margin-top:auto;padding-top:16px;color:var(--ink2);font-size:12px;line-height:1.5}
+.ev span{flex:1;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev em{font-style:normal;color:var(--ink2);font-size:11.5px;white-space:nowrap}
+.foot{padding-top:10px;color:var(--ink2);font-size:11.5px;line-height:1.45;border-top:1px solid var(--line);margin-top:10px}
 .foot a{color:var(--ink);font-weight:600}
 
-/* ---------- telefon po prawej (ramka w stylu najnowszego iPhone'a, bez logo) ---------- */
-.right{display:grid;place-items:center;min-width:0;min-height:0}
-.scaler{transform-origin:center center}
+/* ---------- telefon po prawej: czarna obudowa w stylu najnowszego iPhone'a (bez logo) ---------- */
+.right{position:relative;min-width:0;min-height:0}
+.scaler{position:absolute;left:50%;top:50%;width:432px;height:904px;transform:translate(-50%,-50%) scale(var(--s,1))}
 .device{position:relative;width:432px;height:904px;border-radius:72px;padding:12px;
-  background:linear-gradient(145deg,#a7a9ad 0%,#e3e4e6 18%,#8d9095 42%,#c9cacd 62%,#7d8085 82%,#b9bbbe 100%);
-  box-shadow:0 0 0 1px rgba(0,0,0,.25),inset 0 0 2px 1px rgba(255,255,255,.6),0 50px 90px -20px rgba(15,25,50,.45),0 20px 40px -10px rgba(15,25,50,.3)}
-.bezel{width:100%;height:100%;border-radius:61px;background:#050506;padding:3px;box-shadow:inset 0 0 0 1px #2a2a2e}
+  background:linear-gradient(145deg,#2b2c2f 0%,#4a4b4f 14%,#1b1c1e 38%,#2f3033 62%,#121214 84%,#3a3b3e 100%);
+  box-shadow:0 0 0 1px #000,inset 0 0 1px 1px rgba(255,255,255,.18),0 50px 90px -20px rgba(10,15,30,.5),0 20px 40px -10px rgba(10,15,30,.35)}
+.bezel{width:100%;height:100%;border-radius:61px;background:#000;padding:3px}
 .screen{width:402px;height:874px;border-radius:58px;overflow:hidden;background:#f2f3f7;position:relative}
 .screen iframe{width:100%;height:100%;border:0;display:block}
-/* przyciski boczne */
-.btn-s{position:absolute;width:5px;border-radius:3px;background:linear-gradient(90deg,#6f7277,#c7c8cb 50%,#6f7277)}
+.btn-s{position:absolute;width:5px;border-radius:3px;background:linear-gradient(90deg,#141416,#4b4c50 50%,#141416)}
 .btn-s.l{left:-4px}.btn-s.r{right:-4px}
 .b-action{top:178px;height:36px}.b-volup{top:240px;height:66px}.b-voldn{top:318px;height:66px}
 .b-power{top:262px;height:104px}.b-cam{top:560px;height:62px;width:4px;right:-3px}
@@ -84,7 +81,7 @@ input[type=range]{width:100%;margin:14px 0 6px;accent-color:var(--red);height:28
 <body>
 <div class="stage">
   <aside class="panel" aria-label="Panel pokazu">
-    <div class="brand"><img src="assets/icon-app.svg" alt=""><div><h1>Prototyp aplikacji obywatelskiej</h1><p>Wybierz osobę i datę — telefon po prawej pokaże jej aplikację.</p></div></div>
+    <div class="brand"><img src="assets/icon-app.svg" alt=""><h1>Prototyp aplikacji obywatelskiej</h1></div>
 
     <div class="h">Osoba</div>
     <div class="people" id="people"></div>
@@ -93,19 +90,14 @@ input[type=range]{width:100%;margin:14px 0 6px;accent-color:var(--red);height:28
     <div class="datebox">
       <div class="date"><b id="dLabel">—</b><span id="dRel">dzień 0</span></div>
       <input type="range" id="slider" min="0" max="730" step="1" value="0" aria-label="Przesuń datę w aplikacji">
-      <div class="ticks"><span>start</span><span>+6 mies.</span><span>+1 rok</span><span>+18 mies.</span><span>+2 lata</span></div>
       <div class="chips" id="quick"></div>
     </div>
 
-    <div class="h">Terminy tej osoby</div>
+    <div class="h">Terminy · kliknij, by przeskoczyć za termin</div>
     <div class="events" id="events"></div>
-    <p class="hint">Kliknij termin, żeby przeskoczyć na dzień po nim i zobaczyć dokument po terminie.</p>
 
-    <div class="h">Układ dokumentów</div>
-    <div class="chips" id="layouts" style="margin-top:0"></div>
-
-    <div class="foot">Osoby i dane są fikcyjne. To nie jest usługa administracji publicznej.<br>
-      <a href="app.html" id="openApp" target="_blank" rel="noopener">Otwórz samą aplikację ↗</a> (np. na telefonie)</div>
+    <div class="foot">Osoby i dane są fikcyjne. To nie jest usługa administracji publicznej.
+      <a href="app.html" id="openApp" target="_blank" rel="noopener">Sama aplikacja ↗</a></div>
   </aside>
 
   <main class="right">
@@ -129,9 +121,8 @@ input[type=range]{width:100%;margin:14px 0 6px;accent-color:var(--red);height:28
    ========================================================= */
 const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 const q=new URLSearchParams(location.search);
-const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0)), uklad:q.get('uklad')||'stos'};
-const LAYOUTS=[['stos','Stos'],['karuzela','Karuzela'],['pion','Pionowa'],['lista','Lista'],['siatka','Siatka']];
-const QUICK=[[0,'Start'],[14,'+2 tyg.'],[30,'+1 mies.'],[90,'+3 mies.'],[180,'+6 mies.'],[365,'+1 rok']];
+const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
+const QUICK=[[0,'Start'],[14,'+2 tyg.'],[30,'+1 m.'],[90,'+3 m.'],[180,'+6 m.'],[365,'+1 rok']];
 const $=s=>document.querySelector(s);
 const fmt=d=>d.toLocaleDateString('pl-PL',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
 const fmtS=d=>d.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -149,35 +140,40 @@ function events(id){
 }
 
 function render(){
-  $('#people').innerHTML=Object.values(OSOBY).map(o=>`<button class="person ${o.id===S.osoba?'on':''}" data-o="${o.id}" aria-pressed="${o.id===S.osoba}"><span class="av" style="background-image:url(assets/foto-${o.id}.svg)"></span><span><b>${o.imie} ${o.nazwisko}</b><small>${o.opis}</small></span></button>`).join('');
+  $('#people').innerHTML=Object.values(OSOBY).map(o=>`<button class="person ${o.id===S.osoba?'on':''}" data-o="${o.id}" aria-pressed="${o.id===S.osoba}"><span class="av" style="background-image:url(assets/foto-${o.id}.svg)"></span><span><b>${o.imie} ${o.nazwisko}</b><small>${o.opis.split(',').slice(0,2).join(',')}</small></span></button>`).join('');
   const d=new Date(DZIEN_0.getTime()+S.dzien*DAY);
   $('#dLabel').textContent=fmt(d);
   $('#dRel').textContent=S.dzien?`+${dni(S.dzien)}`:'dzień 0';
   $('#slider').value=S.dzien;
   $('#quick').innerHTML=QUICK.map(([n,l])=>`<button class="chip ${S.dzien===n?'on':''}" data-d="${n}">${l}</button>`).join('');
-  $('#layouts').innerHTML=LAYOUTS.map(([k,l])=>`<button class="chip ${S.uklad===k?'on':''}" data-u="${k}">${l}</button>`).join('');
   const ev=events(S.osoba);
   $('#events').innerHTML=ev.length?ev.map(e=>{const x=e.n-S.dzien;const cls=x<0?'bad':x<=30?'warn':'ok';const t=x<0?`${dni(-x)} po`:x===0?'dziś':`za ${dni(x)}`;
     return `<button class="ev" data-d="${e.n+1}" title="Przeskocz na dzień po terminie"><i class="${cls}">${t}</i><span>${e.label}</span><em>${fmtS(e.d)}</em></button>`}).join(''):'<p class="hint">Brak terminów w najbliższych 2 latach.</p>';
+  fitEvents();
 }
-function appURL(){return `app.html?osoba=${S.osoba}&dzien=${S.dzien}&uklad=${S.uklad}`}
+/* lista terminów: pokaż tyle, ile się zmieści (bez przewijania) — najpierw najbliższe nadchodzące */
+function fitEvents(){const box=$('#events');const items=[...box.children];if(!items.length)return;
+  const up=items.filter(e=>!e.querySelector('i.bad')),past=items.filter(e=>e.querySelector('i.bad')).reverse();
+  box.innerHTML='';[...up,...past].forEach(e=>box.append(e));
+  while(box.children.length>1&&box.scrollHeight>box.clientHeight+1)box.lastElementChild.remove();
+  [...box.children].sort((a,b)=>+a.dataset.d-+b.dataset.d).forEach(e=>box.append(e));}
+function appURL(){return `app.html?osoba=${S.osoba}&dzien=${S.dzien}`}
 let last='';
 function load(){
   const u=appURL(); if(u===last)return; last=u;
   $('#loading').classList.remove('off'); $('#app').src=u;
   $('#openApp').href=u;
-  history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}&uklad=${S.uklad}`);
+  history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}`);
 }
 $('#app').addEventListener('load',()=>{
   $('#loading').classList.add('off');
   /* osoba zmieniona w menu wewnątrz aplikacji → zsynchronizuj panel */
-  try{const p=new URLSearchParams($('#app').contentWindow.location.search).get('osoba');if(p&&OSOBY[p]&&p!==S.osoba){S.osoba=p;last=appURL();render();history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}&uklad=${S.uklad}`)}}catch(e){}
+  try{const p=new URLSearchParams($('#app').contentWindow.location.search).get('osoba');if(p&&OSOBY[p]&&p!==S.osoba){S.osoba=p;last=appURL();render();history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}`)}}catch(e){}
 });
 document.addEventListener('click',e=>{
-  const b=e.target.closest('[data-o],[data-d],[data-u]'); if(!b)return;
+  const b=e.target.closest('[data-o],[data-d]'); if(!b)return;
   if(b.dataset.o)S.osoba=b.dataset.o;
   if(b.dataset.d!==undefined)S.dzien=Math.min(730,+b.dataset.d);
-  if(b.dataset.u)S.uklad=b.dataset.u;
   render(); load();
 });
 const sl=$('#slider');
@@ -185,8 +181,8 @@ sl.addEventListener('input',()=>{S.dzien=+sl.value;render()});      // podgląd 
 sl.addEventListener('change',()=>{S.dzien=+sl.value;load()});      // przeładuj telefon po puszczeniu
 
 /* telefon zawsze mieści się w oknie */
-function fit(){const r=$('.right').getBoundingClientRect();const s=Math.min(1,(r.height-8)/904,(r.width-8)/432);$('#scaler').style.transform=`scale(${s})`}
-addEventListener('resize',fit);
+function fit(){const r=$('.right').getBoundingClientRect();const s=Math.min(1,(r.height-8)/904,(r.width-8)/432);$('#scaler').style.setProperty('--s',s)}
+addEventListener('resize',()=>{fit();render()});
 render(); load(); fit();
 </script>
 </body>

@@ -32,7 +32,7 @@ Parametry adresu: `?osoba=marta|jan|ewa|kacper`, `?uklad=stos|karuzela|pion|list
 Osoby i dane są fikcyjne. To nie jest usługa administracji publicznej ani oficjalna aplikacja mObywatel.
 
 ## Widok pokazu (index.html)
-Na komputerze `index.html` pokazuje panel po lewej (osoba, data w aplikacji, terminy, układ) i telefon po prawej
+Na komputerze `index.html` pokazuje panel po lewej (osoba, data w aplikacji, terminy) i telefon po prawej
 z aplikacją (`app.html`) w ramce. Na telefonie od razu otwiera się sama aplikacja.
 
 **Data w aplikacji:** dane osób są przygotowane na 18.10.2026 („dzień 0”, stała w `czas.js`).
