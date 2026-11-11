@@ -105,11 +105,11 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 
     <div class="foot">Osoby i dane są fikcyjne. To nie jest usługa administracji publicznej.
       </div>
-    <button class="phonebtn" id="phoneBtn" aria-expanded="false" aria-controls="qrPop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>Otwórz na swoim telefonie</button>
-    <div class="qrpop" id="qrPop" hidden>
+    <div class="h" style="margin-top:12px">Otwórz na swoim telefonie</div>
+    <div class="qrpop" id="qrPop">
       <div id="qrBox" aria-label="Kod QR z linkiem do aplikacji"></div>
       <div><b>Zeskanuj aparatem telefonu</b><small>Otworzy się ta sama osoba i data, bez panelu.</small>
-      <a href="app.html" id="openApp" target="_blank" rel="noopener">albo otwórz w nowej karcie ↗</a></div>
+      <a href="app.html" id="openApp" target="_blank" rel="noopener">albo otwórz w oknie telefonu ↗</a></div>
     </div>
   </aside>
 
@@ -128,14 +128,14 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261111-1729"></script>
+<script src="osoby.js?v=20261111-1731"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
    ========================================================= */
 const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1729';
+const WERSJA='20261111-1731';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Start'],[14,'+2 tyg.'],[30,'+1 m.'],[90,'+3 m.'],[180,'+6 m.'],[365,'+1 rok']];
@@ -200,7 +200,12 @@ sl.addEventListener('change',()=>{S.dzien=+sl.value;load()});      // przeładuj
 function rysujQR(){const box=$('#qrBox');if(!box||$('#qrPop').hidden)return;
   const url=new URL(appURL(),location.href).href;const q=qrcode(0,'M');q.addData(url);q.make();
   box.innerHTML=q.createSvgTag({cellSize:4,margin:2,scalable:true});}
-$('#phoneBtn').addEventListener('click',()=>{const p=$('#qrPop');p.hidden=!p.hidden;$('#phoneBtn').setAttribute('aria-expanded',String(!p.hidden));rysujQR();render()});
+/* „albo otwórz w oknie telefonu”: osobne okno w rozmiarze telefonu (402×874), czyli widok mobilny na komputerze */
+$('#openApp').addEventListener('click',e=>{
+  const w=402,h=874,l=Math.max(0,(screen.availWidth-w)/2),t=Math.max(0,(screen.availHeight-h)/2);
+  const okno=window.open($('#openApp').href,'mobywatel_telefon',`popup=yes,width=${w},height=${h},left=${l},top=${t}`);
+  if(okno){e.preventDefault();okno.focus()}           // gdy przeglądarka zablokuje okno — otworzy się zwykła karta
+});
 /* telefon zawsze mieści się w oknie */
 function fit(){const r=$('.right').getBoundingClientRect();const s=Math.min(1,(r.height-8)/904,(r.width-8)/432);$('#scaler').style.setProperty('--s',s)}
 addEventListener('resize',()=>{fit();render()});

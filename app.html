@@ -3,9 +3,19 @@
 <head>
 <meta charset="utf-8">
 <script>if(window.self!==window.top)document.documentElement.classList.add('ramka')</script>
-<script src="czas.js?v=20261111-1729"></script>
-<script src="gesty.js?v=20261111-1729"></script>
-<script src="i18n.js?v=20261111-1729"></script>
+<script>
+/* Wersja statyczna (GitHub Pages / plik): nie ma serwera z asystentem AI i przekazywaniem danych.
+   Zapytania do /api/... od razu dostają pustą odpowiedź, zamiast błędów w konsoli. */
+(function(){const f=window.fetch.bind(window);
+ window.fetch=(u,o)=>{const s=typeof u==='string'?u:(u&&u.url)||'';
+  let p='';try{p=new URL(s,location.href).pathname}catch(_){}
+  if(p.includes('/api/')&&!window.SERWER_API)
+   return Promise.resolve(new Response('{}',{status:200,headers:{'Content-Type':'application/json'}}));
+  return f(u,o)};})();
+</script>
+<script src="czas.js?v=20261111-1731"></script>
+<script src="gesty.js?v=20261111-1731"></script>
+<script src="i18n.js?v=20261111-1731"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#f2f3f7">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,7 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20261111-1729">
+<link rel="stylesheet" href="style.css?v=20261111-1731">
 </head>
 <body>
 <div class="phone" id="app">
@@ -81,15 +91,15 @@
   </div></div>
   <div class="homebar"></div>
 </div>
-<script src="osoby.js?v=20261111-1729"></script>
+<script src="osoby.js?v=20261111-1731"></script>
 <script>CZAS.przelicz()</script>
-<script src="sylwetki.js?v=20261111-1729"></script>
-<script src="core.js?v=20261111-1729"></script>
-<script src="variants.js?v=20261111-1729"></script>
-<script src="scenarios.js?v=20261111-1729"></script>
-<script src="agent.js?v=20261111-1729"></script>
-<script src="znak-kod.js?v=20261111-1729"></script>
-<script src="znak.js?v=20261111-1729"></script>
-<script src="nawigacja.js?v=20261111-1729"></script>
+<script src="sylwetki.js?v=20261111-1731"></script>
+<script src="core.js?v=20261111-1731"></script>
+<script src="variants.js?v=20261111-1731"></script>
+<script src="scenarios.js?v=20261111-1731"></script>
+<script src="agent.js?v=20261111-1731"></script>
+<script src="znak-kod.js?v=20261111-1731"></script>
+<script src="znak.js?v=20261111-1731"></script>
+<script src="nawigacja.js?v=20261111-1731"></script>
 </body>
 </html>
