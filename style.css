@@ -668,3 +668,5 @@ html.ramka .tabbar{padding-bottom:24px}
 .pprof{display:flex;align-items:center;gap:12px;background:#fff;border-radius:18px;padding:14px;margin-bottom:12px}
 .pprof .pav{width:52px;height:52px;border-radius:50%;background:#dfe4ee center 20%/cover}
 .pprof b{display:block;font-size:16px}.pprof small{display:block;font-size:13px;color:#6b7280}
+/* bez kreski nad pierwszym wierszem, gdy karta nie ma nagłówka (np. dane dokumentu) */
+.ui > .rows:first-child > .row:first-child{border-top:0}
