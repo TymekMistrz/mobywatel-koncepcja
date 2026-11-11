@@ -132,7 +132,7 @@ const WIECEJ=[
  nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)ustawZakladke(b.dataset.tab)});
  page.addEventListener('click',e=>{
   const r=e.target.closest('.prow');if(!r)return;
-  if(r.dataset.q){TAB='dok';rysuj();startTopic(r.dataset.q);return}
+  if(r.dataset.q){przedCzatem=TAB;TAB='dok';rysuj();startTopic(r.dataset.q);return}
   komunikat((r.querySelector('.ptx b')||{}).textContent||'Ta funkcja');
  });
  /* okienko „funkcja niedostępna w prototypie” (dla pozycji, których jeszcze nie zaprojektowano) */
@@ -150,7 +150,13 @@ const WIECEJ=[
   modal.classList.add('on');modal.setAttribute('aria-hidden','false');setTimeout(()=>modal.querySelector('button').focus(),50);
  };
  /* pisanie lub mówienie do asystenta z innej strony → wracamy na ekran z rozmową */
- const wroc=()=>{if(TAB!=='dok'){TAB='dok';rysuj()}};
+ let przedCzatem='dok';
+ const wroc=()=>{if(!app.classList.contains('chatting'))przedCzatem=TAB;if(TAB!=='dok'){TAB='dok';rysuj()}};
+ window.zapamietajPrzedCzatem=k=>{przedCzatem=k};
+ /* wyjście z rozmowy: powrót do widoku sprzed wejścia w czat */
+ const ex=$('#exitChatBtn');if(ex)ex.onclick=()=>{exitChat();const k=przedCzatem;przedCzatem='dok';if(k!=='dok')ustawZakladke(k)};
+ /* w czacie tytuł zawsze „mObywatel” */
+ new MutationObserver(()=>{if(app.classList.contains('chatting')){const t=$('#title');if(t&&t.textContent!=='mObywatel')t.textContent='mObywatel'}else{const t=$('#title');const n=TAB==='dok'?'mObywatel':(ZAKLADKI.find(z=>z[0]===TAB)||[,''])[1];if(t&&t.textContent!==n)t.textContent=n}}).observe(app,{attributes:true,attributeFilter:['class']});
  $('#composer').addEventListener('submit',wroc,true);
  ['#mic','#cam'].forEach(s=>{const b=$(s);b&&b.addEventListener('click',wroc,true)});
  /* nagłówek: wyraźny przycisk „Skanuj” zamiast samej ikony */

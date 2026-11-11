@@ -852,3 +852,13 @@ html.okno .composer{padding-bottom:8px}
 .tabbar::before{content:"";position:absolute;left:0;right:0;top:-12px;height:12px;background:var(--bg);pointer-events:none}
 .page,.page.podglad{bottom:calc(var(--tb,0px) + 10px)}
 .composer::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:14px;background:var(--bg);z-index:-1;pointer-events:none}
+
+/* ---------- widok rozmowy z asystentem ---------- */
+.ico.wyjdz{display:none;margin-left:-8px;margin-right:2px}
+.phone.chatting .ico.wyjdz{display:grid}
+.phone.chatting .title{opacity:1!important;transform:none!important;left:104px!important;pointer-events:none}
+.phone.chatting #qrBtn{display:none!important}
+.tabbar{transition:transform .32s cubic-bezier(.3,.7,.2,1),opacity .2s}
+.phone.chatting .tabbar{transform:translateY(100%);opacity:0;pointer-events:none}
+.phone.chatting .composer{padding-bottom:28px}
+.phone.chatting .composer::after{display:none}
