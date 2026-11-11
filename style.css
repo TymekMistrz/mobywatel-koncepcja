@@ -802,3 +802,7 @@ html.okno .status{display:flex!important}
 html.okno .island,html.okno .homebar{display:block!important}
 html.okno .tabbar{padding-bottom:24px}
 html.okno .composer{padding-bottom:8px}
+/* przycisk zamknięcia skanera: sama strzałka, bez szarego koła */
+.qclose,.qrx.dark .qclose{background:transparent!important}
+.qclose svg{width:26px;height:26px}
+.qclose:active{opacity:.6}
