@@ -62,7 +62,7 @@ const WIECEJ=[
   chev:'<path d="m9.5 6 6 6-6 6"/>',
  };
  const ico=(k,cls='')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IK[k]||''}</svg>`;
- const ZAKLADKI=[['dok','Dokumenty','docs'],['uslugi','Usługi','grid'],['skan','Skanuj','scan'],['skrzynka','Twoje sprawy','mail'],['wiecej','Więcej','more']];
+ const ZAKLADKI=[['dok','Dokumenty','docs'],['uslugi','Usługi','grid'],['skrzynka','Twoje sprawy','mail'],['wiecej','Więcej','more']];   /* skanowanie: przycisk „Skanuj” w nagłówku */
 
  /* elementy w DOM */
  const page=document.createElement('section');page.className='page';page.id='page';page.setAttribute('aria-live','polite');
@@ -151,6 +151,9 @@ const WIECEJ=[
  const wroc=()=>{if(TAB!=='dok'){TAB='dok';rysuj()}};
  $('#composer').addEventListener('submit',wroc,true);
  ['#mic','#cam'].forEach(s=>{const b=$(s);b&&b.addEventListener('click',wroc,true)});
+ /* nagłówek: wyraźny przycisk „Skanuj” zamiast samej ikony */
+ const qb=$('#qrBtn');if(qb){qb.classList.add('skanuj');qb.setAttribute('aria-label','Skanuj kod, aby potwierdzić swoje dane');
+  qb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5V7a3 3 0 0 1 3-3h1.5M15.5 4H17a3 3 0 0 1 3 3v1.5M20 15.5V17a3 3 0 0 1-3 3h-1.5M8.5 20H7a3 3 0 0 1-3-3v-1.5"/><rect x="8.5" y="8.5" width="7" height="7" rx="1.5"/></svg><span>Skanuj</span>'}
  /* koperta w nagłówku zbędna — sprawy są w pasku (z kropką) */
  const mb=$('#mailBtn');if(mb)mb.remove();
  /* ---------- gest przesunięcia w lewo / w prawo: następna / poprzednia zakładka (bez „Skanuj”) ----------

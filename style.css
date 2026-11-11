@@ -777,3 +777,8 @@ html,body,*{scrollbar-width:none;-ms-overflow-style:none}
 .alertm-box p{margin:0;padding:0 18px 18px;font-size:13.5px;line-height:1.4;color:#3c4250}
 .alertm-box button{display:block;width:100%;padding:12px 0;border-top:1px solid #dfe1e7;font-size:17px;font-weight:600;color:var(--red,#dc143c)}
 .alertm-box button:active{background:#eceef2}
+
+/* ---------- przycisk „Skanuj” w nagłówku: dobrze widoczny ---------- */
+.ico.skanuj{width:auto;height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px 0 11px;border-radius:19px;background:var(--red,#dc143c);color:#fff;font-size:15px;font-weight:600;letter-spacing:-.01em;box-shadow:0 4px 12px rgba(220,20,60,.28);transition:transform .15s}
+.ico.skanuj svg{width:20px;height:20px}
+.ico.skanuj:active{transform:scale(.95)}
