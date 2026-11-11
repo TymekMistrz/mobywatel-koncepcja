@@ -11,11 +11,22 @@
  const W=393,H=852,d=document.documentElement;d.classList.add('okno');
  const dopasuj=()=>{const s=Math.min(innerWidth/W,innerHeight/H);d.style.setProperty('--okno-s',s)};
  addEventListener('resize',dopasuj);dopasuj();
- /* po zmianie rozmiaru przez użytkownika okno „wskakuje” z powrotem w proporcje telefonu */
- let t;const zatrzask=()=>{const dw=outerWidth-innerWidth,dh=outerHeight-innerHeight;const w=Math.max(300,Math.round(innerWidth));const h=Math.round(w*H/W);
-  if(Math.abs(innerHeight-h)>2)try{resizeTo(w+dw,h+dh)}catch(e){}};
- addEventListener('load',()=>{const dw=outerWidth-innerWidth,dh=outerHeight-innerHeight;try{resizeTo(W+dw,H+dh)}catch(e){}});
- addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(zatrzask,350)});
+ /* proporcje zablokowane: po zmianie rozmiaru okno dopasowuje drugi wymiar do proporcji telefonu.
+    Bierzemy ten wymiar, który użytkownik zmienił bardziej (ciągnięcie za bok, górę albo róg). */
+ let t,pw=innerWidth,ph=innerHeight,wlasne=false;
+ const zatrzask=()=>{
+  if(wlasne){wlasne=false;pw=innerWidth;ph=innerHeight;return}
+  const dw=outerWidth-innerWidth,dh=outerHeight-innerHeight;
+  const zmW=Math.abs(innerWidth-pw)/W,zmH=Math.abs(innerHeight-ph)/H;
+  let w,h;
+  if(zmW>=zmH){w=Math.max(260,innerWidth);h=Math.round(w*H/W)}else{h=Math.max(560,innerHeight);w=Math.round(h*W/H)}
+  /* nie większe niż ekran */
+  const mh=screen.availHeight-dh;if(h>mh){h=mh;w=Math.round(h*W/H)}
+  pw=w;ph=h;
+  if(Math.abs(innerWidth-w)>1||Math.abs(innerHeight-h)>1){wlasne=true;try{resizeTo(w+dw,h+dh)}catch(e){wlasne=false}}
+ };
+ addEventListener('load',()=>{const dw=outerWidth-innerWidth,dh=outerHeight-innerHeight;wlasne=true;try{resizeTo(W+dw,H+dh)}catch(e){wlasne=false}pw=W;ph=H});
+ addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(zatrzask,160)});
 })();
 </script>
 <script>
@@ -28,9 +39,9 @@
    return Promise.resolve(new Response('{}',{status:200,headers:{'Content-Type':'application/json'}}));
   return f(u,o)};})();
 </script>
-<script src="czas.js?v=20261111-1804"></script>
-<script src="gesty.js?v=20261111-1804"></script>
-<script src="i18n.js?v=20261111-1804"></script>
+<script src="czas.js?v=20261111-1805"></script>
+<script src="gesty.js?v=20261111-1805"></script>
+<script src="i18n.js?v=20261111-1805"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#ebedf2">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -39,7 +50,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20261111-1804">
+<link rel="stylesheet" href="style.css?v=20261111-1805">
 </head>
 <body>
 <div class="phone" id="app">
@@ -106,15 +117,15 @@
   </div></div>
   <div class="homebar"></div>
 </div>
-<script src="osoby.js?v=20261111-1804"></script>
+<script src="osoby.js?v=20261111-1805"></script>
 <script>CZAS.przelicz()</script>
-<script src="sylwetki.js?v=20261111-1804"></script>
-<script src="core.js?v=20261111-1804"></script>
-<script src="variants.js?v=20261111-1804"></script>
-<script src="scenarios.js?v=20261111-1804"></script>
-<script src="agent.js?v=20261111-1804"></script>
-<script src="znak-kod.js?v=20261111-1804"></script>
-<script src="znak.js?v=20261111-1804"></script>
-<script src="nawigacja.js?v=20261111-1804"></script>
+<script src="sylwetki.js?v=20261111-1805"></script>
+<script src="core.js?v=20261111-1805"></script>
+<script src="variants.js?v=20261111-1805"></script>
+<script src="scenarios.js?v=20261111-1805"></script>
+<script src="agent.js?v=20261111-1805"></script>
+<script src="znak-kod.js?v=20261111-1805"></script>
+<script src="znak.js?v=20261111-1805"></script>
+<script src="nawigacja.js?v=20261111-1805"></script>
 </body>
 </html>
