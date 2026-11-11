@@ -181,7 +181,7 @@ const WIECEJ=[
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}   // przycisk puszczony poza ekranem telefonu
    const dx=e.clientX-g.x,dy=e.clientY-g.y;
    {const n=performance.now();if(n-g.lt>0){g.v=.6*g.v+.4*((e.clientX-g.lx)/(n-g.lt))}g.lx=e.clientX;g.lt=n}
-   if(g.poziom===null&&Math.hypot(dx,dy)>10){g.poziom=Math.abs(dx)>Math.abs(dy)*1.3;if(g.poziom)try{app.setPointerCapture(e.pointerId)}catch(_){}}
+   if(g.poziom===null&&Math.hypot(dx,dy)>10){g.poziom=Math.abs(dx)>Math.abs(dy)*1.3;if(g.poziom){app.classList.add('gest');try{app.setPointerCapture(e.pointerId)}catch(_){}}}
    if(!g.poziom)return;
    const i=KOLEJ.indexOf(TAB),k=dx<0?KOLEJ[i+1]:KOLEJ[i-1],W=app.clientWidth;
    if(g.cel!==k){if(g.pg){g.pg.remove();g.pg=null}g.cel=k;if(k)g.pg=zrobPodglad(k)}
@@ -191,7 +191,7 @@ const WIECEJ=[
    const t=$('#title');if(t)t.style.opacity=String(Math.max(0,1-Math.abs(dx)/(W*.45)));
   },true);
   async function koniec(e){
-   if(!g)return;const {x,t,poziom,cel,pg,v:vk,lt}=g;g=null;try{app.releasePointerCapture(e.pointerId)}catch(_){}if(!poziom){if(pg)pg.remove();return}
+   if(!g)return;const {x,t,poziom,cel,pg,v:vk,lt}=g;g=null;app.classList.remove('gest');try{app.releasePointerCapture(e.pointerId)}catch(_){}if(!poziom){if(pg)pg.remove();return}
    const dx=(e.clientX??x)-x,v=Math.abs(dx)/Math.max(1,performance.now()-t),W=app.clientWidth,tyt=$('#title');
    const stare=biezace();
    /* decyzja jak na telefonie: gdzie strona „dojechałaby” rozpędem (pozycja + prędkość przy puszczeniu).
@@ -262,6 +262,8 @@ const WIECEJ=[
   const sprawdz=()=>{const det=!!($('#detail')&&$('#detail').classList.contains('on')),chat=app.classList.contains('chatting'),skan=!!document.querySelector('#qrx.on');
    if((byl.det&&!det)||(byl.chat&&!chat)||(byl.skan&&!skan))zwinStos();byl={det,chat,skan}};
   new MutationObserver(sprawdz).observe(app,{attributes:true,attributeFilter:['class'],subtree:true});}
+ /* w trakcie gestu poziomego nic nie przewija się w pionie (także kółkiem myszy) */
+ app.addEventListener('wheel',e=>{if(app.classList.contains('gest'))e.preventDefault()},{passive:false,capture:true});
  /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
  const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
   const det=$('#detail');if(det)det.classList.remove('on');

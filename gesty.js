@@ -22,7 +22,10 @@
   if(!g)return;
   if(e.buttons===0){g=null;return}   // przycisk puszczony poza ramką telefonu — kończymy przewijanie
   const dx=e.clientX-g.x,dy=e.clientY-g.y;
-  if(!przesuniete&&Math.hypot(dx,dy)>PROG)przesuniete=true;
+  if(!przesuniete&&Math.hypot(dx,dy)>PROG){przesuniete=true;
+   /* ruch głównie w poziomie przy liście pionowej = gest zmiany strony, nie przewijanie */
+   if(g.p&&g.p.os==='y'&&Math.abs(dx)>Math.abs(dy))g.p=null}
+  if(document.querySelector('.phone.gest')){g.p=null}
   if(!przesuniete||!g.p)return;
   const pos=g.p.os==='y'?e.clientY:e.clientX,d=g.p.os==='y'?dy:dx;
   if(g.p.os==='y')g.p.el.scrollTop=g.start-d;else g.p.el.scrollLeft=g.start-d;
