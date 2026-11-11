@@ -214,7 +214,7 @@ $('#homeBtn').onclick=()=>{
  $('#detail').classList.remove('on');exitChat();$('#tiles').scrollTo({left:0,behavior:'smooth'})};
 $('#mailBtn').onclick=()=>{closeHist();startTopic('Co mam w skrzynce?')};
 $('#bellBtn').onclick=()=>{closeHist();startTopic('Co mam do załatwienia?')};
-input.addEventListener('focus',enterChat);
+/* samo kliknięcie w pole nie otwiera rozmowy — dopiero wysłanie pierwszej wiadomości (send → enterChat) */
 $('#composer').onsubmit=e=>{e.preventDefault();const t=input.value.trim();input.value='';send(t)};
 $('#mic').onclick=async()=>{enterChat();const bar=$('.bar');bar.classList.add('listening');input.placeholder='Słucham…';await sleep(1600);bar.classList.remove('listening');input.placeholder='Co chcesz załatwić?';send('Miałam stłuczkę na parkingu')};
 $('#cam').onclick=()=>{enterChat();act(()=>{addUser('📷 zdjęcie dowodu rejestracyjnego');S.auto2()})};
