@@ -943,3 +943,8 @@ html.okno .composer{padding-bottom:8px}
 #app #detail .face .col::after{content:none!important}
 #app #detail .face .reveal{display:none!important}
 #app #detail .pvf,#app #detail .face .dl.pv{filter:none!important;opacity:1!important}
+/* mikrofon: stały odstęp od przycisku wysyłania, a aktywne kółko nieco mniejsze — kółka się nie stykają */
+.bar .mic{margin-right:6px}
+.bar.listening .mic{box-shadow:none!important;background:transparent!important;position:relative}
+.bar.listening .mic::before{content:"";position:absolute;inset:4px;border-radius:50%;background:rgba(220,20,60,.11);box-shadow:0 0 0 calc(var(--lvl,0)*3px) rgba(220,20,60,.10);z-index:-1}
+.bar.listening .mic{z-index:0}
