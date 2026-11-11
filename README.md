@@ -10,7 +10,7 @@ Każdy commit na gałęzi `main` pojawia się pod tym adresem po ok. minucie.
 - Usunięte elementy wyłączone z licencji MIT: godło, nazwa/logo/oznaczenia mObywatela, grafiki dokumentów, zdjęcia osób.
 - Zamiast godła: czerwony znak w kolorze przewodnim (`assets/icon-app.svg`).
 - Własne tła kart (`assets/karta-*.svg`, `assets/pasek-*.svg`) i sylwetki z inicjałami (`assets/foto-*.svg`).
-- „mDowód”, „mPrawo jazdy” itp. → „Dowód osobisty”, „Prawo jazdy”.
+- „mDowód”, „mPrawo jazdy” itp. → „Dowód osobisty”, „Prawo jazdy”. Nagłówek aplikacji: napis „mObywatel” (bez logo) — nazwa użyta wyłącznie w celach pokazowych w ramach mObywatel Challenge.
 - Działa bez serwera: asystent AI jest wyłączony, rozmowy to gotowe scenariusze.
   Nie działa przekazywanie danych między dwoma urządzeniami (`komputer.html`, skanowanie znaku) — wymaga serwera.
 
