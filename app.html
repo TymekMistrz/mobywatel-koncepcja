@@ -4,6 +4,21 @@
 <meta charset="utf-8">
 <script>if(window.self!==window.top)document.documentElement.classList.add('ramka')</script>
 <script>
+/* Okno „telefonu” otwarte z panelu: ekran ma zawsze proporcje iPhone'a 16 (393×852).
+   Treść jest renderowana dokładnie w tym rozmiarze i skalowana do okna, a okno samo wraca do właściwych proporcji. */
+(function(){
+ if(window.name!=='mobywatel_telefon')return;
+ const W=393,H=852,d=document.documentElement;d.classList.add('okno');
+ const dopasuj=()=>{const s=Math.min(innerWidth/W,innerHeight/H);d.style.setProperty('--okno-s',s)};
+ addEventListener('resize',dopasuj);dopasuj();
+ /* po zmianie rozmiaru przez użytkownika okno „wskakuje” z powrotem w proporcje telefonu */
+ let t;const zatrzask=()=>{const dw=outerWidth-innerWidth,dh=outerHeight-innerHeight;const w=Math.max(300,Math.round(innerWidth));const h=Math.round(w*H/W);
+  if(Math.abs(innerHeight-h)>2)try{resizeTo(w+dw,h+dh)}catch(e){}};
+ addEventListener('load',()=>{const dw=outerWidth-innerWidth,dh=outerHeight-innerHeight;try{resizeTo(W+dw,H+dh)}catch(e){}});
+ addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(zatrzask,350)});
+})();
+</script>
+<script>
 /* Wersja statyczna (GitHub Pages / plik): nie ma serwera z asystentem AI i przekazywaniem danych.
    Zapytania do /api/... od razu dostają pustą odpowiedź, zamiast błędów w konsoli. */
 (function(){const f=window.fetch.bind(window);
@@ -13,9 +28,9 @@
    return Promise.resolve(new Response('{}',{status:200,headers:{'Content-Type':'application/json'}}));
   return f(u,o)};})();
 </script>
-<script src="czas.js?v=20261111-1752"></script>
-<script src="gesty.js?v=20261111-1752"></script>
-<script src="i18n.js?v=20261111-1752"></script>
+<script src="czas.js?v=20261111-1754"></script>
+<script src="gesty.js?v=20261111-1754"></script>
+<script src="i18n.js?v=20261111-1754"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#ebedf2">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -24,7 +39,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20261111-1752">
+<link rel="stylesheet" href="style.css?v=20261111-1754">
 </head>
 <body>
 <div class="phone" id="app">
@@ -91,15 +106,15 @@
   </div></div>
   <div class="homebar"></div>
 </div>
-<script src="osoby.js?v=20261111-1752"></script>
+<script src="osoby.js?v=20261111-1754"></script>
 <script>CZAS.przelicz()</script>
-<script src="sylwetki.js?v=20261111-1752"></script>
-<script src="core.js?v=20261111-1752"></script>
-<script src="variants.js?v=20261111-1752"></script>
-<script src="scenarios.js?v=20261111-1752"></script>
-<script src="agent.js?v=20261111-1752"></script>
-<script src="znak-kod.js?v=20261111-1752"></script>
-<script src="znak.js?v=20261111-1752"></script>
-<script src="nawigacja.js?v=20261111-1752"></script>
+<script src="sylwetki.js?v=20261111-1754"></script>
+<script src="core.js?v=20261111-1754"></script>
+<script src="variants.js?v=20261111-1754"></script>
+<script src="scenarios.js?v=20261111-1754"></script>
+<script src="agent.js?v=20261111-1754"></script>
+<script src="znak-kod.js?v=20261111-1754"></script>
+<script src="znak.js?v=20261111-1754"></script>
+<script src="nawigacja.js?v=20261111-1754"></script>
 </body>
 </html>

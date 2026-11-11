@@ -792,3 +792,13 @@ html,body,*{scrollbar-width:none;-ms-overflow-style:none}
 .sheet .clock{margin-bottom:0}
 /* rozmowa z asystentem: ten sam, nieco dłuższy zanik u góry */
 .msgs{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26px);mask-image:linear-gradient(to bottom,transparent 0,#000 26px)}
+
+/* ---------- osobne okno „telefonu” (app.html otwarte z panelu): stały ekran 393×852 skalowany do okna ---------- */
+html.okno,html.okno body{height:100%;overflow:hidden;background:#000}
+html.okno body{display:block!important}
+html.okno .phone{position:absolute!important;left:50%;top:50%;width:393px!important;height:852px!important;border-radius:0!important;box-shadow:none!important;
+  transform:translate(-50%,-50%) scale(var(--okno-s,1));transform-origin:center}
+html.okno .status{display:flex!important}
+html.okno .island,html.okno .homebar{display:block!important}
+html.okno .tabbar{padding-bottom:24px}
+html.okno .composer{padding-bottom:8px}
