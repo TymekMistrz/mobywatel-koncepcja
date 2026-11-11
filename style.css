@@ -748,3 +748,8 @@ html.ramka .tabbar{padding-bottom:24px}
 /* kropka przy zakładce „Twoje sprawy” */
 .tabbar .ikona{position:relative;display:block;line-height:0}
 .tabbar .kropka{position:absolute;top:-2px;right:-4px;width:10px;height:10px;border-radius:50%;background:#e11d48;box-shadow:0 0 0 2px #fff}
+
+/* podgląd sąsiedniej strony podczas gestu */
+.page.podglad{display:block!important;pointer-events:none}
+.podglad-dok{position:absolute;inset:0;pointer-events:none;z-index:9}
+.phone .podglad-dok .stackwrap,.phone .podglad-dok .reminders{visibility:visible!important}
