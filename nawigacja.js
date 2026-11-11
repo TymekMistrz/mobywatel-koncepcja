@@ -180,7 +180,7 @@ const WIECEJ=[
    else{el=document.createElement('section');el.className='page podglad';el.innerHTML=tresc(k)}
    el.setAttribute('aria-hidden','true');app.insertBefore(el,nav);return el;
   }
-  const przesun=(el,x)=>{el.style.transform=`translateX(${x}px)`};
+  const przesun=(el,x)=>{el.style.transform=`translate3d(${x}px,0,0)`};
   const jedz=(el,do_)=>el.animate([{transform:el.style.transform||'translateX(0)'},{transform:`translateX(${do_}px)`}],{duration:260,easing:EASE,fill:'forwards'}).finished;
   const sprzataj=els=>els.forEach(el=>{el.getAnimations().forEach(a=>a.cancel());el.style.transform='';el.style.opacity=''});
   let g=null;
@@ -189,7 +189,7 @@ const WIECEJ=[
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}   // przycisk puszczony poza ekranem telefonu
    const dx=e.clientX-g.x,dy=e.clientY-g.y;
    {const n=performance.now();if(n-g.lt>0){g.v=.6*g.v+.4*((e.clientX-g.lx)/(n-g.lt))}g.lx=e.clientX;g.lt=n}
-   if(g.poziom===null&&Math.hypot(dx,dy)>10){g.poziom=Math.abs(dx)>Math.abs(dy)*1.3;if(g.poziom){app.classList.add('gest','bezanim');try{app.setPointerCapture(e.pointerId)}catch(_){}}}
+   if(g.poziom===null&&Math.hypot(dx,dy)>10){g.poziom=Math.abs(dx)>Math.abs(dy)*(e.pointerType==='mouse'?1.3:1);if(g.poziom){app.classList.add('gest','bezanim');try{app.setPointerCapture(e.pointerId)}catch(_){}}}
    if(!g.poziom)return;
    const i=KOLEJ.indexOf(TAB),k=dx<0?KOLEJ[i+1]:KOLEJ[i-1],W=app.clientWidth;
    if(g.cel!==k){if(g.pg){g.pg.remove();g.pg=null}g.cel=k;if(k)g.pg=zrobPodglad(k)}
@@ -199,8 +199,8 @@ const WIECEJ=[
    const t=$('#title');if(t)t.style.opacity=String(Math.max(0,1-Math.abs(dx)/(W*.45)));
   },true);
   async function koniec(e){
-   if(!g)return;const {x,t,poziom,cel,pg,v:vk,lt}=g;g=null;app.classList.remove('gest');if(!poziom)app.classList.remove('bezanim');try{app.releasePointerCapture(e.pointerId)}catch(_){}if(!poziom){if(pg)pg.remove();return}
-   const dx=(e.clientX??x)-x,v=Math.abs(dx)/Math.max(1,performance.now()-t),W=app.clientWidth,tyt=$('#title');
+   if(!g)return;const {x,t,poziom,cel,pg,v:vk,lt,lx}=g;g=null;app.classList.remove('gest');if(!poziom)app.classList.remove('bezanim');try{app.releasePointerCapture(e.pointerId)}catch(_){}if(!poziom){if(pg)pg.remove();return}
+   const dx=lx-x,W=app.clientWidth,tyt=$('#title');
    const stare=biezace();
    /* decyzja jak na telefonie: gdzie strona „dojechałaby” rozpędem (pozycja + prędkość przy puszczeniu).
       Za mały lub zawrócony ruch → strona wraca; przejście tylko, gdy rzut mija połowę ekranu w tę samą stronę. */
@@ -219,7 +219,8 @@ const WIECEJ=[
    sprzataj(stare);if(pg)pg.remove();if(tyt)tyt.style.opacity='';
    requestAnimationFrame(()=>requestAnimationFrame(()=>app.classList.remove('bezanim')));
   }
-  app.addEventListener('lostpointercapture',e=>{if(g&&g.poziom)koniec(e)});
+  /* tylko utrata przechwycenia przez samą aplikację kończy gest (na dotyku najpierw traci je dotknięty element — to nie koniec) */
+  app.addEventListener('lostpointercapture',e=>{if(e.target===app&&g&&g.poziom)koniec(e)});
   app.addEventListener('pointerup',koniec,true);app.addEventListener('pointercancel',koniec,true);
  }
  /* ---------- gest powrotu: szczegóły dokumentu przeciągnij w prawo, skaner przeciągnij w dół ---------- */
@@ -231,14 +232,14 @@ const WIECEJ=[
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}
    const dx=e.clientX-g.x,dy=e.clientY-g.y,d=os==='x'?dx:dy,inny=os==='x'?dy:dx;
    {const n=performance.now(),p=os==='x'?e.clientX:e.clientY;if(n-g.lt>0)g.v=.6*g.v+.4*((p-g.lp)/(n-g.lt));g.lp=p;g.lt=n}
-   if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=d>0&&Math.abs(d)>Math.abs(inny)*1.3;if(g.moje)try{el.setPointerCapture(e.pointerId)}catch(_){}}
+   if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=d>0&&Math.abs(d)>Math.abs(inny)*(e.pointerType==='mouse'?1.3:1);if(g.moje)try{el.setPointerCapture(e.pointerId)}catch(_){}}
    if(!g.moje)return;
    el.style.transition='none';el.style.transform=os==='x'?`translateX(${Math.max(0,d)}px)`:`translateY(${Math.max(0,d)}px)`;
    if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.transition='none';x.style.transform=`translateX(${-22+22*Math.min(1,Math.max(0,d)/el.offsetWidth)}%)`});
   });
   function koniec(e){
-   if(!g)return;const {x,y,t,moje,v:vk,lt}=g;g=null;try{el.releasePointerCapture(e.pointerId)}catch(_){}if(!moje)return;
-   const d=os==='x'?(e.clientX??x)-x:(e.clientY??y)-y,v=d/Math.max(1,performance.now()-t),dl=os==='x'?el.offsetWidth:el.offsetHeight;
+   if(!g)return;const {x,y,t,moje,v:vk,lt,lp}=g;g=null;try{el.releasePointerCapture(e.pointerId)}catch(_){}if(!moje)return;
+   const d=lp-(os==='x'?x:y),dl=os==='x'?el.offsetWidth:el.offsetHeight;
    const vp=performance.now()-lt>90?0:vk,rzut=d+vp*200;
    const zamyka=d>24&&rzut>dl*.5;          // zamyka tylko, gdy ruch „dojechałby” za połowę ekranu
    el.style.transition='';void el.offsetWidth;el.style.transform='';
@@ -290,14 +291,14 @@ const WIECEJ=[
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}
    const dx=e.clientX-g.x,dy=e.clientY-g.y;
    {const n=performance.now();if(n-g.lt>0)g.v=.6*g.v+.4*((e.clientX-g.lx)/(n-g.lt));g.lx=e.clientX;g.lt=n}
-   if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=dx>0&&Math.abs(dx)>Math.abs(dy)*1.3;if(g.moje){app.classList.add('gest');try{ch.setPointerCapture(e.pointerId)}catch(_){}}}
+   if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=dx>0&&Math.abs(dx)>Math.abs(dy)*(e.pointerType==='mouse'?1.3:1);if(g.moje){app.classList.add('gest');try{ch.setPointerCapture(e.pointerId)}catch(_){}}}
    if(!g.moje)return;
    ch.style.transition='none';ch.style.transform=`translateX(${Math.max(0,dx)}px)`;ch.style.opacity=String(1-Math.min(.5,Math.max(0,dx)/ch.offsetWidth));
   },true);
   function koniec(e){
-   if(!g)return;const {x,moje,v,lt}=g;g=null;app.classList.remove('gest');try{ch.releasePointerCapture(e.pointerId)}catch(_){}
+   if(!g)return;const {x,moje,v,lt,lx}=g;g=null;app.classList.remove('gest');try{ch.releasePointerCapture(e.pointerId)}catch(_){}
    if(!moje)return;
-   const dx=(e.clientX??x)-x,vp=performance.now()-lt>90?0:v,rzut=dx+vp*200;
+   const dx=lx-x,vp=performance.now()-lt>90?0:v,rzut=dx+vp*200;
    ch.style.transition='';ch.style.opacity='';
    if(dx>24&&rzut>ch.offsetWidth*.5){ch.style.transform='';wyjscie()}else{ch.style.transform=''}
   }

@@ -186,7 +186,7 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261111-1846"></script>
+<script src="osoby.js?v=20261111-1901"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
@@ -196,7 +196,7 @@ const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 const DZIS=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})(), PRZES=Math.round((DZIS-DZIEN_0)/DAY);
 const naEkran=d=>new Date(d.getTime()+PRZES*DAY);
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1846';
+const WERSJA='20261111-1901';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 m'],[90,'+3 m'],[180,'+6 m'],[365,'+1 rok']];

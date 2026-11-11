@@ -982,3 +982,18 @@ html.okno .composer{padding-bottom:8px}
 .phone.bezanim .page,.phone.bezanim #stackwrap,.phone.bezanim #reminders,.phone.bezanim .podglad{will-change:transform}
 /* kosztowne rozmycia wyłączone na czas ruchu */
 .phone.bezanim #reminders::before,.phone.bezanim .podglad .reminders::before,.phone.bezanim .composer::before{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+
+/* ---------- gesty na telefonie ---------- */
+/* ruch poziomy zawsze trafia do aplikacji (przeglądarka przewija tylko w pionie) */
+#page,#page *,#stackwrap,#stackwrap *,#reminders,#reminders *,#chat,#chat *,#detail,#detail *,.podglad,.podglad *{touch-action:pan-y}
+#reminders .tiles{overflow:visible!important;scroll-snap-type:none}
+/* bez „gumowego” odbijania całej strony i bez gestów przeglądarki na boki */
+html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:100%}
+.page,.msgs,.sheet .body{overscroll-behavior:contain}
+.phone{touch-action:pan-y;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+/* na czas ruchu: bez połysku kart, masek i cieni, które telefon musi przerysowywać co klatkę */
+.phone.bezanim .face::after{animation:none!important}
+.phone.bezanim .page,.phone.bezanim .podglad,.phone.bezanim .msgs{-webkit-mask-image:none!important;mask-image:none!important}
+.phone.bezanim #stackwrap{clip-path:none!important}
+.phone.bezanim .card,.phone.bezanim .podglad .card{box-shadow:none!important}
+.phone.bezanim .col::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(40,90,200,.92)!important}
