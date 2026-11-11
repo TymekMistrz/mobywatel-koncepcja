@@ -72,13 +72,13 @@ const WIECEJ=[
  let TAB='dok';
 
  function listaH(items){return `<div class="plist">${items.map(([i,t,s,q])=>`<button class="prow" ${q?`data-q="${q.replace(/"/g,'&quot;')}"`:'data-soon="1"'}><span class="pic">${ico(i)}</span><span class="ptx"><b>${t}</b><small>${s}</small></span>${ico('chev','pch')}</button>`).join('')}</div>`}
- function stronaUslugi(){return `<h2 class="ph">Usługi</h2>${USLUGI.map(([g,items])=>`<div class="pgr">${g}</div>${listaH(items)}`).join('')}`}
+ function stronaUslugi(){return `${USLUGI.map(([g,items])=>`<div class="pgr">${g}</div>${listaH(items)}`).join('')}`}
  function stronaSkrzynka(){
   const t=(typeof OS!=='undefined'&&OS.tiles)||[];
-  return `<h2 class="ph">Twoje sprawy</h2><div class="pgr">Wymaga działania · ${t.length}</div>
+  return `<div class="pgr">Wymaga działania · ${t.length}</div>
    <div class="plist">${t.map(x=>`<button class="prow" data-q="${(x.q||x.h).replace(/"/g,'&quot;')}"><span class="pic ${x.u?'pil':''}">${ico(x.i==='car'?'car':x.i==='coin'?'coin':'mail')}</span><span class="ptx"><b>${x.h}</b><small class="${/termin minął|po terminie/.test(x.d)?'zle':x.u?'pilne':''}">${x.d}</small><small>${x.s||''}</small></span>${ico('chev','pch')}</button>`).join('')}</div>`}
  function stronaWiecej(){
-  return `<h2 class="ph">Więcej</h2>
+  return `
    <div class="pprof"><span class="pav" style="background-image:url(assets/foto-${OS.id}.svg)"></span><span><b>${OS.imie} ${OS.nazwisko}</b><small>${OS.opis}</small></span></div>
    ${listaH(WIECEJ)}`}
  /* pasek: przesuwający się wskaźnik pod aktywną ikoną i krótki „podskok” ikony */
@@ -91,6 +91,8 @@ const WIECEJ=[
  }
  function rysuj(){
   zaznacz(TAB);
+  /* tytuł u góry: „mObywatel” na ekranie z dokumentami, na pozostałych nazwa strony */
+  const t=$('#title');if(t)t.textContent=TAB==='dok'?'mObywatel':(ZAKLADKI.find(z=>z[0]===TAB)||[,''])[1];
   app.classList.toggle('nastronie',TAB!=='dok');
   if(TAB==='uslugi')page.innerHTML=stronaUslugi();
   if(TAB==='skrzynka')page.innerHTML=stronaSkrzynka();
@@ -113,12 +115,12 @@ const WIECEJ=[
   const dir=Math.sign(KOLEJ.indexOf(k)-KOLEJ.indexOf(TAB))||1;
   if(SPOKOJ){TAB=k;rysuj();return}
   trwa=true;
-  const stare=TAB==='dok'?widokDok():[page];
+  const stare=[...(TAB==='dok'?widokDok():[page]),$('#title')];
   zaznacz(k);                                   // pasek reaguje od razu
   await wyjedz(stare,dir);
   stare.forEach(el=>el.getAnimations().forEach(a=>a.cancel()));
   TAB=k;rysuj();
-  wjedz(TAB==='dok'?widokDok():[page],dir);
+  wjedz([...(TAB==='dok'?widokDok():[page]),$('#title')],dir);
   trwa=false;
  };
  nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)ustawZakladke(b.dataset.tab)});
