@@ -97,7 +97,7 @@ const WIECEJ=[
   zaznacz(TAB);
   /* tytuł u góry: „mObywatel” na ekranie z dokumentami, na pozostałych nazwa strony */
   const t=$('#title');if(t)t.textContent=TAB==='dok'?'mObywatel':(ZAKLADKI.find(z=>z[0]===TAB)||[,''])[1];
-  app.classList.toggle('nastronie',TAB!=='dok');
+  app.classList.toggle('nastronie',TAB!=='dok');if(TAB!=='dok')app.classList.add('ukryte');
   if(TAB==='uslugi')page.innerHTML=stronaUslugi();
   if(TAB==='skrzynka')page.innerHTML=stronaSkrzynka();
   if(TAB==='wiecej')page.innerHTML=stronaWiecej();
@@ -123,6 +123,7 @@ const WIECEJ=[
   trwa=true;
   const stare=[...(TAB==='dok'?widokDok():[page]),$('#title')];
   zaznacz(k);                                   // pasek reaguje od razu
+  if(k!=='dok')app.classList.add('ukryte');     // dane dowodu znikają, zanim ekran zacznie odjeżdżać
   await wyjedz(stare,dir);
   stare.forEach(el=>el.getAnimations().forEach(a=>a.cancel()));
   TAB=k;rysuj();
@@ -267,6 +268,7 @@ const WIECEJ=[
  window.zwinStos=function(){app.classList.add('ukryte');if(typeof SEL==='undefined'||typeof STACK_ORDER==='undefined')return;const d=STACK_ORDER.length-1;if(SEL!==d){SEL=d;if(typeof layout==='function')layout()}};
  {let byl={det:false,chat:false,skan:false};
   const sprawdz=()=>{const det=!!($('#detail')&&$('#detail').classList.contains('on')),chat=app.classList.contains('chatting'),skan=!!document.querySelector('#qrx.on');
+   if((det&&!byl.det)||(chat&&!byl.chat)||(skan&&!byl.skan))app.classList.add('ukryte');   /* wyjście z ekranu dokumentów: dane od razu zakryte */
    if((byl.det&&!det)||(byl.chat&&!chat)||(byl.skan&&!skan))zwinStos();byl={det,chat,skan}};
   new MutationObserver(sprawdz).observe(app,{attributes:true,attributeFilter:['class'],subtree:true});}
  /* w trakcie gestu poziomego nic nie przewija się w pionie (także kółkiem myszy) */
