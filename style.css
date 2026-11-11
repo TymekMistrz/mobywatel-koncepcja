@@ -753,3 +753,11 @@ html.ramka .tabbar{padding-bottom:24px}
 .page.podglad{display:block!important;pointer-events:none}
 .podglad-dok{position:absolute;inset:0;pointer-events:none;z-index:9}
 .phone .podglad-dok .stackwrap,.phone .podglad-dok .reminders{visibility:visible!important}
+
+/* przesuwające się tło w przełącznikach segmentowych */
+.seg.anim{position:relative}
+.seg.anim .seg-wsk{position:absolute;left:0;top:0;border-radius:11px;background:#fff;pointer-events:none;
+  transition:transform .32s cubic-bezier(.3,1.15,.4,1),width .32s cubic-bezier(.3,1.15,.4,1)}
+.seg.light.anim .seg-wsk{box-shadow:0 1px 3px rgba(15,25,60,.12)}
+.seg.anim button{position:relative;z-index:1;transition:color .25s}
+.seg.anim button.on{background:transparent!important;box-shadow:none!important}

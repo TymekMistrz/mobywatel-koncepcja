@@ -212,6 +212,17 @@ const WIECEJ=[
  {const det=$('#detail');if(det)gestZamkniecia(det,'x',()=>det.classList.remove('on'))}
  /* skaner tworzy się przy pierwszym otwarciu — gest podpinamy, gdy się pojawi */
  new MutationObserver(()=>{const q=$('#qrx');if(q&&!q.dataset.gest){q.dataset.gest=1;gestZamkniecia(q,'y',()=>{if(typeof pFinish==='function')pFinish({ok:false})})}}).observe(app,{childList:true});
+ /* ---------- przełączniki segmentowe (np. Tożsamość / Pełnoletność / Prawo jazdy): przesuwające się tło ---------- */
+ function segAnim(seg){
+  if(seg.dataset.anim)return;seg.dataset.anim=1;seg.classList.add('anim');
+  const w=document.createElement('span');w.className='seg-wsk';w.setAttribute('aria-hidden','true');seg.prepend(w);
+  const ustaw=plynnie=>{const b=seg.querySelector('button.on');if(!b)return;
+   w.style.transition=plynnie&&!SPOKOJ?'':'none';w.style.width=b.offsetWidth+'px';w.style.height=b.offsetHeight+'px';w.style.transform=`translate(${b.offsetLeft}px,${b.offsetTop}px)`};
+  requestAnimationFrame(()=>ustaw(false));
+  seg.addEventListener('click',()=>requestAnimationFrame(()=>ustaw(true)));
+ }
+ const szukajSeg=()=>app.querySelectorAll('.seg:not([data-anim])').forEach(segAnim);
+ new MutationObserver(szukajSeg).observe(app,{childList:true,subtree:true});szukajSeg();
  /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
  const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
   const det=$('#detail');if(det)det.classList.remove('on');
