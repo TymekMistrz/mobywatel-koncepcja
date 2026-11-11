@@ -114,12 +114,14 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
   </main>
 </div>
 
-<script src="osoby.js?v=21"></script>
+<script src="osoby.js?v=20261111-1542"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
    ========================================================= */
 const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
+/* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
+const WERSJA='20261111-1542';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Start'],[14,'+2 tyg.'],[30,'+1 m.'],[90,'+3 m.'],[180,'+6 m.'],[365,'+1 rok']];
@@ -157,7 +159,7 @@ function fitEvents(){const box=$('#events');const items=[...box.children];if(!it
   box.innerHTML='';[...up,...past].forEach(e=>box.append(e));
   while(box.children.length>1&&box.scrollHeight>box.clientHeight+1)box.lastElementChild.remove();
   [...box.children].sort((a,b)=>+a.dataset.d-+b.dataset.d).forEach(e=>box.append(e));}
-function appURL(){return `app.html?osoba=${S.osoba}&dzien=${S.dzien}`}
+function appURL(){return `app.html?osoba=${S.osoba}&dzien=${S.dzien}&v=${WERSJA}`}
 let last='';
 function load(){
   const u=appURL(); if(u===last)return; last=u;
