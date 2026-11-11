@@ -976,3 +976,9 @@ html.okno .composer{padding-bottom:8px}
 .title{transition:opacity .3s ease,transform var(--czat-t) var(--czat-e)!important}
 .phone.chatting .title{left:62px!important;transform:translateX(34px)!important}
 .phone.chatting .chatonly{animation:fadein .6s ease}
+
+/* ---------- gesty i zmiana zakładek: element idzie dokładnie za palcem (bez przejść CSS, które „doganiały” pozycję) ---------- */
+.phone.bezanim .page,.phone.bezanim #stackwrap,.phone.bezanim #reminders,.phone.bezanim .podglad,.phone.bezanim .podglad *,.phone.bezanim .title,.phone.bezanim .card{transition:none!important}
+.phone.bezanim .page,.phone.bezanim #stackwrap,.phone.bezanim #reminders,.phone.bezanim .podglad{will-change:transform}
+/* kosztowne rozmycia wyłączone na czas ruchu */
+.phone.bezanim #reminders::before,.phone.bezanim .podglad .reminders::before,.phone.bezanim .composer::before{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}

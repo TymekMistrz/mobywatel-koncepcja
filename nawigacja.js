@@ -120,7 +120,7 @@ const WIECEJ=[
   if(k===TAB||trwa){TAB=k;rysuj();return}
   const dir=Math.sign(KOLEJ.indexOf(k)-KOLEJ.indexOf(TAB))||1;
   if(SPOKOJ){TAB=k;rysuj();return}
-  trwa=true;
+  trwa=true;app.classList.add('bezanim');
   const stare=[...(TAB==='dok'?widokDok():[page]),$('#title')];
   zaznacz(k);                                   // pasek reaguje od razu
   if(k!=='dok')app.classList.add('ukryte');     // dane dowodu znikają, zanim ekran zacznie odjeżdżać
@@ -128,7 +128,7 @@ const WIECEJ=[
   stare.forEach(el=>el.getAnimations().forEach(a=>a.cancel()));
   TAB=k;rysuj();
   wjedz([...(TAB==='dok'?widokDok():[page]),$('#title')],dir);
-  trwa=false;
+  trwa=false;setTimeout(()=>app.classList.remove('bezanim'),360);
  };
  nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)ustawZakladke(b.dataset.tab)});
  page.addEventListener('click',e=>{
@@ -189,7 +189,7 @@ const WIECEJ=[
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}   // przycisk puszczony poza ekranem telefonu
    const dx=e.clientX-g.x,dy=e.clientY-g.y;
    {const n=performance.now();if(n-g.lt>0){g.v=.6*g.v+.4*((e.clientX-g.lx)/(n-g.lt))}g.lx=e.clientX;g.lt=n}
-   if(g.poziom===null&&Math.hypot(dx,dy)>10){g.poziom=Math.abs(dx)>Math.abs(dy)*1.3;if(g.poziom){app.classList.add('gest');try{app.setPointerCapture(e.pointerId)}catch(_){}}}
+   if(g.poziom===null&&Math.hypot(dx,dy)>10){g.poziom=Math.abs(dx)>Math.abs(dy)*1.3;if(g.poziom){app.classList.add('gest','bezanim');try{app.setPointerCapture(e.pointerId)}catch(_){}}}
    if(!g.poziom)return;
    const i=KOLEJ.indexOf(TAB),k=dx<0?KOLEJ[i+1]:KOLEJ[i-1],W=app.clientWidth;
    if(g.cel!==k){if(g.pg){g.pg.remove();g.pg=null}g.cel=k;if(k)g.pg=zrobPodglad(k)}
@@ -199,7 +199,7 @@ const WIECEJ=[
    const t=$('#title');if(t)t.style.opacity=String(Math.max(0,1-Math.abs(dx)/(W*.45)));
   },true);
   async function koniec(e){
-   if(!g)return;const {x,t,poziom,cel,pg,v:vk,lt}=g;g=null;app.classList.remove('gest');try{app.releasePointerCapture(e.pointerId)}catch(_){}if(!poziom){if(pg)pg.remove();return}
+   if(!g)return;const {x,t,poziom,cel,pg,v:vk,lt}=g;g=null;app.classList.remove('gest');if(!poziom)app.classList.remove('bezanim');try{app.releasePointerCapture(e.pointerId)}catch(_){}if(!poziom){if(pg)pg.remove();return}
    const dx=(e.clientX??x)-x,v=Math.abs(dx)/Math.max(1,performance.now()-t),W=app.clientWidth,tyt=$('#title');
    const stare=biezace();
    /* decyzja jak na telefonie: gdzie strona „dojechałaby” rozpędem (pozycja + prędkość przy puszczeniu).
@@ -212,11 +212,12 @@ const WIECEJ=[
     TAB=cel;rysuj();                                  // prawdziwa strona dokładnie w miejscu podglądu
     sprzataj([...stare,...biezace()]);pg.remove();
     if(tyt){tyt.style.opacity='';tyt.animate([{opacity:0},{opacity:1}],{duration:200})}
-    trwa=false;return;
+    trwa=false;requestAnimationFrame(()=>requestAnimationFrame(()=>app.classList.remove('bezanim')));return;
    }
    /* za krótko: wszystko wraca na miejsce */
    await Promise.all([...stare.map(el=>jedz(el,0)),...(pg?[jedz(pg,dx<0?W:-W)]:[])]);
    sprzataj(stare);if(pg)pg.remove();if(tyt)tyt.style.opacity='';
+   requestAnimationFrame(()=>requestAnimationFrame(()=>app.classList.remove('bezanim')));
   }
   app.addEventListener('lostpointercapture',e=>{if(g&&g.poziom)koniec(e)});
   app.addEventListener('pointerup',koniec,true);app.addEventListener('pointercancel',koniec,true);
