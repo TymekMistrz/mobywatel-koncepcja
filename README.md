@@ -23,7 +23,7 @@ Każdy commit na gałęzi `main` pojawia się pod tym adresem po ok. minucie.
 | `scenarios.js` | scenariusze rozmów (zgubiony portfel, stłuczka, OC…) |
 | `core.js` | stos kart, szczegóły dokumentu, czat |
 | `variants.js` | stały układ „stos” |
-| `nawigacja.js` | dolny pasek (Dokumenty, Usługi, Skanuj, Skrzynka, Więcej) i treść tych stron |
+| `nawigacja.js` | dolny pasek (Dokumenty, Usługi, Skanuj, Twoje sprawy, Więcej) i treść tych stron |
 | `assets/` | grafiki |
 
 Parametry adresu: `?osoba=marta|jan|ewa|kacper`, `?dzien=N`.

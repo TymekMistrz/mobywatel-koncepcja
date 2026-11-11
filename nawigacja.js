@@ -1,5 +1,5 @@
 /* ---------- Dolny pasek nawigacji i strony aplikacji ----------
-   Zakładki: Dokumenty (ekran startowy ze stosem kart), Usługi, Skanuj, Skrzynka, Więcej.
+   Zakładki: Dokumenty (ekran startowy ze stosem kart), Usługi, Skanuj, Twoje sprawy, Więcej.
    Pole „Co chcesz załatwić?” jest zawsze nad paskiem — rozmowa z asystentem działa z każdej strony.
    Treść stron (listy usług, menu „Więcej”) zmieniasz w tablicach poniżej. */
 
@@ -62,7 +62,7 @@ const WIECEJ=[
   chev:'<path d="m9.5 6 6 6-6 6"/>',
  };
  const ico=(k,cls='')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IK[k]||''}</svg>`;
- const ZAKLADKI=[['dok','Dokumenty','docs'],['uslugi','Usługi','grid'],['skan','Skanuj','scan'],['skrzynka','Skrzynka','mail'],['wiecej','Więcej','more']];
+ const ZAKLADKI=[['dok','Dokumenty','docs'],['uslugi','Usługi','grid'],['skan','Skanuj','scan'],['skrzynka','Twoje sprawy','mail'],['wiecej','Więcej','more']];
 
  /* elementy w DOM */
  const page=document.createElement('section');page.className='page';page.id='page';page.setAttribute('aria-live','polite');
@@ -75,7 +75,7 @@ const WIECEJ=[
  function stronaUslugi(){return `<h2 class="ph">Usługi</h2>${USLUGI.map(([g,items])=>`<div class="pgr">${g}</div>${listaH(items)}`).join('')}`}
  function stronaSkrzynka(){
   const t=(typeof OS!=='undefined'&&OS.tiles)||[];
-  return `<h2 class="ph">Skrzynka</h2><div class="pgr">Wymaga działania · ${t.length}</div>
+  return `<h2 class="ph">Twoje sprawy</h2><div class="pgr">Wymaga działania · ${t.length}</div>
    <div class="plist">${t.map(x=>`<button class="prow" data-q="${(x.q||x.h).replace(/"/g,'&quot;')}"><span class="pic ${x.u?'pil':''}">${ico(x.i==='car'?'car':x.i==='coin'?'coin':'mail')}</span><span class="ptx"><b>${x.h}</b><small class="${/termin minął|po terminie/.test(x.d)?'zle':x.u?'pilne':''}">${x.d}</small><small>${x.s||''}</small></span>${ico('chev','pch')}</button>`).join('')}</div>`}
  function stronaWiecej(){
   return `<h2 class="ph">Więcej</h2>
@@ -105,7 +105,7 @@ const WIECEJ=[
  const wroc=()=>{if(TAB!=='dok'){TAB='dok';rysuj()}};
  $('#composer').addEventListener('submit',wroc,true);
  ['#mic','#cam'].forEach(s=>{const b=$(s);b&&b.addEventListener('click',wroc,true)});
- /* koperta w nagłówku otwiera Skrzynkę */
+ /* koperta w nagłówku otwiera „Twoje sprawy” */
  const mb=$('#mailBtn');if(mb)mb.onclick=()=>ustawZakladke('skrzynka');
  rysuj();
  if(typeof layout==='function')layout();

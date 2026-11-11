@@ -706,3 +706,13 @@ html.ramka .tabbar{padding-bottom:24px}
 .auth.done .okc{transition:stroke-dashoffset .45s cubic-bezier(.4,0,.2,1) .05s;stroke-dashoffset:0}
 .auth.done .okp{transition:stroke-dashoffset .3s cubic-bezier(.4,0,.2,1) .38s;stroke-dashoffset:0}
 .auth.done .fid{animation:none}
+
+/* ---------- daty po terminie / blisko terminu: zaznaczone kolorem, bez dopisków ---------- */
+.face .dl b.zle,.face .dl b.blisko{display:inline-block;width:max-content;max-width:100%;border-radius:.9cqw;padding:0 1.2cqw;margin-left:-1.2cqw}
+.face .dl b.zle{background:#fff;color:#c8102e}
+.face .dl b.blisko{background:#ffe7a8;color:#7a4b00}
+.ui .row b.zle{color:#c8102e;font-weight:600}
+.ui .row b.zle::before,.ui .row b.blisko::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px;background:#c8102e}
+.ui .row b.blisko{color:#9a5b00;font-weight:600}.ui .row b.blisko::before{background:#e19a1c}
+/* kafelek „Wymagane akcje” — gdy nic nie jest po terminie, licznik jest spokojniejszy */
+.rsum .rdot.spok{background:#e19a1c}

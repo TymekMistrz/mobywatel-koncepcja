@@ -46,7 +46,7 @@ const PRIV=(full,short)=>`<span class="pvf">${full}</span><span class="pvs">${sh
 const REVEAL='<span class="reveal" role="button" tabindex="0" aria-label="Pokaż dane z dowodu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg>Pokaż dane</span>';
 function shortName(n){const p=n.split(' ');return p.length>1?p.slice(0,-1).join(' '):n}
 function faceHTML(d){
- const cells=d.f.map(([k,v])=>`<span><small>${k}</small><b>${v}</b></span>`).join('');
+ const cells=d.f.map(p=>`<span><small>${p[0]}</small><b class="${p.stan||''}">${p[1]}</b></span>`).join('');
  const ttl=`<span class="ttl">${d.name}</span>`;
  if(d.plate)return `<span class="face">${ttl}${sylH(d)}<span class="ov veh">${plateH(d.plate)}<span class="col"><span class="nm">${d.holder}</span><span class="dl">${cells}</span></span></span></span>`;
  return `<span class="face">${ttl}${d.id==='dowod'?LIVE:''}<span class="ov">${d.photo?PHOTO:''}<span class="col">${d.id==='dowod'?`<span class="nm">${PRIV(d.holder,shortName(d.holder))}</span><span class="dl pv">${cells}</span>${REVEAL}`:`<span class="nm">${d.holder}</span><span class="dl">${cells}</span>`}</span></span></span>`;
@@ -106,7 +106,12 @@ window.addEventListener('resize',layout);
 
 /* ---------- przypomnienia ---------- */
 const TILES=OS.tiles;
-{const t=TILES[0],n=TILES.length-1;const b=document.createElement('button');b.className='rsum';b.setAttribute('aria-label','Do załatwienia: '+TILES.length+' sprawy');b.innerHTML=`<span class="rdot">${TILES.length}</span><span class="tx"><b>${t.h}</b><small><em>${t.d}</em> · i ${n} inne sprawy</small></span>${svg('chev')}`;b.onclick=openTodo;$('#tiles').append(b)}
+{/* „Wymagane akcje”: liczba spraw; kliknięcie otwiera zakładkę „Twoje sprawy” (nawigacja.js) */
+ const n=TILES.length,pilne=TILES.some(t=>/termin minął|po terminie|nieważn|wygasło/i.test(t.d||''));
+ const ile=n===1?'1 sprawa czeka':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?n+' sprawy czekają':n+' spraw czeka';
+ const b=document.createElement('button');b.className='rsum';b.setAttribute('aria-label','Wymagane akcje: '+ile);
+ b.innerHTML=`<span class="rdot${pilne?'':' spok'}">${n}</span><span class="tx"><b>Wymagane akcje</b><small>${ile} na Ciebie</small></span>${svg('chev')}`;
+ b.onclick=()=>{if(typeof ustawZakladke==='function')ustawZakladke('skrzynka');else openTodo()};$('#tiles').append(b)}
 
 /* ---------- szczegóły dokumentu ---------- */
 function qrSVG(seed=7){
@@ -115,7 +120,7 @@ function qrSVG(seed=7){
  for(let y=0;y<n;y++)for(let x=0;x<n;x++){if((x<8&&y<8)||(x>16&&y<8)||(x<8&&y>16))continue;if(r()>.52)p+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}
  return `<svg viewBox="-1 -1 27 27" fill="currentColor" shape-rendering="crispEdges">${p}${fin(0.5,0.5)}${fin(18.5,0.5)}${fin(0.5,18.5)}</svg>`;
 }
-function rowsH(rows){return rows.map(([k,v])=>`<div class="row"><span>${k}</span><b>${v}</b></div>`).join('')}
+function rowsH(rows){return rows.map(p=>`<div class="row"><span>${p[0]}</span><b class="${p.stan||''}">${p[1]}</b></div>`).join('')}
 function openDoc(id){
  const d=DOCS.find(x=>x.id===id),det=$('#detail');
  const top=getComputedStyle($('.status')).display!=='none'?50:6;

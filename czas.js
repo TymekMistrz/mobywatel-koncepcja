@@ -38,7 +38,8 @@
  const LBL=/ważn|^OC|^Badanie|wymiana/i;
  function walk(o){
   if(Array.isArray(o)){
-   if(o.length===2&&typeof o[0]==='string'&&typeof o[1]==='string'&&LBL.test(o[0])&&/^\d{2}\.\d{2}\.\d{4}$/.test(o[1])){const d=parse(o[1]);if(left(d)<0)o[1]+=' · po terminie'}
+   /* para [etykieta, data]: zapamiętaj stan, żeby karta i lista zaznaczyły datę kolorem (bez dopisku) */
+   if(o.length===2&&typeof o[0]==='string'&&typeof o[1]==='string'&&LBL.test(o[0])){const d=parse(o[1]);if(d){const x=left(d);o.stan=x<0?'zle':x<=30?'blisko':''}}
    o.forEach((v,i)=>{if(typeof v==='string')o[i]=rel(v);else if(v&&typeof v==='object')walk(v)});return;
   }
   for(const k in o){const v=o[k];if(typeof v==='string'&&!/emerytal/.test(v))o[k]=rel(v);else if(v&&typeof v==='object')walk(v)}
