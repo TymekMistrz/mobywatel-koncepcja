@@ -157,10 +157,11 @@ const WIECEJ=[
   const jedz=(el,do_)=>el.animate([{transform:el.style.transform||'translateX(0)'},{transform:`translateX(${do_}px)`}],{duration:260,easing:EASE,fill:'forwards'}).finished;
   const sprzataj=els=>els.forEach(el=>{el.getAnimations().forEach(a=>a.cancel());el.style.transform='';el.style.opacity=''});
   let g=null;
-  app.addEventListener('pointerdown',e=>{if(!strefa(e)||zajete()||(e.pointerType==='mouse'&&e.button!==0))return;g={x:e.clientX,y:e.clientY,t:performance.now(),poziom:null,cel:undefined,pg:null}},true);
+  app.addEventListener('pointerdown',e=>{if(!strefa(e)||zajete()||(e.pointerType==='mouse'&&e.button!==0))return;g={x:e.clientX,y:e.clientY,t:performance.now(),poziom:null,cel:undefined,pg:null,lx:e.clientX,lt:performance.now(),v:0}},true);
   app.addEventListener('pointermove',e=>{
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}   // przycisk puszczony poza ekranem telefonu
    const dx=e.clientX-g.x,dy=e.clientY-g.y;
+   {const n=performance.now();if(n-g.lt>0){g.v=.6*g.v+.4*((e.clientX-g.lx)/(n-g.lt))}g.lx=e.clientX;g.lt=n}
    if(g.poziom===null&&Math.hypot(dx,dy)>10){g.poziom=Math.abs(dx)>Math.abs(dy)*1.3;if(g.poziom)try{app.setPointerCapture(e.pointerId)}catch(_){}}
    if(!g.poziom)return;
    const i=KOLEJ.indexOf(TAB),k=dx<0?KOLEJ[i+1]:KOLEJ[i-1],W=app.clientWidth;
@@ -171,10 +172,13 @@ const WIECEJ=[
    const t=$('#title');if(t)t.style.opacity=String(Math.max(0,1-Math.abs(dx)/(W*.45)));
   },true);
   async function koniec(e){
-   if(!g)return;const {x,t,poziom,cel,pg}=g;g=null;try{app.releasePointerCapture(e.pointerId)}catch(_){}if(!poziom){if(pg)pg.remove();return}
+   if(!g)return;const {x,t,poziom,cel,pg,v:vk,lt}=g;g=null;try{app.releasePointerCapture(e.pointerId)}catch(_){}if(!poziom){if(pg)pg.remove();return}
    const dx=(e.clientX??x)-x,v=Math.abs(dx)/Math.max(1,performance.now()-t),W=app.clientWidth,tyt=$('#title');
    const stare=biezace();
-   if(cel&&pg&&(Math.abs(dx)>W*.25||(v>.45&&Math.abs(dx)>30))){
+   /* decyzja jak na telefonie: gdzie strona „dojechałaby” rozpędem (pozycja + prędkość przy puszczeniu).
+      Za mały lub zawrócony ruch → strona wraca; przejście tylko, gdy rzut mija połowę ekranu w tę samą stronę. */
+   const vp=performance.now()-lt>90?0:vk,rzut=dx+vp*200;
+   if(cel&&pg&&Math.abs(dx)>24&&Math.sign(rzut)===Math.sign(dx)&&Math.abs(rzut)>W*.5){
     trwa=true;zaznacz(cel);const s=dx<0?-1:1;
     await Promise.all([...stare.map(el=>jedz(el,s*W)),jedz(pg,0)]);
     TAB=cel;rysuj();                                  // prawdziwa strona dokładnie w miejscu podglądu
@@ -193,19 +197,21 @@ const WIECEJ=[
  function gestZamkniecia(el,os,zamknij){
   let g=null;
   el.style.touchAction=os==='x'?'pan-y':'pan-x';
-  el.addEventListener('pointerdown',e=>{if(!el.classList.contains('on')||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('input,textarea'))return;g={x:e.clientX,y:e.clientY,t:performance.now(),moje:null}});
+  el.addEventListener('pointerdown',e=>{if(!el.classList.contains('on')||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('input,textarea'))return;g={x:e.clientX,y:e.clientY,t:performance.now(),moje:null,lp:os==='x'?e.clientX:e.clientY,lt:performance.now(),v:0}});
   el.addEventListener('pointermove',e=>{
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}
    const dx=e.clientX-g.x,dy=e.clientY-g.y,d=os==='x'?dx:dy,inny=os==='x'?dy:dx;
+   {const n=performance.now(),p=os==='x'?e.clientX:e.clientY;if(n-g.lt>0)g.v=.6*g.v+.4*((p-g.lp)/(n-g.lt));g.lp=p;g.lt=n}
    if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=d>0&&Math.abs(d)>Math.abs(inny)*1.3;if(g.moje)try{el.setPointerCapture(e.pointerId)}catch(_){}}
    if(!g.moje)return;
    el.style.transition='none';el.style.transform=os==='x'?`translateX(${Math.max(0,d)}px)`:`translateY(${Math.max(0,d)}px)`;
    if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.transition='none';x.style.transform=`translateX(${-22+22*Math.min(1,Math.max(0,d)/el.offsetWidth)}%)`});
   });
   function koniec(e){
-   if(!g)return;const {x,y,t,moje}=g;g=null;try{el.releasePointerCapture(e.pointerId)}catch(_){}if(!moje)return;
+   if(!g)return;const {x,y,t,moje,v:vk,lt}=g;g=null;try{el.releasePointerCapture(e.pointerId)}catch(_){}if(!moje)return;
    const d=os==='x'?(e.clientX??x)-x:(e.clientY??y)-y,v=d/Math.max(1,performance.now()-t),dl=os==='x'?el.offsetWidth:el.offsetHeight;
-   const zamyka=d>dl*.3||(v>.5&&d>40);
+   const vp=performance.now()-lt>90?0:vk,rzut=d+vp*200;
+   const zamyka=d>24&&rzut>dl*.5;          // zamyka tylko, gdy ruch „dojechałby” za połowę ekranu
    el.style.transition='';void el.offsetWidth;el.style.transform='';
    if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.transition='';x.style.transform=''});
    if(zamyka)zamknij();
