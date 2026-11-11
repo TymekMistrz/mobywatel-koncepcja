@@ -23,6 +23,9 @@ Każdy commit na gałęzi `main` pojawia się pod tym adresem po ok. minucie.
 | `scenarios.js` | scenariusze rozmów (zgubiony portfel, stłuczka, OC…) |
 | `core.js` | stos kart, szczegóły dokumentu, czat |
 | `variants.js` | stały układ „stos” |
+| `dane.js` | dane bieżącej osoby dla asystenta (miasto, urzędy, dokumenty, terminy) |
+| `asystent-osoby.js` | odpowiedzi asystenta dopasowane do osoby i daty w aplikacji |
+| `sprawy.js` | ekrany sprawy, usługi i sekcji „Więcej” (w tym „Kto sprawdzał moje dane”) |
 | `nawigacja.js` | dolny pasek (Dokumenty, Usługi, Twoje sprawy, Więcej) i przycisk „Skanuj” w nagłówku i treść tych stron |
 | `assets/` | grafiki |
 

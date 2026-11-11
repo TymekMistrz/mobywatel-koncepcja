@@ -73,7 +73,7 @@
  const dd=x=>String(x).padStart(2,'0');
  function przesunTekst(t){
   if(!PRZES||!/\d{2}\.\d{2}/.test(t)||/emerytal/i.test(t))return t;
-  return t.replace(/(^|[^\d.,])(\d{2})\.(\d{2})(?:\.(\d{4}))?(?![\d,]|\.\d)/g,(m,pre,d,mo,y)=>{
+  return t.replace(/(^|[^\d.,])(\d{2})\.(\d{2})(?:\.(\d{4}))?(?!\d|[.,]\d)/g,(m,pre,d,mo,y)=>{
    if(y&&+y<2025)return m;                                   // daty urodzenia itp. zostają
    const rok=y?+y:(+mo>=7?2026:2027);
    const nd=new RD(rok,+mo-1,+d+PRZES);
@@ -82,7 +82,7 @@
  }
  const zrobione=new WeakMap();
  function obrob(node){
-  if(node.nodeType===3){const t=node.data;if(zrobione.get(node)===t)return;const u=przesunTekst(t);if(u!==t)node.data=u;zrobione.set(node,node.data);return}
+  if(node.nodeType===3){if(node.parentElement&&node.parentElement.closest('[data-stala]'))return;const t=node.data;if(zrobione.get(node)===t)return;const u=przesunTekst(t);if(u!==t)node.data=u;zrobione.set(node,node.data);return}
   if(node.nodeType===1&&!/^(SCRIPT|STYLE|TEXTAREA|INPUT)$/.test(node.nodeName)){const w=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);let x;while((x=w.nextNode()))obrob(x)}
  }
  if(PRZES){

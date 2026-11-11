@@ -79,7 +79,7 @@ const WIECEJ=[
  function stronaSkrzynka(){
   const t=(typeof OS!=='undefined'&&OS.tiles)||[];
   return `<div class="pgr">Wymaga działania · ${t.length}</div>
-   <div class="plist">${t.map(x=>`<button class="prow" data-q="${(x.q||x.h).replace(/"/g,'&quot;')}"><span class="pic ${x.u?'pil':''}">${ico(x.i==='car'?'car':x.i==='coin'?'coin':'mail')}</span><span class="ptx"><b>${x.h}</b><small class="${/termin minął|po terminie/.test(x.d)?'zle':x.u?'pilne':''}">${x.d}</small><small>${x.s||''}</small></span>${ico('chev','pch')}</button>`).join('')}</div>`}
+   <div class="plist">${t.map((x,i)=>`<button class="prow" data-s="${i}" data-q="${(x.q||x.h).replace(/"/g,'&quot;')}"><span class="pic ${x.u?'pil':''}">${ico(x.i==='car'?'car':x.i==='coin'?'coin':'mail')}</span><span class="ptx"><b>${x.h}</b>${window.ZALATWIONE&&ZALATWIONE.has(x.h)?'<small class="gotowe">Załatwione</small>':`<small class="${/termin minął|po terminie/.test(x.d)?'zle':x.u?'pilne':''}">${x.d}</small>`}<small>${x.s||''}</small></span>${ico('chev','pch')}</button>`).join('')}</div>`}
  function stronaWiecej(){
   return `
    <div class="pprof"><span class="pav" style="background-image:url(assets/foto-${OS.id}.svg)"></span><span><b>${OS.imie} ${OS.nazwisko}</b><small>${OS.opis.split(',').slice(0,2).join(',')}</small></span></div>
@@ -147,8 +147,13 @@ const WIECEJ=[
  nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)ustawZakladke(b.dataset.tab)});
  page.addEventListener('click',e=>{
   const r=e.target.closest('.prow');if(!r)return;
-  if(r.dataset.q){przedCzatem=TAB;TAB='dok';rysuj();startTopic(r.dataset.q);return}
-  komunikat((r.querySelector('.ptx b')||{}).textContent||'Ta funkcja');
+  /* każda pozycja otwiera najpierw swój ekran (sprawy.js); rozmowa to jedna z akcji na nim */
+  const nazwa=(r.querySelector('.ptx b')||{}).textContent||'';
+  if(r.dataset.s!==undefined&&window.otworzSprawe){otworzSprawe(+r.dataset.s);return}
+  if(TAB==='uslugi'&&window.otworzUsluge){otworzUsluge(nazwa,r.dataset.q);return}
+  if(TAB==='wiecej'&&window.otworzWiecej){otworzWiecej(nazwa);return}
+  if(r.dataset.q){window.doCzatu(r.dataset.q);return}
+  komunikat(nazwa||'Ta funkcja');
  });
  /* okienko „funkcja niedostępna w prototypie” (dla pozycji, których jeszcze nie zaprojektowano) */
  const modal=document.createElement('div');modal.className='alertm';modal.setAttribute('aria-hidden','true');
@@ -168,6 +173,8 @@ const WIECEJ=[
  let przedCzatem='dok';
  const wroc=()=>{if(!app.classList.contains('chatting'))przedCzatem=TAB;if(TAB!=='dok'){TAB='dok';rysuj()}};
  window.zapamietajPrzedCzatem=k=>{przedCzatem=k};
+ window.odswiezStrone=()=>{if(TAB==='dok')return;const st=page.scrollTop;rysuj();page.scrollTop=st};
+ window.doCzatu=q=>{const sp=$('#sprawa');if(sp)sp.classList.remove('on');przedCzatem=TAB;TAB='dok';rysuj();startTopic(q)};
  /* wyjście z rozmowy: powrót do widoku sprzed wejścia w czat */
  window.wyjdzZCzatu=()=>{exitChat();const k=przedCzatem;przedCzatem='dok';if(k!=='dok')ustawZakladke(k)};
  const ex=$('#exitChatBtn');if(ex)ex.onclick=()=>wyjdzZCzatu();
@@ -184,7 +191,7 @@ const WIECEJ=[
     Podczas przeciągania obok widać już sąsiednią stronę (podgląd), która wjeżdża razem z palcem. */
  {
   const strefa=e=>e.target.closest&&e.target.closest('#page,#stackwrap,#reminders');
-  const zajete=()=>app.classList.contains('chatting')||app.classList.contains('todo')||($('#detail')&&$('#detail').classList.contains('on'))||($('#qrx')&&$('#qrx').classList.contains('on'))||trwa;
+  const zajete=()=>app.classList.contains('chatting')||app.classList.contains('todo')||($('#detail')&&$('#detail').classList.contains('on'))||($('#qrx')&&$('#qrx').classList.contains('on'))||($('#sprawa')&&$('#sprawa').classList.contains('on'))||trwa;
   const biezace=()=>TAB==='dok'?widokDok():[page];
   const tresc=k=>k==='uslugi'?stronaUslugi():k==='skrzynka'?stronaSkrzynka():stronaWiecej();
   function zrobPodglad(k){
@@ -238,6 +245,7 @@ const WIECEJ=[
   gestEv(app,'pointerup',koniec,true);gestEv(app,'pointercancel',koniec,true);
  }
  /* ---------- gest powrotu: szczegóły dokumentu przeciągnij w prawo, skaner przeciągnij w dół ---------- */
+ window.gestZamkniecia=(...a)=>gestZamkniecia(...a);
  function gestZamkniecia(el,os,zamknij){
   let g=null;
   el.style.touchAction=os==='x'?'pan-y':'pan-x';
@@ -320,7 +328,7 @@ const WIECEJ=[
  }
  /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
  const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
-  const det=$('#detail');if(det)det.classList.remove('on');
+  const det=$('#detail');if(det)det.classList.remove('on');const sp=$('#sprawa');if(sp)sp.classList.remove('on');
   if(typeof pFinish==='function')try{pFinish({ok:false})}catch(e){}
   if(typeof closeTodo==='function')try{closeTodo()}catch(e){}
   if(app.classList.contains('chatting'))exitChat();
