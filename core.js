@@ -84,7 +84,7 @@ function layout(){
  const cards=[...document.querySelectorAll('.card')];
  if(chatting){
   const pocket=78;
-  $('#stackwrap').style.top=stackTop+'px';$('#stackwrap').style.height=pocket+'px';$('#stackwrap').style.overflow='hidden';
+  $('#stackwrap').style.top=stackTop+'px';$('#stackwrap').style.height=pocket+'px';$('#stackwrap').style.overflow='hidden';$('#stackwrap').style.clipPath='';
   cards.forEach((c,i)=>{const j=n-1-i;c.style.zIndex=i+1;c.style.top=(j*7)+'px';c.style.transform=`scale(${.975-j*0.025})`;c.style.transformOrigin='50% 0'});
   const ct=T+52;$('#chat').style.top=ct+'px';$('#chat').style.height=(H-ct-comp+14)+'px';
  }else{
@@ -93,9 +93,12 @@ function layout(){
   let pB=below?Math.min(off,44):0,offA=above?Math.min(off,(space-below*pB)/above):0;
   if(above&&offA<26){offA=26;pB=below?Math.max(14,(space-above*offA)/below):0}
   const selTop=sel*offA;
-  $('#stackwrap').style.top=stackTop+'px';$('#stackwrap').style.height=(below?avail:((n-1)*offA+cardH))+'px';$('#stackwrap').style.overflow=below?'hidden':'visible';
+  /* karty sięgają aż do kafelka „Wymagane akcje” i chowają się pod nim płynnie (zanikanie w style.css: #reminders::before) */
+  $('#stackwrap').style.top=stackTop+'px';$('#stackwrap').style.height=(avail+14)+'px';$('#stackwrap').style.overflow='visible';$('#stackwrap').style.clipPath='inset(-40px -40px 0 -40px)';
   cards.forEach((c,i)=>{c.style.zIndex=i+1;c.style.transform='none';c.classList.toggle('sel',i===sel);
    c.style.top=(i<=sel?i*offA:selTop+cardH+10+(i-sel-1)*pB)+'px'});
+  /* zanikanie pod kafelkiem tylko wtedy, gdy karty faktycznie tam sięgają */
+  app.classList.toggle('stospod',below>0||((n-1)*offA+cardH)>avail+2);
   const ct=T+54+80;$('#chat').style.top=ct+'px';$('#chat').style.height=(H-ct-comp+14)+'px';
  }
  let used=(n-1)*off+cardH;
