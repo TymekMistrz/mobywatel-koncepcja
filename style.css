@@ -869,3 +869,8 @@ html.okno .composer{padding-bottom:8px}
 #app.ukryte .face .reveal:hover{background:transparent}
 #app.ukryte .face .reveal:active{transform:translate(-50%,-50%) scale(.9)}
 #app.ukryte .face .reveal{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-radius:0}
+
+/* czat: zanikanie nad polem tylko, gdy niżej jest ukryta treść */
+.composer::before{transition:opacity .2s}
+.phone.chatting .composer::before{opacity:0}
+.phone.chatting.czatdol .composer::before{opacity:1}

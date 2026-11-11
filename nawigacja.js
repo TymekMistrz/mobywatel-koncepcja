@@ -272,6 +272,10 @@ const WIECEJ=[
  app.addEventListener('wheel',e=>{if(app.classList.contains('gest'))e.preventDefault()},{passive:false,capture:true});
  /* po zminimalizowaniu / przełączeniu karty dane dowodu znów się rozmywają */
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')app.classList.add('ukryte')});
+ /* czat: rozmycie nad polem tylko wtedy, gdy pod nim jest jeszcze treść (nie jesteśmy na samym dole) */
+ const czatDol=()=>{const m=[...document.querySelectorAll('.msgs')].find(x=>x.offsetParent);const ukryta=!!m&&m.scrollHeight-m.scrollTop-m.clientHeight>4;app.classList.toggle('czatdol',ukryta)};
+ document.addEventListener('scroll',e=>{if(e.target.classList&&e.target.classList.contains('msgs'))czatDol()},true);
+ new MutationObserver(()=>requestAnimationFrame(czatDol)).observe(app,{childList:true,subtree:true});
  /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
  const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
   const det=$('#detail');if(det)det.classList.remove('on');
