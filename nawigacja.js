@@ -161,6 +161,31 @@ const WIECEJ=[
   };
   app.addEventListener('pointerup',koniec,true);app.addEventListener('pointercancel',koniec,true);
  }
+ /* ---------- gest powrotu: szczegóły dokumentu przeciągnij w prawo, skaner przeciągnij w dół ---------- */
+ function gestZamkniecia(el,os,zamknij){
+  let g=null;
+  el.style.touchAction=os==='x'?'pan-y':'pan-x';
+  el.addEventListener('pointerdown',e=>{if(!el.classList.contains('on')||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('input,textarea'))return;g={x:e.clientX,y:e.clientY,t:performance.now(),moje:null}});
+  el.addEventListener('pointermove',e=>{
+   if(!g)return;const dx=e.clientX-g.x,dy=e.clientY-g.y,d=os==='x'?dx:dy,inny=os==='x'?dy:dx;
+   if(g.moje===null&&Math.hypot(dx,dy)>10)g.moje=d>0&&Math.abs(d)>Math.abs(inny)*1.3&&(os==='x'||!el.querySelector('.qbody')||true);
+   if(!g.moje)return;
+   el.style.transition='none';el.style.transform=os==='x'?`translateX(${Math.max(0,d)}px)`:`translateY(${Math.max(0,d)}px)`;
+   if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.transition='none';x.style.transform=`translateX(${-22+22*Math.min(1,Math.max(0,d)/el.offsetWidth)}%)`});
+  });
+  const koniec=e=>{
+   if(!g)return;const {x,y,t,moje}=g;g=null;if(!moje)return;
+   const d=os==='x'?(e.clientX??x)-x:(e.clientY??y)-y,v=d/Math.max(1,performance.now()-t),dl=os==='x'?el.offsetWidth:el.offsetHeight;
+   const zamyka=d>dl*.3||(v>.5&&d>40);
+   el.style.transition='';void el.offsetWidth;el.style.transform='';
+   if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.transition='';x.style.transform=''});
+   if(zamyka)zamknij();
+  };
+  el.addEventListener('pointerup',koniec);el.addEventListener('pointercancel',koniec);
+ }
+ {const det=$('#detail');if(det)gestZamkniecia(det,'x',()=>det.classList.remove('on'))}
+ /* skaner tworzy się przy pierwszym otwarciu — gest podpinamy, gdy się pojawi */
+ new MutationObserver(()=>{const q=$('#qrx');if(q&&!q.dataset.gest){q.dataset.gest=1;gestZamkniecia(q,'y',()=>{if(typeof pFinish==='function')pFinish({ok:false})})}}).observe(app,{childList:true});
  /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
  const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
   const det=$('#detail');if(det)det.classList.remove('on');
