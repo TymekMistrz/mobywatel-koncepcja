@@ -743,3 +743,4 @@ html.ramka .tabbar{padding-bottom:24px}
 .phone.chatting #reminders::before{display:none}
 #reminders{z-index:10}
 .phone.stospod #reminders::before{content:""}
+.quick{justify-content:space-evenly}

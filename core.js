@@ -130,8 +130,8 @@ function openDoc(id){
  const hero=id==='dowod'&&d.screen
   ?`<div class="idcard"><div class="crop"><img src="${d.screen}" alt="Dowód osobisty: ${OS.imie} ${OS.nazwisko}">${window.LANG&&window.LANG!=='pl'?`<div class="valid idv">${svg('check')}Dokument ważny</div>`:''}</div></div>`
   :`<div class="bigcard" style="background-image:url(${d.img})">${faceHTML(d)}</div>${CZAS.stanHTML(d,`<div class="valid">${svg('check')}Dokument ważny</div>`)}<div class="ui"><div class="rows" style="padding-top:2px">${rowsH(d.rows)}</div></div>`;
- const q=id==='dowod'?[['scan','Potwierdź swoje dane','qr'],['id','Dane dowodu','data'],['shield','Zastrzeż PESEL','pesel'],['dots','Zapytaj asystenta','ask']]
-                     :[['scan','Potwierdź dane','qr'],['doc','Szczegóły','data'],['shield','Zgubiony portfel','lost'],['dots','Zapytaj asystenta','ask']];
+ const q=id==='dowod'?[['scan','Potwierdź swoje dane','qr'],['shield','Zastrzeż PESEL','pesel'],['dots','Zapytaj asystenta','ask']]
+                     :[['scan','Potwierdź dane','qr'],['shield','Zgubiony portfel','lost'],['dots','Zapytaj asystenta','ask']];
  det.innerHTML=`<div style="height:${top}px;flex:none"></div><div class="nav"><button class="back" id="dclose">${svg('back')}Wróć</button><b>${d.name}</b><span></span></div>
   <div class="clock" id="dclock"></div>
   <div class="body">${hero}<div class="quick">${q.map(x=>`<button data-a="${x[2]}"><i>${svg(x[0])}</i>${x[1]}</button>`).join('')}</div><div class="qrbox" id="qrbox"></div></div>`;
