@@ -115,6 +115,7 @@ const WIECEJ=[
   if(k==='skan'){if(typeof qrFlow==='function')qrFlow({});return}
   if(app.classList.contains('chatting'))exitChat();
   if(typeof closeHist==='function')closeHist();
+  if(k==='dok'&&TAB!=='dok')zwinStos();
   if(k===TAB||trwa){TAB=k;rysuj();return}
   const dir=Math.sign(KOLEJ.indexOf(k)-KOLEJ.indexOf(TAB))||1;
   if(SPOKOJ){TAB=k;rysuj();return}
@@ -198,6 +199,7 @@ const WIECEJ=[
    if(cel&&pg&&Math.abs(dx)>24&&Math.sign(rzut)===Math.sign(dx)&&Math.abs(rzut)>W*.5){
     trwa=true;zaznacz(cel);const s=dx<0?-1:1;
     await Promise.all([...stare.map(el=>jedz(el,s*W)),jedz(pg,0)]);
+    if(cel==='dok')zwinStos();
     TAB=cel;rysuj();                                  // prawdziwa strona dokładnie w miejscu podglądu
     sprzataj([...stare,...biezace()]);pg.remove();
     if(tyt){tyt.style.opacity='';tyt.animate([{opacity:0},{opacity:1}],{duration:200})}
@@ -253,6 +255,12 @@ const WIECEJ=[
  document.addEventListener('scroll',e=>{const el=e.target;if(el&&el.classList&&(el.matches('.page,.sheet .body,.msgs')))el.classList.toggle('przew',el.scrollTop>2)},true);
  const msgObs=new MutationObserver(()=>document.querySelectorAll('.msgs').forEach(m=>m.classList.toggle('przew',m.scrollTop>2)));
  msgObs.observe(app,{childList:true,subtree:true});
+ /* powrót na ekran z dokumentami (z innej zakładki, szczegółów, rozmowy, skanera) zawsze pokazuje stos w ułożeniu domyślnym */
+ window.zwinStos=function(){if(typeof SEL==='undefined'||typeof STACK_ORDER==='undefined')return;const d=STACK_ORDER.length-1;if(SEL!==d){SEL=d;if(typeof layout==='function')layout()}};
+ {let byl={det:false,chat:false,skan:false};
+  const sprawdz=()=>{const det=!!($('#detail')&&$('#detail').classList.contains('on')),chat=app.classList.contains('chatting'),skan=!!document.querySelector('#qrx.on');
+   if((byl.det&&!det)||(byl.chat&&!chat)||(byl.skan&&!skan))zwinStos();byl={det,chat,skan}};
+  new MutationObserver(sprawdz).observe(app,{attributes:true,attributeFilter:['class'],subtree:true});}
  /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
  const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
   const det=$('#detail');if(det)det.classList.remove('on');
