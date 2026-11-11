@@ -36,7 +36,7 @@ Osoby i dane są fikcyjne. To nie jest usługa administracji publicznej ani ofic
 Na komputerze `index.html` pokazuje panel po lewej (osoba, data w aplikacji, terminy) i telefon po prawej
 z aplikacją (`app.html`) w ramce. Na telefonie od razu otwiera się sama aplikacja.
 
-**Data w aplikacji:** dane osób są przygotowane na 18.10.2026 („dzień 0”, stała w `czas.js`).
+**Data w aplikacji:** dane osób są przygotowane na 18.10.2026 („dzień 0”, stała w `czas.js`), ale na ekranie dzień 0 to zawsze prawdziwe dziś — wszystkie wyświetlane daty są przesuwane automatycznie.
 Suwak przesuwa „dziś” o N dni (parametr `?dzien=N`); `czas.js` przelicza wtedy teksty typu „za 11 dni”,
 oznacza terminy po czasie i pokazuje „Dokument nieważny / Brak ważnego OC” zamiast „Dokument ważny”.
 Odpowiedzi asystenta w scenariuszach (`scenarios.js`) są pisane dla dnia 0.

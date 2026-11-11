@@ -147,14 +147,17 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261111-1747"></script>
+<script src="osoby.js?v=20261111-1749"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
    ========================================================= */
 const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
+/* na ekranie dzień 0 = prawdziwe dziś: daty z danych wyświetlamy przesunięte o PRZES dni */
+const DZIS=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})(), PRZES=Math.round((DZIS-DZIEN_0)/DAY);
+const naEkran=d=>new Date(d.getTime()+PRZES*DAY);
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1747';
+const WERSJA='20261111-1749';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 m'],[90,'+3 m'],[180,'+6 m'],[365,'+1 rok']];
@@ -176,14 +179,14 @@ function events(id){
 
 function render(){
   $('#people').innerHTML=Object.values(OSOBY).map(o=>`<button class="person ${o.id===S.osoba?'on':''}" data-o="${o.id}" aria-pressed="${o.id===S.osoba}"><span class="av" style="background-image:url(assets/foto-${o.id}.svg)"></span><span><b>${o.imie} ${o.nazwisko}</b><small>${o.opis.split(',').slice(0,2).join(',')}</small></span></button>`).join('');
-  const d=new Date(DZIEN_0.getTime()+S.dzien*DAY);
+  const d=new Date(DZIS.getTime()+S.dzien*DAY);
   $('#dLabel').textContent=fmt(d);
   $('#dRel').textContent=S.dzien?`+${dni(S.dzien)}`:'';
   $('#slider').value=S.dzien;
   $('#quick').innerHTML=QUICK.map(([n,l])=>`<button class="chip ${S.dzien===n?'on':''}" data-d="${n}">${l}</button>`).join('');
   const ev=events(S.osoba);
   $('#events').innerHTML=ev.length?ev.map(e=>{const x=e.n-S.dzien;const cls=x<0?'bad':x<=30?'warn':'ok';const t=x<0?`${dni(-x)} po`:x===0?'dziś':`za ${dni(x)}`;
-    return `<button class="ev" data-d="${e.n+1}" title="Pokaż stan w dniu następującym po terminie"><i class="${cls}">${t}</i><span>${e.label}</span><em>${fmtS(e.d)}</em></button>`}).join(''):'<p class="hint">Brak terminów w najbliższych 2 latach.</p>';
+    return `<button class="ev" data-d="${e.n+1}" title="Pokaż stan w dniu następującym po terminie"><i class="${cls}">${t}</i><span>${e.label}</span><em>${fmtS(naEkran(e.d))}</em></button>`}).join(''):'<p class="hint">Brak terminów w najbliższych 2 latach.</p>';
   fitEvents();
 }
 /* lista terminów: pokaż tyle, ile się zmieści (bez przewijania) — najpierw najbliższe nadchodzące */

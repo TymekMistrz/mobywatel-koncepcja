@@ -1,5 +1,6 @@
 /* ---------- Symulowana data pokazu ----------
-   Dane osób (osoby.js) są przygotowane na dzień DZIEN_0 = 18.10.2026.
+   Dane osób (osoby.js) są przygotowane na dzień DZIEN_0 = 18.10.2026; na ekranie ten dzień zawsze odpowiada
+   prawdziwemu „dziś” (przesunięcie dat na dole pliku).
    Parametr adresu ?dzien=N przesuwa „dziś” w aplikacji o N dni do przodu,
    żeby zobaczyć, jak zmieniają się terminy i ważność dokumentów.
    Ten plik ładuje się PRZED osoby.js (podmienia Date), a CZAS.przelicz()
@@ -49,7 +50,7 @@
   let worst=null;
   [...(d.f||[]),...(d.rows||[])].forEach(([k,v])=>{
    if(typeof v!=='string'||!LBL.test(k))return;const dt=parse(v);if(!dt)return;
-   const x=left(dt);if(!worst||x<worst.x)worst={x,k,dt:v.match(DATE)[0]};
+   const x=left(dt);if(!worst||x<worst.x)worst={x,k:k.replace(/ do$/,''),dt:v.match(DATE)[0]};
   });
   if(!worst||worst.x>30)return{cls:'ok'};
   const oc=/^OC/i.test(worst.k),bad=/^Badanie/i.test(worst.k);
@@ -65,5 +66,29 @@
  }
  const ICO={warn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5 3 19.5h18z"/><path d="M12 10v4M12 17h.01"/></svg>'};
  function stanHTML(d,okHTML){const s=d.stan||{cls:'ok'};return s.cls==='ok'?okHTML:`<div class="valid ${s.cls}">${ICO.warn}${s.txt}</div>`}
- window.CZAS={dzien:n,today,DZIEN_0,przelicz,stanHTML,parse};
+ /* ---------- daty „na żywo”: wszystko, co widać na ekranie, przesuwamy tak, by dzień 0 = prawdziwe dziś ----------
+    Logika liczy w osi czasu danych (od 18.10.2026), a tylko wyświetlane daty dostają przesunięcie PRZES dni.
+    Dzięki temu dane, scenariusze rozmów i zegar są zawsze spójne, a jury widzi aktualne daty w dowolnym dniu. */
+ const PRZES=Math.round((mid-DZIEN_0)/DAY);
+ const dd=x=>String(x).padStart(2,'0');
+ function przesunTekst(t){
+  if(!PRZES||!/\d{2}\.\d{2}/.test(t)||/emerytal/i.test(t))return t;
+  return t.replace(/(^|[^\d.,])(\d{2})\.(\d{2})(?:\.(\d{4}))?(?![\d,]|\.\d)/g,(m,pre,d,mo,y)=>{
+   if(y&&+y<2025)return m;                                   // daty urodzenia itp. zostają
+   const rok=y?+y:(+mo>=7?2026:2027);
+   const nd=new RD(rok,+mo-1,+d+PRZES);
+   return pre+dd(nd.getDate())+'.'+dd(nd.getMonth()+1)+(y?'.'+nd.getFullYear():'');
+  });
+ }
+ const zrobione=new WeakMap();
+ function obrob(node){
+  if(node.nodeType===3){const t=node.data;if(zrobione.get(node)===t)return;const u=przesunTekst(t);if(u!==t)node.data=u;zrobione.set(node,node.data);return}
+  if(node.nodeType===1&&!/^(SCRIPT|STYLE|TEXTAREA|INPUT)$/.test(node.nodeName)){const w=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);let x;while((x=w.nextNode()))obrob(x)}
+ }
+ if(PRZES){
+  new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')obrob(m.target);else m.addedNodes.forEach(obrob)}})
+   .observe(document.documentElement,{subtree:true,childList:true,characterData:true});
+  document.addEventListener('DOMContentLoaded',()=>obrob(document.body));
+ }
+ window.CZAS={dzien:n,today,DZIEN_0,przelicz,stanHTML,parse,PRZES,przesunTekst};
 })();
