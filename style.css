@@ -765,3 +765,5 @@ html.ramka .tabbar{padding-bottom:24px}
 /* ---------- bez widocznych pasków przewijania (jak w aplikacjach na telefonie); przewijanie dalej działa ---------- */
 html,body,*{scrollbar-width:none;-ms-overflow-style:none}
 *::-webkit-scrollbar{width:0;height:0;display:none}
+.prow{min-height:54px}
+.prow.soon .ptx b::after{content:" · wkrótce";font-weight:500;color:var(--red,#dc143c);font-size:13px}

@@ -74,7 +74,7 @@ const WIECEJ=[
  app.append(page,nav);
  let TAB='dok';
 
- function listaH(items){return `<div class="plist">${items.map(([i,t,s,q])=>`<button class="prow" ${q?`data-q="${q.replace(/"/g,'&quot;')}"`:'data-soon="1"'}><span class="pic">${ico(i)}</span><span class="ptx"><b>${t}</b><small>${s}</small></span>${ico('chev','pch')}</button>`).join('')}</div>`}
+ function listaH(items){return `<div class="plist">${items.map(([i,t,s,q])=>`<button class="prow" ${q?`data-q="${q.replace(/"/g,'&quot;')}"`:'data-soon="1"'}><span class="pic">${ico(i)}</span><span class="ptx"><b>${t}</b></span>${ico('chev','pch')}</button>`).join('')}</div>`}   /* same nazwy, bez opisów pod spodem */
  function stronaUslugi(){return `${USLUGI.map(([g,items])=>`<div class="pgr">${g}</div>${listaH(items)}`).join('')}`}
  function stronaSkrzynka(){
   const t=(typeof OS!=='undefined'&&OS.tiles)||[];
