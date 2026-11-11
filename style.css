@@ -716,3 +716,12 @@ html.ramka .tabbar{padding-bottom:24px}
 .ui .row b.blisko{color:#9a5b00;font-weight:600}.ui .row b.blisko::before{background:#e19a1c}
 /* kafelek „Wymagane akcje” — gdy nic nie jest po terminie, licznik jest spokojniejszy */
 .rsum .rdot.spok{background:#e19a1c}
+
+/* ---------- pasek nawigacji: wskaźnik aktywnej zakładki ---------- */
+.tabbar{position:absolute}
+.tabbar .wsk{position:absolute;left:0;top:7px;width:56px;height:32px;border-radius:16px;background:#fdecef;opacity:0;pointer-events:none;
+  transition:transform .38s cubic-bezier(.3,1.25,.4,1),opacity .2s}
+.tabbar button{position:relative;z-index:1;transition:color .2s}
+.tabbar .skan:active .kolo{transform:scale(.92)}
+.tabbar .skan .kolo{transition:transform .15s}
+@media (prefers-reduced-motion:reduce){.tabbar .wsk{transition:none}}

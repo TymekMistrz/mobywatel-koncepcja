@@ -81,19 +81,45 @@ const WIECEJ=[
   return `<h2 class="ph">Więcej</h2>
    <div class="pprof"><span class="pav" style="background-image:url(assets/foto-${OS.id}.svg)"></span><span><b>${OS.imie} ${OS.nazwisko}</b><small>${OS.opis}</small></span></div>
    ${listaH(WIECEJ)}`}
+ /* pasek: przesuwający się wskaźnik pod aktywną ikoną i krótki „podskok” ikony */
+ const wsk=document.createElement('span');wsk.className='wsk';nav.prepend(wsk);
+ function zaznacz(k){
+  nav.querySelectorAll('button').forEach(b=>{const on=b.dataset.tab===k;const by=b.classList.contains('on');b.classList.toggle('on',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current');
+   if(on&&!by&&!SPOKOJ){const ic=b.querySelector('svg');ic&&ic.animate([{transform:'scale(1)'},{transform:'scale(.82)'},{transform:'scale(1.12)'},{transform:'scale(1)'}],{duration:380,easing:'ease-out'})}});
+  const b=nav.querySelector(`[data-tab="${k}"]`);if(!b)return;
+  const x=b.offsetLeft+b.offsetWidth/2-28;wsk.style.transform=`translateX(${x}px)`;wsk.style.opacity=1;
+ }
  function rysuj(){
-  nav.querySelectorAll('button').forEach(b=>{const on=b.dataset.tab===TAB;b.classList.toggle('on',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
+  zaznacz(TAB);
   app.classList.toggle('nastronie',TAB!=='dok');
   if(TAB==='uslugi')page.innerHTML=stronaUslugi();
   if(TAB==='skrzynka')page.innerHTML=stronaSkrzynka();
   if(TAB==='wiecej')page.innerHTML=stronaWiecej();
   page.scrollTop=0;
  }
- window.ustawZakladke=function(k){
+ /* ---------- animacje przejść między stronami ---------- */
+ const SPOKOJ=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const KOLEJ=['dok','uslugi','skrzynka','wiecej'];
+ const EASE='cubic-bezier(.22,.8,.24,1)';
+ const widokDok=()=>[$('#stackwrap'),$('#reminders')].filter(Boolean);
+ function wyjedz(els,dir){return Promise.all(els.map(el=>el.animate([{opacity:1,transform:'translateX(0)'},{opacity:0,transform:`translateX(${-dir*28}px)`}],{duration:150,easing:'ease-in',fill:'forwards'}).finished))}
+ function wjedz(els,dir){els.forEach(el=>{el.getAnimations().forEach(a=>a.cancel());el.animate([{opacity:0,transform:`translateX(${dir*36}px)`},{opacity:1,transform:'translateX(0)'}],{duration:320,easing:EASE})})}
+ let trwa=false;
+ window.ustawZakladke=async function(k){
   if(k==='skan'){if(typeof qrFlow==='function')qrFlow({});return}
   if(app.classList.contains('chatting'))exitChat();
   if(typeof closeHist==='function')closeHist();
+  if(k===TAB||trwa){TAB=k;rysuj();return}
+  const dir=Math.sign(KOLEJ.indexOf(k)-KOLEJ.indexOf(TAB))||1;
+  if(SPOKOJ){TAB=k;rysuj();return}
+  trwa=true;
+  const stare=TAB==='dok'?widokDok():[page];
+  zaznacz(k);                                   // pasek reaguje od razu
+  await wyjedz(stare,dir);
+  stare.forEach(el=>el.getAnimations().forEach(a=>a.cancel()));
   TAB=k;rysuj();
+  wjedz(TAB==='dok'?widokDok():[page],dir);
+  trwa=false;
  };
  nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)ustawZakladke(b.dataset.tab)});
  page.addEventListener('click',e=>{
