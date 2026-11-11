@@ -899,3 +899,9 @@ html.okno .composer{padding-bottom:8px}
   -webkit-mask-composite:source-in;
   mask-image:linear-gradient(to right,transparent,#000 10%,#000 90%,transparent),linear-gradient(to bottom,transparent,#000 14%,#000 86%,transparent);
   mask-composite:intersect}
+/* szczegóły dokumentu: dane zawsze odkryte (bez szkła, bez ikony oka) */
+#app.ukryte #detail .pvf{display:inline;filter:none!important;opacity:1}
+#app.ukryte #detail .pvs{display:none}
+#app.ukryte #detail .face .dl.pv{display:grid;filter:none!important;opacity:1}
+#app.ukryte #detail .face .col::after{content:none}
+#app.ukryte #detail .face .reveal{display:none!important}
