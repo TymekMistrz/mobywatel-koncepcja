@@ -744,3 +744,7 @@ html.ramka .tabbar{padding-bottom:24px}
 #reminders{z-index:10}
 .phone.stospod #reminders::before{content:""}
 .quick{justify-content:space-evenly}
+
+/* kropka przy zakładce „Twoje sprawy” */
+.tabbar .ikona{position:relative;display:block;line-height:0}
+.tabbar .kropka{position:absolute;top:-2px;right:-4px;width:10px;height:10px;border-radius:50%;background:#e11d48;box-shadow:0 0 0 2px #fff}

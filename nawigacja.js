@@ -67,7 +67,10 @@ const WIECEJ=[
  /* elementy w DOM */
  const page=document.createElement('section');page.className='page';page.id='page';page.setAttribute('aria-live','polite');
  const nav=document.createElement('nav');nav.className='tabbar';nav.id='tabbar';nav.setAttribute('aria-label','Nawigacja');
- nav.innerHTML=ZAKLADKI.map(([k,l,i])=>`<button data-tab="${k}" class="${k==='skan'?'skan':''}">${k==='skan'?`<span class="kolo">${ico(i)}</span>`:ico(i)}<span>${l}</span></button>`).join('');
+ const sprawy=(typeof OS!=='undefined'&&OS.tiles&&OS.tiles.length)||0;
+ nav.innerHTML=ZAKLADKI.map(([k,l,i])=>`<button data-tab="${k}" class="${k==='skan'?'skan':''}">${k==='skan'?`<span class="kolo">${ico(i)}</span>`:`<span class="ikona">${ico(i)}${k==='skrzynka'&&sprawy?'<i class="kropka" aria-hidden="true"></i>':''}</span>`}<span>${l}</span></button>`).join('');
+ /* kropka przy „Twoje sprawy”, gdy coś czeka na działanie */
+ if(sprawy){const b=nav.querySelector('[data-tab="skrzynka"]');b.setAttribute('aria-label',`Twoje sprawy, ${sprawy} wymaga działania`)}
  app.append(page,nav);
  let TAB='dok';
 
@@ -134,8 +137,8 @@ const WIECEJ=[
  const wroc=()=>{if(TAB!=='dok'){TAB='dok';rysuj()}};
  $('#composer').addEventListener('submit',wroc,true);
  ['#mic','#cam'].forEach(s=>{const b=$(s);b&&b.addEventListener('click',wroc,true)});
- /* koperta w nagłówku otwiera „Twoje sprawy” */
- const mb=$('#mailBtn');if(mb)mb.onclick=()=>ustawZakladke('skrzynka');
+ /* koperta w nagłówku zbędna — sprawy są w pasku (z kropką) */
+ const mb=$('#mailBtn');if(mb)mb.remove();
  /* ---------- gest przesunięcia w lewo / w prawo: następna / poprzednia zakładka (bez „Skanuj”) ---------- */
  {
   const strefa=e=>e.target.closest&&e.target.closest('#page,#stackwrap,#reminders');
