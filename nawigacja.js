@@ -90,7 +90,8 @@ const WIECEJ=[
   nav.querySelectorAll('button').forEach(b=>{const on=b.dataset.tab===k;const by=b.classList.contains('on');b.classList.toggle('on',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current');
    if(on&&!by&&!SPOKOJ){const ic=b.querySelector('svg');ic&&ic.animate([{transform:'scale(1)'},{transform:'scale(.82)'},{transform:'scale(1.12)'},{transform:'scale(1)'}],{duration:380,easing:'ease-out'})}});
   const b=nav.querySelector(`[data-tab="${k}"]`);if(!b)return;
-  const x=b.offsetLeft+b.offsetWidth/2-28;wsk.style.transform=`translateX(${x}px)`;wsk.style.opacity=1;
+  const w=Math.min(b.offsetWidth-8,Math.max(64,b.querySelector('span:last-child').offsetWidth+20));wsk.style.width=w+'px';
+  const x=b.offsetLeft+b.offsetWidth/2-w/2;wsk.style.transform=`translateX(${x}px)`;wsk.style.opacity=1;
  }
  function rysuj(){
   zaznacz(TAB);

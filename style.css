@@ -819,3 +819,8 @@ html.okno .composer{padding-bottom:8px}
 .sheet .body::before,.sheet .body.przew::before{content:none!important}
 .sheet .body{padding-top:0}
 .sheet .clock{margin-bottom:12px}
+
+/* pasek nawigacji: podświetlenie jako zaokrąglony kafelek obejmujący ikonę i podpis */
+.tabbar .wsk{top:6px;height:52px;border-radius:14px;transition:transform .38s cubic-bezier(.3,1.25,.4,1),width .38s cubic-bezier(.3,1.25,.4,1),opacity .2s}
+.tabbar button{padding-top:7px;gap:4px}
+.tabbar button.on span:last-child{font-weight:700}
