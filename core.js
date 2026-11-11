@@ -169,7 +169,7 @@ function multi(opts,next,noT){
  const n=el('<button class="next">Dalej</button>');n.onclick=()=>{if(!sel.size)return;act(()=>{row.remove();const a=opts.filter(o=>sel.has(o));addUser(a.join(', '));next(a)})};row.append(n);
  msgs.append(row);end();
 }
-function faceid(){inflight++;return new Promise(r=>{const f=$('#faceid');f.classList.add('on');setTimeout(()=>f.classList.add('done'),FAST?5:900);setTimeout(()=>{f.classList.remove('on','done');r();settle()},FAST?10:1450)})}
+function faceid(){inflight++;return new Promise(r=>{const f=$('#faceid');f.classList.add('on');setTimeout(()=>f.classList.add('done'),FAST?5:900);setTimeout(()=>{f.classList.remove('on','done');r();settle()},FAST?10:2000)})}
 let pending=null;
 
 function emptyState(box=VIS.el){
