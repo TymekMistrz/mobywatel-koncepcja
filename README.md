@@ -40,3 +40,5 @@ z aplikacją (`app.html`) w ramce. Na telefonie od razu otwiera się sama aplika
 Suwak przesuwa „dziś” o N dni (parametr `?dzien=N`); `czas.js` przelicza wtedy teksty typu „za 11 dni”,
 oznacza terminy po czasie i pokazuje „Dokument nieważny / Brak ważnego OC” zamiast „Dokument ważny”.
 Odpowiedzi asystenta w scenariuszach (`scenarios.js`) są pisane dla dnia 0.
+
+`lib/qrcode.js` — generator kodów QR (Kazuhiko Arase, licencja MIT), używany w przycisku „Otwórz na swoim telefonie”.

@@ -76,6 +76,13 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 .loading.off{opacity:0}
 .spin{width:30px;height:30px;border-radius:50%;border:3px solid #e1e3ea;border-top-color:var(--red);animation:sp .8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+.phonebtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-size:13.5px;font-weight:700}
+.phonebtn:hover{border-color:#c9ccd6}.phonebtn svg{width:18px;height:18px}
+.qrpop{display:flex;gap:12px;align-items:center;margin-top:8px;padding:10px;border-radius:14px;background:var(--bg)}
+.qrpop[hidden]{display:none}
+#qrBox{width:104px;height:104px;flex-shrink:0;background:#fff;border-radius:10px;padding:4px}#qrBox svg{width:100%;height:100%;display:block}
+.qrpop b{display:block;font-size:13.5px}.qrpop small{display:block;color:var(--ink2);font-size:12px;line-height:1.35;margin:3px 0 6px}
+.qrpop a{color:var(--ink);font-size:12.5px;font-weight:600}
 </style>
 </head>
 <body>
@@ -97,7 +104,13 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
     <div class="events" id="events"></div>
 
     <div class="foot">Osoby i dane są fikcyjne. To nie jest usługa administracji publicznej.
-      <a href="app.html" id="openApp" target="_blank" rel="noopener">Sama aplikacja ↗</a></div>
+      </div>
+    <button class="phonebtn" id="phoneBtn" aria-expanded="false" aria-controls="qrPop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>Otwórz na swoim telefonie</button>
+    <div class="qrpop" id="qrPop" hidden>
+      <div id="qrBox" aria-label="Kod QR z linkiem do aplikacji"></div>
+      <div><b>Zeskanuj aparatem telefonu</b><small>Otworzy się ta sama osoba i data, bez panelu.</small>
+      <a href="app.html" id="openApp" target="_blank" rel="noopener">albo otwórz w nowej karcie ↗</a></div>
+    </div>
   </aside>
 
   <main class="right">
@@ -114,14 +127,15 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
   </main>
 </div>
 
-<script src="osoby.js?v=20261111-1605"></script>
+<script src="lib/qrcode.js"></script>
+<script src="osoby.js?v=20261111-1607"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
    ========================================================= */
 const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1605';
+const WERSJA='20261111-1607';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Start'],[14,'+2 tyg.'],[30,'+1 m.'],[90,'+3 m.'],[180,'+6 m.'],[365,'+1 rok']];
@@ -164,7 +178,7 @@ let last='';
 function load(){
   const u=appURL(); if(u===last)return; last=u;
   $('#loading').classList.remove('off'); $('#app').src=u;
-  $('#openApp').href=u;
+  $('#openApp').href=u; rysujQR();
   history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}`);
 }
 $('#app').addEventListener('load',()=>{
@@ -182,6 +196,11 @@ const sl=$('#slider');
 sl.addEventListener('input',()=>{S.dzien=+sl.value;render()});      // podgląd daty na żywo
 sl.addEventListener('change',()=>{S.dzien=+sl.value;load()});      // przeładuj telefon po puszczeniu
 
+/* „Otwórz na swoim telefonie”: kod QR z adresem samej aplikacji (bieżąca osoba i data) */
+function rysujQR(){const box=$('#qrBox');if(!box||$('#qrPop').hidden)return;
+  const url=new URL(appURL(),location.href).href;const q=qrcode(0,'M');q.addData(url);q.make();
+  box.innerHTML=q.createSvgTag({cellSize:4,margin:2,scalable:true});}
+$('#phoneBtn').addEventListener('click',()=>{const p=$('#qrPop');p.hidden=!p.hidden;$('#phoneBtn').setAttribute('aria-expanded',String(!p.hidden));rysujQR();render()});
 /* telefon zawsze mieści się w oknie */
 function fit(){const r=$('.right').getBoundingClientRect();const s=Math.min(1,(r.height-8)/904,(r.width-8)/432);$('#scaler').style.setProperty('--s',s)}
 addEventListener('resize',()=>{fit();render()});
