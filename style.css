@@ -670,3 +670,16 @@ html.ramka .tabbar{padding-bottom:24px}
 .pprof b{display:block;font-size:16px}.pprof small{display:block;font-size:13px;color:#6b7280}
 /* bez kreski nad pierwszym wierszem, gdy karta nie ma nagłówka (np. dane dokumentu) */
 .ui > .rows:first-child > .row:first-child{border-top:0}
+
+/* ---------- potwierdzenie biometrią: wyśrodkowane, większe okienko (jak systemowe na telefonie) ---------- */
+.auth .box{width:172px;height:172px;border-radius:38px;gap:14px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.auth .box svg{position:static;width:82px;height:82px;flex:none;margin:0}
+.auth .fid{animation:scan 1s ease-in-out infinite}
+.auth.done .fid{display:none}
+.auth .ok{width:82px;height:82px}
+
+/* ---------- szczegóły dokumentu wjeżdżają z prawej i wracają w prawo ---------- */
+.sheet{transform:translateX(102%);transition:transform .42s cubic-bezier(.32,.72,0,1)}
+.sheet.on{transform:none}
+#stackwrap,#reminders,#top,#title,#composer,#tabbar{transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .42s}
+.phone:has(#detail.on) #stackwrap,.phone:has(#detail.on) #reminders,.phone:has(#detail.on) #top,.phone:has(#detail.on) #title,.phone:has(#detail.on) #composer{transform:translateX(-22%);opacity:.6}
