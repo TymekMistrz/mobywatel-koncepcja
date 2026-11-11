@@ -83,11 +83,20 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 #qrBox{width:104px;height:104px;flex-shrink:0;background:#fff;border-radius:10px;padding:4px}#qrBox svg{width:100%;height:100%;display:block}
 .qrpop b{display:block;font-size:13.5px}.qrpop small{display:block;color:var(--ink2);font-size:12px;line-height:1.35;margin:3px 0 6px}
 .qrpop a{color:var(--ink);font-size:12.5px;font-weight:600}
+/* ---------- panel w dwóch kolumnach: osoba i data | terminy i kod QR — wszystko widać bez przewijania ---------- */
+.stage{grid-template-columns:minmax(600px,760px) 1fr}
+.panel{display:grid;grid-template-columns:1fr 1fr;column-gap:22px}
+.panel .kol{display:flex;flex-direction:column;min-height:0;min-width:0}
+.panel .kol .foot{margin-top:auto}
+.panel .h0{margin-top:4px}
+.panel .events{flex:1}
+@media (max-width:1280px){.stage{grid-template-columns:minmax(340px,400px) 1fr}.panel{display:flex;flex-direction:column;overflow-y:auto}.panel .kol .foot{margin-top:10px}.panel .events{flex:none}}
 </style>
 </head>
 <body>
 <div class="stage">
   <aside class="panel" aria-label="Panel pokazu">
+   <div class="kol">
     <div class="brand"><img src="assets/icon-app.svg" alt=""><h1>mObywatel</h1></div>
 
     <div class="h">Osoba</div>
@@ -100,17 +109,19 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
       <div class="chips" id="quick"></div>
     </div>
 
-    <div class="h">Terminy · podgląd stanu po upływie</div>
+    <div class="foot">Osoby i dane są fikcyjne. To nie jest usługa administracji publicznej.</div>
+   </div>
+   <div class="kol">
+    <div class="h h0">Terminy · podgląd stanu po upływie</div>
     <div class="events" id="events"></div>
 
-    <div class="foot">Osoby i dane są fikcyjne. To nie jest usługa administracji publicznej.
-      </div>
-    <div class="h" style="margin-top:12px">Otwórz na swoim telefonie</div>
+    <div class="h">Otwórz na swoim telefonie</div>
     <div class="qrpop" id="qrPop">
       <div id="qrBox" aria-label="Kod QR z linkiem do aplikacji"></div>
       <div><b>Zeskanuj aparatem telefonu</b><small>Otworzy się ta sama osoba i data, bez panelu.</small>
       <a href="app.html" id="openApp" target="_blank" rel="noopener">albo otwórz w oknie telefonu ↗</a></div>
     </div>
+   </div>
   </aside>
 
   <main class="right">
@@ -128,14 +139,14 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261111-1737"></script>
+<script src="osoby.js?v=20261111-1738"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
    ========================================================= */
 const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1737';
+const WERSJA='20261111-1738';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 mies'],[90,'+3 mies'],[180,'+6 mies'],[365,'+1 rok']];
