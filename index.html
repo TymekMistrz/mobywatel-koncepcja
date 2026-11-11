@@ -126,6 +126,12 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 /* zasłona ładowania: łagodne pojawienie i zniknięcie, nad obiema ramkami */
 .loading{z-index:5;transition:opacity .22s ease}
 .loading:not(.off){transition-duration:.15s}
+/* płynne zaznaczenia w panelu */
+.person,.chip{transition:background-color .25s ease,border-color .25s ease,color .25s ease,box-shadow .25s ease,transform .15s ease}
+.person:active,.chip:active,.ev:active{transform:scale(.97)}
+.person.on{box-shadow:0 4px 14px rgba(220,20,60,.14)}
+.ev{transition:border-color .2s ease,transform .15s ease}
+#dLabel,#dRel{display:inline-block}
 </style>
 </head>
 <body>
@@ -172,7 +178,7 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261111-1811"></script>
+<script src="osoby.js?v=20261111-1812"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
@@ -182,7 +188,7 @@ const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 const DZIS=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})(), PRZES=Math.round((DZIS-DZIEN_0)/DAY);
 const naEkran=d=>new Date(d.getTime()+PRZES*DAY);
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1811';
+const WERSJA='20261111-1812';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 m'],[90,'+3 m'],[180,'+6 m'],[365,'+1 rok']];
@@ -202,17 +208,29 @@ function events(id){
   return out.sort((a,b)=>a.n-b.n);
 }
 
+/* Panel aktualizuje się płynnie: osoby i przyciski tylko zmieniają zaznaczenie (bez przebudowy),
+   data i terminy delikatnie się przenikają, a kod QR „miga” miękko przy zmianie. */
+const SPOK=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let ciagnie=false,poprz={osoba:null,dzien:null,tekst:null};
+const miekko=(el,od)=>{if(SPOK||!el)return;el.animate([{opacity:0,transform:od||'translateY(4px)'},{opacity:1,transform:'none'}],{duration:260,easing:'cubic-bezier(.2,.8,.2,1)'})};
 function render(){
-  $('#people').innerHTML=Object.values(OSOBY).map(o=>`<button class="person ${o.id===S.osoba?'on':''}" data-o="${o.id}" aria-pressed="${o.id===S.osoba}"><span class="av" style="background-image:url(assets/foto-${o.id}.svg)"></span><span><b>${o.imie} ${o.nazwisko}</b><small>${o.opis.split(',').slice(0,2).join(',')}</small></span></button>`).join('');
-  const d=new Date(DZIS.getTime()+S.dzien*DAY);
-  $('#dLabel').textContent=fmt(d);
-  $('#dRel').textContent=S.dzien?`+${dni(S.dzien)}`:'';
+  const pe=$('#people');
+  if(!pe.children.length)pe.innerHTML=Object.values(OSOBY).map(o=>`<button class="person" data-o="${o.id}"><span class="av" style="background-image:url(assets/foto-${o.id}.svg)"></span><span><b>${o.imie} ${o.nazwisko}</b><small>${o.opis.split(',').slice(0,2).join(',')}</small></span></button>`).join('');
+  pe.querySelectorAll('.person').forEach(b=>{const on=b.dataset.o===S.osoba;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+  const d=new Date(DZIS.getTime()+S.dzien*DAY),txt=fmt(d);
+  if($('#dLabel').textContent!==txt){$('#dLabel').textContent=txt;if(!ciagnie)miekko($('#dLabel'))}
+  const rel=S.dzien?`+${dni(S.dzien)}`:'';if($('#dRel').textContent!==rel){$('#dRel').textContent=rel;if(!ciagnie)miekko($('#dRel'))}
   $('#slider').value=S.dzien;
-  $('#quick').innerHTML=QUICK.map(([n,l])=>`<button class="chip ${S.dzien===n?'on':''}" data-d="${n}">${l}</button>`).join('');
+  const qk=$('#quick');
+  if(!qk.children.length)qk.innerHTML=QUICK.map(([n,l])=>`<button class="chip" data-d="${n}">${l}</button>`).join('');
+  qk.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',+b.dataset.d===S.dzien));
   const ev=events(S.osoba);
-  $('#events').innerHTML=ev.length?ev.map(e=>{const x=e.n-S.dzien;const cls=x<0?'bad':x<=30?'warn':'ok';const t=x<0?`${dni(-x)} po`:x===0?'dziś':`za ${dni(x)}`;
+  const html=ev.length?ev.map(e=>{const x=e.n-S.dzien;const cls=x<0?'bad':x<=30?'warn':'ok';const t=x<0?`${dni(-x)} po`:x===0?'dziś':`za ${dni(x)}`;
     return `<button class="ev" data-d="${e.n+1}" title="Pokaż stan w dniu następującym po terminie"><i class="${cls}">${t}</i><span>${e.label}</span><em>${fmtS(naEkran(e.d))}</em></button>`}).join(''):'<p class="hint">Brak terminów w najbliższych 2 latach.</p>';
-  fitEvents();
+  const box=$('#events'),nowaOsoba=poprz.osoba!==null&&poprz.osoba!==S.osoba;
+  if(html!==poprz.tekst){box.innerHTML=html;poprz.tekst=html;fitEvents();
+    if(!ciagnie&&poprz.osoba!==null)[...box.children].forEach((c,i)=>{if(SPOK)return;c.animate([{opacity:0,transform:nowaOsoba?'translateY(8px)':'none'},{opacity:1,transform:'none'}],{duration:nowaOsoba?300:200,delay:nowaOsoba?i*45:0,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'})});}
+  poprz.osoba=S.osoba;poprz.dzien=S.dzien;
 }
 /* lista terminów: pokaż tyle, ile się zmieści (bez przewijania) — najpierw najbliższe nadchodzące */
 function fitEvents(){const box=$('#events');const items=[...box.children];if(!items.length)return;
@@ -256,13 +274,19 @@ document.addEventListener('click',e=>{
   render(); load();
 });
 const sl=$('#slider');
-sl.addEventListener('input',()=>{S.dzien=+sl.value;render()});      // podgląd daty na żywo
-sl.addEventListener('change',()=>{S.dzien=+sl.value;load()});      // przeładuj telefon po puszczeniu
+sl.addEventListener('input',()=>{ciagnie=true;S.dzien=+sl.value;render()});      // podgląd daty na żywo
+sl.addEventListener('change',()=>{ciagnie=false;S.dzien=+sl.value;load()});      // przeładuj telefon po puszczeniu
 
 /* „Otwórz na swoim telefonie”: kod QR z adresem samej aplikacji (bieżąca osoba i data) */
 function rysujQR(){const box=$('#qrBox');if(!box||$('#qrPop').hidden)return;
   const url=new URL(appURL(),location.href).href;const q=qrcode(0,'M');q.addData(url);q.make();
-  box.innerHTML=q.createSvgTag({cellSize:4,margin:2,scalable:true});}
+  const nowy=q.createSvgTag({cellSize:4,margin:2,scalable:true});
+  if(!box.innerHTML||SPOK){box.innerHTML=nowy;return}
+  /* miękka zmiana kodu: zanik z lekkim rozmyciem, podmiana, pojawienie się */
+  box.getAnimations().forEach(a=>a.cancel());
+  box.animate([{opacity:1,filter:'blur(0)'},{opacity:0,filter:'blur(3px)'}],{duration:140,easing:'ease-in',fill:'forwards'}).finished.then(()=>{
+    box.innerHTML=nowy;box.getAnimations().forEach(a=>a.cancel());
+    box.animate([{opacity:0,filter:'blur(3px)',transform:'scale(.96)'},{opacity:1,filter:'blur(0)',transform:'scale(1)'}],{duration:260,easing:'cubic-bezier(.2,.8,.2,1)'})}).catch(()=>{});}
 /* „albo otwórz w nowym oknie przeglądarki”: osobne okno w rozmiarze iPhone'a 16 (393×852), czyli widok mobilny na komputerze */
 $('#openApp').addEventListener('click',e=>{
   const w=393,h=852,l=Math.max(0,(screen.availWidth-w)/2),t=Math.max(0,(screen.availHeight-h)/2);
