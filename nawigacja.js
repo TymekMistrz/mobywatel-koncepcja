@@ -104,7 +104,8 @@ const WIECEJ=[
  const KOLEJ=['dok','uslugi','skrzynka','wiecej'];
  const EASE='cubic-bezier(.22,.8,.24,1)';
  const widokDok=()=>[$('#stackwrap'),$('#reminders')].filter(Boolean);
- function wyjedz(els,dir){return Promise.all(els.map(el=>el.animate([{opacity:1,transform:'translateX(0)'},{opacity:0,transform:`translateX(${-dir*28}px)`}],{duration:150,easing:'ease-in',fill:'forwards'}).finished))}
+ function wyjedz(els,dir){return Promise.all(els.map(el=>{const od=el.style.transform||'translateX(0)',op=el.style.opacity||1;el.style.transform='';el.style.opacity='';
+  return el.animate([{opacity:op,transform:od},{opacity:0,transform:`translateX(${-dir*Math.max(28,Math.abs(parseFloat(od.replace(/[^-\d.]/g,''))||0)+20)}px)`}],{duration:150,easing:'ease-in',fill:'forwards'}).finished}))}
  function wjedz(els,dir){els.forEach(el=>{el.getAnimations().forEach(a=>a.cancel());el.animate([{opacity:0,transform:`translateX(${dir*36}px)`},{opacity:1,transform:'translateX(0)'}],{duration:320,easing:EASE})})}
  let trwa=false;
  window.ustawZakladke=async function(k){
@@ -135,6 +136,31 @@ const WIECEJ=[
  ['#mic','#cam'].forEach(s=>{const b=$(s);b&&b.addEventListener('click',wroc,true)});
  /* koperta w nagłówku otwiera „Twoje sprawy” */
  const mb=$('#mailBtn');if(mb)mb.onclick=()=>ustawZakladke('skrzynka');
+ /* ---------- gest przesunięcia w lewo / w prawo: następna / poprzednia zakładka (bez „Skanuj”) ---------- */
+ {
+  const strefa=e=>e.target.closest&&e.target.closest('#page,#stackwrap,#reminders');
+  const zajete=()=>app.classList.contains('chatting')||app.classList.contains('todo')||($('#detail')&&$('#detail').classList.contains('on'))||($('#qrx')&&$('#qrx').classList.contains('on'))||trwa;
+  const biezace=()=>TAB==='dok'?widokDok():[page];
+  let g=null;
+  app.addEventListener('pointerdown',e=>{if(!strefa(e)||zajete()||(e.pointerType==='mouse'&&e.button!==0))return;g={x:e.clientX,y:e.clientY,t:performance.now(),poziom:null}},true);
+  app.addEventListener('pointermove',e=>{
+   if(!g)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;
+   if(g.poziom===null&&Math.hypot(dx,dy)>10)g.poziom=Math.abs(dx)>Math.abs(dy)*1.3;
+   if(!g.poziom)return;
+   const i=KOLEJ.indexOf(TAB),brzeg=(dx>0&&i===0)||(dx<0&&i===KOLEJ.length-1);
+   const p=brzeg?dx*.18:dx*.45;                       // na skrajnej zakładce tylko lekki opór
+   biezace().forEach(el=>{el.style.transform=`translateX(${p}px)`;el.style.opacity=String(1-Math.min(.5,Math.abs(p)/400))});
+  },true);
+  const koniec=e=>{
+   if(!g)return;const {x,t,poziom}=g;g=null;if(!poziom)return;
+   const dx=(e.clientX??x)-x,v=Math.abs(dx)/Math.max(1,performance.now()-t),i=KOLEJ.indexOf(TAB);
+   const cel=(Math.abs(dx)>70||(v>.5&&Math.abs(dx)>30))?KOLEJ[i+(dx<0?1:-1)]:null;
+   if(cel){ustawZakladke(cel);return}
+   biezace().forEach(el=>{const od=el.style.transform,op=el.style.opacity;el.style.transform='';el.style.opacity='';
+    if(od)el.animate([{transform:od,opacity:op||1},{transform:'translateX(0)',opacity:1}],{duration:260,easing:EASE})});
+  };
+  app.addEventListener('pointerup',koniec,true);app.addEventListener('pointercancel',koniec,true);
+ }
  /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
  const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
   const det=$('#detail');if(det)det.classList.remove('on');

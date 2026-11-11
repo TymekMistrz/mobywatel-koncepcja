@@ -730,3 +730,6 @@ html.ramka .tabbar{padding-bottom:24px}
 .qrx{opacity:1;transform:translateY(102%);transition:transform .42s cubic-bezier(.32,.72,0,1)}
 .qrx.on{transform:none}
 @media (prefers-reduced-motion:reduce){.qrx{transition:none}}
+
+/* gest w poziomie przełącza zakładki, przewijanie w pionie zostaje dla przeglądarki */
+#page,#stackwrap,#reminders{touch-action:pan-y}
