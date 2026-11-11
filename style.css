@@ -1002,3 +1002,7 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 .tabbar .wsk{background:#fff;box-shadow:0 1px 3px rgba(15,25,60,.08)}
 .tabbar .kropka{box-shadow:0 0 0 2px var(--bg)}
 .tabbar button.on .kropka{box-shadow:0 0 0 2px #fff}
+/* nic nie nachodzi na dół pola czatu: bez pasa nad paskiem nawigacji (tło pod polem daje sam composer) */
+.tabbar::before{content:none!important}
+.composer{padding-bottom:10px}
+.composer::after{bottom:0;height:12px}
