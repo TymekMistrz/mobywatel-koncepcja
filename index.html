@@ -121,6 +121,8 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 .panel{height:auto;max-height:100%;align-self:center}
 .events{flex:0 1 auto!important}
 .dol{margin-top:14px}
+.screen .ekr{position:absolute;inset:0;width:100%;height:100%}
+.screen .ekr.ukryty{opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
@@ -157,7 +159,8 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
         <span class="btn-s l b-action"></span><span class="btn-s l b-volup"></span><span class="btn-s l b-voldn"></span>
         <span class="btn-s r b-power"></span><span class="btn-s r b-cam"></span>
         <div class="bezel"><div class="screen">
-          <iframe id="app" title="Aplikacja na telefonie" src="about:blank"></iframe>
+          <iframe id="app" class="ekr" title="Aplikacja na telefonie" src="about:blank"></iframe>
+          <iframe id="app2" class="ekr ukryty" title="Aplikacja na telefonie" src="about:blank" aria-hidden="true" tabindex="-1"></iframe>
           <div class="loading" id="loading"><div class="spin"></div></div>
         </div></div>
       </div>
@@ -166,7 +169,7 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261111-1758"></script>
+<script src="osoby.js?v=20261111-1800"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
@@ -176,7 +179,7 @@ const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 const DZIS=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})(), PRZES=Math.round((DZIS-DZIEN_0)/DAY);
 const naEkran=d=>new Date(d.getTime()+PRZES*DAY);
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1758';
+const WERSJA='20261111-1800';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 m'],[90,'+3 m'],[180,'+6 m'],[365,'+1 rok']];
@@ -216,17 +219,29 @@ function fitEvents(){const box=$('#events');const items=[...box.children];if(!it
   [...box.children].sort((a,b)=>+a.dataset.d-+b.dataset.d).forEach(e=>box.append(e));}
 function appURL(){return `app.html?osoba=${S.osoba}&dzien=${S.dzien}&v=${WERSJA}`}
 let last='';
+/* Płynna zmiana: nowa wersja aplikacji ładuje się w drugiej, ukrytej ramce, a gdy jest gotowa,
+   przenika się z obecną (bez białego ekranu i „zacięcia”). */
+let ramA=$('#app'),ramB=$('#app2'),pierwszy=true,nrLad=0;
 function load(){
   const u=appURL(); if(u===last)return; last=u;
-  $('#loading').classList.remove('off'); $('#app').src=u;
   $('#openApp').href=u; rysujQR();
   history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}`);
+  if(pierwszy){ramA.src=u;return}
+  const nr=++nrLad; ramB.onload=()=>{if(nr!==nrLad)return;setTimeout(()=>{if(nr===nrLad)zamien()},140)}; ramB.src=u;
 }
-$('#app').addEventListener('load',()=>{
-  $('#loading').classList.add('off');
-  /* osoba zmieniona w menu wewnątrz aplikacji → zsynchronizuj panel */
-  try{const p=new URLSearchParams($('#app').contentWindow.location.search).get('osoba');if(p&&OSOBY[p]&&p!==S.osoba){S.osoba=p;last=appURL();render();history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}`)}}catch(e){}
-});
+function zamien(){
+  const nowa=ramB,stara=ramA;
+  nowa.classList.remove('ukryty');nowa.removeAttribute('aria-hidden');nowa.removeAttribute('tabindex');
+  nowa.animate([{opacity:0,transform:'scale(.985)',filter:'blur(4px)'},{opacity:1,transform:'scale(1)',filter:'blur(0)'}],{duration:320,easing:'cubic-bezier(.2,.8,.2,1)'});
+  stara.animate([{opacity:1},{opacity:0}],{duration:320,easing:'ease-out',fill:'forwards'}).finished.then(()=>{
+    stara.classList.add('ukryty');stara.setAttribute('aria-hidden','true');stara.tabIndex=-1;stara.getAnimations().forEach(a=>a.cancel());stara.src='about:blank'});
+  ramA=nowa;ramB=stara;synchronizuj();
+}
+function synchronizuj(){
+  /* osoba zmieniona wewnątrz aplikacji → zsynchronizuj panel */
+  try{const p=new URLSearchParams(ramA.contentWindow.location.search).get('osoba');if(p&&OSOBY[p]&&p!==S.osoba){S.osoba=p;last=appURL();render();history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}`)}}catch(e){}
+}
+ramA.addEventListener('load',()=>{if(pierwszy&&ramA.src!=='about:blank'){pierwszy=false;$('#loading').classList.add('off');synchronizuj()}});
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-o],[data-d]'); if(!b)return;
   if(b.dataset.o)S.osoba=b.dataset.o;
