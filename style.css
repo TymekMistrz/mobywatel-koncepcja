@@ -629,3 +629,6 @@ html.ramka .status{display:flex!important}
 html.ramka .island,html.ramka .homebar{display:block!important}
 /* sama aplikacja (app.html) na niskim ekranie komputera: telefon nie wychodzi poza okno */
 @media (min-width:521px){html:not(.ramka) .phone{height:min(844px,calc(100dvh - 24px))}}
+
+/* stos: płynne rozsuwanie kart po kliknięciu */
+#app:not(.chatting) .card{transition:top .38s cubic-bezier(.2,.8,.2,1)}

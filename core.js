@@ -1,5 +1,5 @@
 const $=s=>document.querySelector(s);
-const app=$('#app'),input=$('#prompt');app.classList.add('ukryte');let msgs=$('#msgs'),inflight=0;
+const app=$('#app'),input=$('#prompt');let msgs=$('#msgs'),inflight=0;
 const FAST=!!window.FAST;
 function settle(){setTimeout(()=>{inflight--;if(!inflight&&typeof onIdle==='function')onIdle()},0)}
 const sleep=ms=>{inflight++;return new Promise(r=>setTimeout(()=>{r();settle()},FAST?5:ms))};
@@ -52,10 +52,13 @@ function faceHTML(d){
  return `<span class="face">${ttl}${d.id==='dowod'?LIVE:''}<span class="ov">${d.photo?PHOTO:''}<span class="col">${d.id==='dowod'?`<span class="nm">${PRIV(d.holder,shortName(d.holder))}</span><span class="dl pv">${cells}</span>${REVEAL}`:`<span class="nm">${d.holder}</span><span class="dl">${cells}</span>`}</span></span></span>`;
 }
 const STACK_ORDER=DOCS.map(d=>d.id).reverse();
+/* wybrana karta w stosie (indeks w STACK_ORDER); domyślnie ostatnia, czyli dowód na wierzchu */
+let SEL=STACK_ORDER.length-1;
 function renderStack(){
  const st=$('#stack');st.innerHTML='';
  STACK_ORDER.map(id=>DOCS.find(d=>d.id===id)).forEach((d,i)=>{const c=document.createElement('button');c.className='card';c.style.backgroundImage=`url(${d.img})`;c.setAttribute('aria-label',d.name);c.style.zIndex=i+1;c.innerHTML=faceHTML(d);
-  c.onclick=()=>{if(app.classList.contains('chatting')){exitChat();return}openDoc(d.id)};st.append(c)});
+  /* 1. kliknięcie: karta się wysuwa i pokazuje dane; 2. kliknięcie tej samej karty: otwiera szczegóły */
+  c.onclick=()=>{if(app.classList.contains('chatting')){exitChat();return}if(i===SEL){openDoc(d.id);return}SEL=i;layout()};st.append(c)});
 }
 renderStack();
 
@@ -83,12 +86,18 @@ function layout(){
   cards.forEach((c,i)=>{const j=n-1-i;c.style.zIndex=i+1;c.style.top=(j*7)+'px';c.style.transform=`scale(${.975-j*0.025})`;c.style.transformOrigin='50% 0'});
   const ct=T+52;$('#chat').style.top=ct+'px';$('#chat').style.height=(H-ct-comp+14)+'px';
  }else{
-  $('#stackwrap').style.top=stackTop+'px';$('#stackwrap').style.height=((n-1)*off+cardH)+'px';$('#stackwrap').style.overflow='visible';
-  cards.forEach((c,i)=>{c.style.zIndex=i+1;c.style.top=(i*off)+'px';c.style.transform='none'});
+  /* karty nad wybraną: paski z tytułem; wybrana: cała; karty pod nią: zsunięte na dół */
+  const sel=Math.min(SEL,n-1),above=sel,below=n-1-sel,space=avail-cardH-(below?10:0);
+  let pB=below?Math.min(off,44):0,offA=above?Math.min(off,(space-below*pB)/above):0;
+  if(above&&offA<26){offA=26;pB=below?Math.max(14,(space-above*offA)/below):0}
+  const selTop=sel*offA;
+  $('#stackwrap').style.top=stackTop+'px';$('#stackwrap').style.height=(below?avail:((n-1)*offA+cardH))+'px';$('#stackwrap').style.overflow=below?'hidden':'visible';
+  cards.forEach((c,i)=>{c.style.zIndex=i+1;c.style.transform='none';c.classList.toggle('sel',i===sel);
+   c.style.top=(i<=sel?i*offA:selTop+cardH+10+(i-sel-1)*pB)+'px'});
   const ct=T+54+80;$('#chat').style.top=ct+'px';$('#chat').style.height=(H-ct-comp+14)+'px';
  }
  let used=(n-1)*off+cardH;
- if(!chatting&&typeof layoutAlt==='function'&&VARIANT!=='stos')used=layoutAlt(stackTop,avail,W);
+ 
  $('#reminders').style.top=remTop+'px';
 }
 window.addEventListener('resize',layout);

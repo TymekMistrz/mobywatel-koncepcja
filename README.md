@@ -22,10 +22,10 @@ Każdy commit na gałęzi `main` pojawia się pod tym adresem po ok. minucie.
 | `osoby.js` | osoby demo: dokumenty, kafelki „Do załatwienia”, podpowiedzi |
 | `scenarios.js` | scenariusze rozmów (zgubiony portfel, stłuczka, OC…) |
 | `core.js` | stos kart, szczegóły dokumentu, czat |
-| `variants.js` | układy dokumentów (stos, karuzela, lista, siatka) |
+| `variants.js` | menu pod tytułem „Dokumenty ▾” (wybór osoby) |
 | `assets/` | grafiki |
 
-Parametry adresu: `?osoba=marta|jan|ewa|kacper`, `?uklad=stos|karuzela|pion|lista|siatka`.
+Parametry adresu: `?osoba=marta|jan|ewa|kacper`, `?dzien=N`.
 
 `koncepcja.html` — osobny, wcześniejszy szkic koncepcji (jeden plik).
 

@@ -137,6 +137,6 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 function odkryjDane(e){const t=e.target.closest&&e.target.closest('.face .reveal');if(!t)return false;e.preventDefault();e.stopPropagation();app.classList.remove('ukryte');return true}
 ['pointerdown','pointerup','click'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target.closest&&e.target.closest('.face .reveal')){if(ev==='click')odkryjDane(e);else e.stopPropagation()}},true));
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&odkryjDane(e))return},true);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')app.classList.add('ukryte')});
+
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(PS)pFinish({ok:false});else if(ZS)zFinish({ok:false})}});
 {const b=$('#qrBtn');if(b)b.onclick=()=>qrFlow({})}
