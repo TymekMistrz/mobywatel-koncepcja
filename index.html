@@ -99,12 +99,33 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 .ev span{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .ev i{min-width:0}
 .chip{flex:1 0 auto;padding:5px 8px}
+/* ---------- układ panelu: jedna kolumna od góry do dołu, bez pustych pól ----------
+   osoby w jednym rzędzie · data · terminy (wypełniają resztę, w dwóch kolumnach) · na dole kod QR i informacja */
+.panel{display:flex!important;flex-direction:column;overflow:hidden}
+.people{grid-template-columns:repeat(4,1fr)!important;gap:8px}
+.person{flex-direction:column;align-items:flex-start;gap:6px;padding:10px}
+.person .av{width:34px;height:34px}
+.person b,.person small{white-space:normal}
+.datebox{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"d s" "c c";column-gap:16px;align-items:center}
+.datebox .date{grid-area:d;flex-direction:column;align-items:flex-start;gap:0}
+.datebox input[type=range]{grid-area:s;margin:0}
+.datebox .chips{grid-area:c;margin-top:8px;flex-wrap:nowrap}
+.events{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));align-content:start;gap:6px;flex:1;min-height:0;overflow:hidden}
+.dol{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;margin-top:12px}
+.dol .qrpop{margin:0}
+.dol .foot{border:0;margin:0;padding:0 0 4px;max-width:200px;text-align:right}
+#qrBox{width:92px;height:92px}
+/* panel ma wysokość swojej treści (bez pustych pól), ale nigdy nie wychodzi poza okno */
+.stage{align-items:center}
+.right{align-self:stretch}
+.panel{height:auto;max-height:100%;align-self:center}
+.events{flex:0 1 auto!important}
+.dol{margin-top:14px}
 </style>
 </head>
 <body>
 <div class="stage">
   <aside class="panel" aria-label="Panel pokazu">
-   <div class="kol">
     <div class="brand"><img src="assets/icon-app.svg" alt=""><h1>mObywatel</h1></div>
 
     <div class="h">Osoba</div>
@@ -117,19 +138,17 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
       <div class="chips" id="quick"></div>
     </div>
 
-    <div class="foot">Osoby i dane są fikcyjne. To nie jest usługa administracji publicznej.</div>
-   </div>
-   <div class="kol">
-    <div class="h h0">Terminy · podgląd stanu po upływie</div>
+    <div class="h">Terminy · podgląd stanu po upływie</div>
     <div class="events" id="events"></div>
 
-    <div class="h">Otwórz na swoim telefonie</div>
-    <div class="qrpop" id="qrPop">
-      <div id="qrBox" aria-label="Kod QR z linkiem do aplikacji"></div>
-      <div><b>Zeskanuj aparatem telefonu</b><small>Otworzy się ta sama osoba i data, bez panelu.</small>
-      <a href="app.html" id="openApp" target="_blank" rel="noopener">albo otwórz w nowym oknie przeglądarki ↗</a></div>
+    <div class="dol">
+      <div class="qrpop" id="qrPop">
+        <div id="qrBox" aria-label="Kod QR z linkiem do aplikacji"></div>
+        <div><b>Otwórz na swoim telefonie</b><small>Zeskanuj aparatem — otworzy się ta sama osoba i data, bez panelu.</small>
+        <a href="app.html" id="openApp" target="_blank" rel="noopener">albo otwórz w nowym oknie przeglądarki ↗</a></div>
+      </div>
+      <div class="foot">Osoby i dane są fikcyjne. To nie jest usługa administracji publicznej.</div>
     </div>
-   </div>
   </aside>
 
   <main class="right">
@@ -147,7 +166,7 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261111-1750"></script>
+<script src="osoby.js?v=20261111-1752"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
@@ -157,7 +176,7 @@ const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 const DZIS=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})(), PRZES=Math.round((DZIS-DZIEN_0)/DAY);
 const naEkran=d=>new Date(d.getTime()+PRZES*DAY);
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1750';
+const WERSJA='20261111-1752';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 m'],[90,'+3 m'],[180,'+6 m'],[365,'+1 rok']];
