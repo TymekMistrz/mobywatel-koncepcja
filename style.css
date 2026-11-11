@@ -847,3 +847,8 @@ html.okno .composer{padding-bottom:8px}
 #app.ukryte .face .reveal svg{width:4.8cqw;height:4.8cqw}
 #app.ukryte .face .reveal:hover{background:rgba(255,255,255,.28)}
 #app.ukryte .face .reveal:active{background:rgba(255,255,255,.34);transform:scale(.92)}
+/* bez prześwitów treści między polem czatu a paskiem nawigacji */
+.tabbar{background:#fff}
+.tabbar::before{content:"";position:absolute;left:0;right:0;top:-12px;height:12px;background:var(--bg);pointer-events:none}
+.page,.page.podglad{bottom:calc(var(--tb,0px) + 10px)}
+.composer::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:14px;background:var(--bg);z-index:-1;pointer-events:none}
