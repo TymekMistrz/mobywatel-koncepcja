@@ -103,6 +103,20 @@ const WIECEJ=[
   if(TAB==='wiecej')page.innerHTML=stronaWiecej();
   page.scrollTop=0;
  }
+ /* ---------- wejście dla gestów: myszka przez zdarzenia wskaźnika, palec przez zdarzenia dotyku ----------
+    Na telefonach zdarzenia wskaźnika bywają przerywane przez przeglądarkę (przewijanie, cofanie strony),
+    dlatego dotyk obsługujemy klasycznie: touchstart/touchmove/touchend, a gdy gest jest nasz — blokujemy
+    domyślną reakcję przeglądarki, więc strona idzie za palcem aż do puszczenia. */
+ let palec=null;
+ const udaj=(e,t,anul)=>({clientX:t.clientX,clientY:t.clientY,pointerType:'touch',button:0,buttons:1,target:e.target,pointerId:undefined,anulowano:!!anul});
+ function gestEv(el,typ,fn,cap){
+  const c=!!cap;
+  el.addEventListener(typ,e=>{if(e.pointerType==='mouse')fn(e)},c);
+  if(typ==='pointerdown')el.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;const t=e.touches[0];palec=t.identifier;fn(udaj(e,t))},{capture:c,passive:true});
+  if(typ==='pointermove')el.addEventListener('touchmove',e=>{const t=[...e.touches].find(x=>x.identifier===palec);if(!t)return;fn(udaj(e,t));if(app.classList.contains('gest')&&e.cancelable)e.preventDefault()},{capture:c,passive:false});
+  if(typ==='pointerup')el.addEventListener('touchend',e=>{const t=[...e.changedTouches].find(x=>x.identifier===palec);if(!t)return;fn(udaj(e,t))},{capture:c,passive:true});
+  if(typ==='pointercancel')el.addEventListener('touchcancel',e=>{const t=e.changedTouches[0];if(t)fn(udaj(e,t,true))},{capture:c,passive:true});
+ }
  /* ---------- animacje przejść między stronami ---------- */
  const SPOKOJ=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const KOLEJ=['dok','uslugi','skrzynka','wiecej'];
@@ -184,8 +198,8 @@ const WIECEJ=[
   const jedz=(el,do_)=>el.animate([{transform:el.style.transform||'translateX(0)'},{transform:`translateX(${do_}px)`}],{duration:260,easing:EASE,fill:'forwards'}).finished;
   const sprzataj=els=>els.forEach(el=>{el.getAnimations().forEach(a=>a.cancel());el.style.transform='';el.style.opacity=''});
   let g=null;
-  app.addEventListener('pointerdown',e=>{if(!strefa(e)||zajete()||(e.pointerType==='mouse'&&e.button!==0))return;g={x:e.clientX,y:e.clientY,t:performance.now(),poziom:null,cel:undefined,pg:null,lx:e.clientX,lt:performance.now(),v:0}},true);
-  app.addEventListener('pointermove',e=>{
+  gestEv(app,'pointerdown',e=>{if(!strefa(e)||zajete()||(e.pointerType==='mouse'&&e.button!==0))return;g={x:e.clientX,y:e.clientY,t:performance.now(),poziom:null,cel:undefined,pg:null,lx:e.clientX,lt:performance.now(),v:0}},true);
+  gestEv(app,'pointermove',e=>{
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}   // przycisk puszczony poza ekranem telefonu
    const dx=e.clientX-g.x,dy=e.clientY-g.y;
    {const n=performance.now();if(n-g.lt>0){g.v=.6*g.v+.4*((e.clientX-g.lx)/(n-g.lt))}g.lx=e.clientX;g.lt=n}
@@ -205,7 +219,7 @@ const WIECEJ=[
    /* decyzja jak na telefonie: gdzie strona „dojechałaby” rozpędem (pozycja + prędkość przy puszczeniu).
       Za mały lub zawrócony ruch → strona wraca; przejście tylko, gdy rzut mija połowę ekranu w tę samą stronę. */
    const vp=performance.now()-lt>90?0:vk,rzut=dx+vp*200;
-   if(cel&&pg&&Math.abs(dx)>24&&Math.sign(rzut)===Math.sign(dx)&&Math.abs(rzut)>W*.5){
+   if(!e.anulowano&&cel&&pg&&Math.abs(dx)>24&&Math.sign(rzut)===Math.sign(dx)&&Math.abs(rzut)>W*.5){
     trwa=true;zaznacz(cel);const s=dx<0?-1:1;
     await Promise.all([...stare.map(el=>jedz(el,s*W)),jedz(pg,0)]);
     if(cel==='dok')zwinStos();
@@ -221,32 +235,32 @@ const WIECEJ=[
   }
   /* tylko utrata przechwycenia przez samą aplikację kończy gest (na dotyku najpierw traci je dotknięty element — to nie koniec) */
   app.addEventListener('lostpointercapture',e=>{if(e.target===app&&g&&g.poziom)koniec(e)});
-  app.addEventListener('pointerup',koniec,true);app.addEventListener('pointercancel',koniec,true);
+  gestEv(app,'pointerup',koniec,true);gestEv(app,'pointercancel',koniec,true);
  }
  /* ---------- gest powrotu: szczegóły dokumentu przeciągnij w prawo, skaner przeciągnij w dół ---------- */
  function gestZamkniecia(el,os,zamknij){
   let g=null;
   el.style.touchAction=os==='x'?'pan-y':'pan-x';
-  el.addEventListener('pointerdown',e=>{if(!el.classList.contains('on')||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('input,textarea'))return;g={x:e.clientX,y:e.clientY,t:performance.now(),moje:null,lp:os==='x'?e.clientX:e.clientY,lt:performance.now(),v:0}});
-  el.addEventListener('pointermove',e=>{
+  gestEv(el,'pointerdown',e=>{if(!el.classList.contains('on')||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('input,textarea'))return;g={x:e.clientX,y:e.clientY,t:performance.now(),moje:null,lp:os==='x'?e.clientX:e.clientY,lt:performance.now(),v:0}});
+  gestEv(el,'pointermove',e=>{
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}
    const dx=e.clientX-g.x,dy=e.clientY-g.y,d=os==='x'?dx:dy,inny=os==='x'?dy:dx;
    {const n=performance.now(),p=os==='x'?e.clientX:e.clientY;if(n-g.lt>0)g.v=.6*g.v+.4*((p-g.lp)/(n-g.lt));g.lp=p;g.lt=n}
-   if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=d>0&&Math.abs(d)>Math.abs(inny)*(e.pointerType==='mouse'?1.3:1);if(g.moje)try{el.setPointerCapture(e.pointerId)}catch(_){}}
+   if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=d>0&&Math.abs(d)>Math.abs(inny)*(e.pointerType==='mouse'?1.3:1);if(g.moje){app.classList.add('gest');try{el.setPointerCapture(e.pointerId)}catch(_){}}}
    if(!g.moje)return;
    el.style.transition='none';el.style.transform=os==='x'?`translateX(${Math.max(0,d)}px)`:`translateY(${Math.max(0,d)}px)`;
    if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.transition='none';x.style.transform=`translateX(${-22+22*Math.min(1,Math.max(0,d)/el.offsetWidth)}%)`});
   });
   function koniec(e){
-   if(!g)return;const {x,y,t,moje,v:vk,lt,lp}=g;g=null;try{el.releasePointerCapture(e.pointerId)}catch(_){}if(!moje)return;
+   if(!g)return;const {x,y,t,moje,v:vk,lt,lp}=g;g=null;app.classList.remove('gest');try{el.releasePointerCapture(e.pointerId)}catch(_){}if(!moje)return;
    const d=lp-(os==='x'?x:y),dl=os==='x'?el.offsetWidth:el.offsetHeight;
    const vp=performance.now()-lt>90?0:vk,rzut=d+vp*200;
-   const zamyka=d>24&&rzut>dl*.5;          // zamyka tylko, gdy ruch „dojechałby” za połowę ekranu
+   const zamyka=!e.anulowano&&d>24&&rzut>dl*.5;          // zamyka tylko, gdy ruch „dojechałby” za połowę ekranu
    el.style.transition='';void el.offsetWidth;el.style.transform='';
    if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.transition='';x.style.transform=''});
    if(zamyka)zamknij();
   }
-  el.addEventListener('pointerup',koniec);el.addEventListener('pointercancel',koniec);
+  gestEv(el,'pointerup',koniec);gestEv(el,'pointercancel',koniec);
  }
  {const det=$('#detail');if(det)gestZamkniecia(det,'x',()=>det.classList.remove('on'))}
  /* skaner tworzy się przy pierwszym otwarciu — gest podpinamy, gdy się pojawi */
@@ -285,9 +299,9 @@ const WIECEJ=[
  {
   const ch=$('#chat');let g=null;
   const wyjscie=()=>wyjdzZCzatu();
-  ch.addEventListener('pointerdown',e=>{if(!app.classList.contains('chatting')||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('input,textarea'))return;
+  gestEv(ch,'pointerdown',e=>{if(!app.classList.contains('chatting')||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('input,textarea'))return;
    g={x:e.clientX,y:e.clientY,moje:null,lx:e.clientX,lt:performance.now(),v:0}},true);
-  ch.addEventListener('pointermove',e=>{
+  gestEv(ch,'pointermove',e=>{
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}
    const dx=e.clientX-g.x,dy=e.clientY-g.y;
    {const n=performance.now();if(n-g.lt>0)g.v=.6*g.v+.4*((e.clientX-g.lx)/(n-g.lt));g.lx=e.clientX;g.lt=n}
@@ -300,9 +314,9 @@ const WIECEJ=[
    if(!moje)return;
    const dx=lx-x,vp=performance.now()-lt>90?0:v,rzut=dx+vp*200;
    ch.style.transition='';ch.style.opacity='';
-   if(dx>24&&rzut>ch.offsetWidth*.5){ch.style.transform='';wyjscie()}else{ch.style.transform=''}
+   if(!e.anulowano&&dx>24&&rzut>ch.offsetWidth*.5){ch.style.transform='';wyjscie()}else{ch.style.transform=''}
   }
-  ch.addEventListener('pointerup',koniec,true);ch.addEventListener('pointercancel',koniec,true);
+  gestEv(ch,'pointerup',koniec,true);gestEv(ch,'pointercancel',koniec,true);
  }
  /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
  const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
