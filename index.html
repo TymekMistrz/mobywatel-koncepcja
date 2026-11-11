@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Prototyp aplikacji obywatelskiej — pokaz</title>
+<title>mObywatel</title>
 <link rel="icon" href="assets/icon-app.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -81,7 +81,7 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 <body>
 <div class="stage">
   <aside class="panel" aria-label="Panel pokazu">
-    <div class="brand"><img src="assets/icon-app.svg" alt=""><h1>Prototyp aplikacji obywatelskiej</h1></div>
+    <div class="brand"><img src="assets/icon-app.svg" alt=""><h1>mObywatel</h1></div>
 
     <div class="h">Osoba</div>
     <div class="people" id="people"></div>
@@ -114,14 +114,14 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
   </main>
 </div>
 
-<script src="osoby.js?v=20261111-1601"></script>
+<script src="osoby.js?v=20261111-1602"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
    ========================================================= */
 const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1601';
+const WERSJA='20261111-1602';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Start'],[14,'+2 tyg.'],[30,'+1 m.'],[90,'+3 m.'],[180,'+6 m.'],[365,'+1 rok']];
