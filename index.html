@@ -119,7 +119,7 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
     <div class="qrpop" id="qrPop">
       <div id="qrBox" aria-label="Kod QR z linkiem do aplikacji"></div>
       <div><b>Zeskanuj aparatem telefonu</b><small>Otworzy się ta sama osoba i data, bez panelu.</small>
-      <a href="app.html" id="openApp" target="_blank" rel="noopener">albo otwórz w oknie telefonu ↗</a></div>
+      <a href="app.html" id="openApp" target="_blank" rel="noopener">albo otwórz w nowym oknie przeglądarki ↗</a></div>
     </div>
    </div>
   </aside>
@@ -139,14 +139,14 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261111-1738"></script>
+<script src="osoby.js?v=20261111-1739"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
    ========================================================= */
 const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1738';
+const WERSJA='20261111-1739';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 mies'],[90,'+3 mies'],[180,'+6 mies'],[365,'+1 rok']];
@@ -211,7 +211,7 @@ sl.addEventListener('change',()=>{S.dzien=+sl.value;load()});      // przeładuj
 function rysujQR(){const box=$('#qrBox');if(!box||$('#qrPop').hidden)return;
   const url=new URL(appURL(),location.href).href;const q=qrcode(0,'M');q.addData(url);q.make();
   box.innerHTML=q.createSvgTag({cellSize:4,margin:2,scalable:true});}
-/* „albo otwórz w oknie telefonu”: osobne okno w rozmiarze telefonu (402×874), czyli widok mobilny na komputerze */
+/* „albo otwórz w nowym oknie przeglądarki”: osobne okno w rozmiarze telefonu (402×874), czyli widok mobilny na komputerze */
 $('#openApp').addEventListener('click',e=>{
   const w=402,h=874,l=Math.max(0,(screen.availWidth-w)/2),t=Math.max(0,(screen.availHeight-h)/2);
   const okno=window.open($('#openApp').href,'mobywatel_telefon',`popup=yes,width=${w},height=${h},left=${l},top=${t}`);
