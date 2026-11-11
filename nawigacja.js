@@ -154,7 +154,8 @@ const WIECEJ=[
  const wroc=()=>{if(!app.classList.contains('chatting'))przedCzatem=TAB;if(TAB!=='dok'){TAB='dok';rysuj()}};
  window.zapamietajPrzedCzatem=k=>{przedCzatem=k};
  /* wyjście z rozmowy: powrót do widoku sprzed wejścia w czat */
- const ex=$('#exitChatBtn');if(ex)ex.onclick=()=>{exitChat();const k=przedCzatem;przedCzatem='dok';if(k!=='dok')ustawZakladke(k)};
+ window.wyjdzZCzatu=()=>{exitChat();const k=przedCzatem;przedCzatem='dok';if(k!=='dok')ustawZakladke(k)};
+ const ex=$('#exitChatBtn');if(ex)ex.onclick=()=>wyjdzZCzatu();
  /* w czacie tytuł zawsze „mObywatel” */
  new MutationObserver(()=>{if(app.classList.contains('chatting')){const t=$('#title');if(t&&t.textContent!=='mObywatel')t.textContent='mObywatel'}else{const t=$('#title');const n=TAB==='dok'?'mObywatel':(ZAKLADKI.find(z=>z[0]===TAB)||[,''])[1];if(t&&t.textContent!==n)t.textContent=n}}).observe(app,{attributes:true,attributeFilter:['class']});
  $('#composer').addEventListener('submit',wroc,true);
@@ -276,6 +277,29 @@ const WIECEJ=[
  const czatDol=()=>{const m=[...document.querySelectorAll('.msgs')].find(x=>x.offsetParent);const ukryta=!!m&&m.scrollHeight-m.scrollTop-m.clientHeight>4;app.classList.toggle('czatdol',ukryta)};
  document.addEventListener('scroll',e=>{if(e.target.classList&&e.target.classList.contains('msgs'))czatDol()},true);
  new MutationObserver(()=>requestAnimationFrame(czatDol)).observe(app,{childList:true,subtree:true});
+ /* ---------- gest powrotu z czatu: przeciągnij rozmowę w prawo ---------- */
+ {
+  const ch=$('#chat');let g=null;
+  const wyjscie=()=>wyjdzZCzatu();
+  ch.addEventListener('pointerdown',e=>{if(!app.classList.contains('chatting')||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('input,textarea'))return;
+   g={x:e.clientX,y:e.clientY,moje:null,lx:e.clientX,lt:performance.now(),v:0}},true);
+  ch.addEventListener('pointermove',e=>{
+   if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}
+   const dx=e.clientX-g.x,dy=e.clientY-g.y;
+   {const n=performance.now();if(n-g.lt>0)g.v=.6*g.v+.4*((e.clientX-g.lx)/(n-g.lt));g.lx=e.clientX;g.lt=n}
+   if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=dx>0&&Math.abs(dx)>Math.abs(dy)*1.3;if(g.moje){app.classList.add('gest');try{ch.setPointerCapture(e.pointerId)}catch(_){}}}
+   if(!g.moje)return;
+   ch.style.transition='none';ch.style.transform=`translateX(${Math.max(0,dx)}px)`;ch.style.opacity=String(1-Math.min(.5,Math.max(0,dx)/ch.offsetWidth));
+  },true);
+  function koniec(e){
+   if(!g)return;const {x,moje,v,lt}=g;g=null;app.classList.remove('gest');try{ch.releasePointerCapture(e.pointerId)}catch(_){}
+   if(!moje)return;
+   const dx=(e.clientX??x)-x,vp=performance.now()-lt>90?0:v,rzut=dx+vp*200;
+   ch.style.transition='';ch.style.opacity='';
+   if(dx>24&&rzut>ch.offsetWidth*.5){ch.style.transform='';wyjscie()}else{ch.style.transform=''}
+  }
+  ch.addEventListener('pointerup',koniec,true);ch.addEventListener('pointercancel',koniec,true);
+ }
  /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
  const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
   const det=$('#detail');if(det)det.classList.remove('on');

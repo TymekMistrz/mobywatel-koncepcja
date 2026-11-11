@@ -905,3 +905,18 @@ html.okno .composer{padding-bottom:8px}
 #app.ukryte #detail .face .dl.pv{display:grid;filter:none!important;opacity:1}
 #app.ukryte #detail .face .col::after{content:none}
 #app.ukryte #detail .face .reveal{display:none!important}
+
+/* ---------- czat: wjazd z prawej i wyjazd w prawo (jak szczegóły dokumentu) ---------- */
+.chat{transform:translateX(30%);opacity:0;transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .3s ease}
+.phone.chatting .chat{transform:none;opacity:1}
+.page,#stackwrap,#reminders{transition:transform .42s cubic-bezier(.32,.72,0,1),opacity .3s ease}
+.phone.chatting .page,.phone.chatting #reminders{transform:translateX(-18%);opacity:0;pointer-events:none}
+
+/* aparat (zdjęcie) dostępny zawsze w polu czatu */
+.phone:not(.chatting) #cam{display:grid}
+
+/* mikrofon w trakcie słuchania: lekko, ale wyraźnie aktywny */
+.bar.listening .mic{color:var(--red)!important;background:rgba(220,20,60,.10)!important;box-shadow:0 0 0 calc(2px + var(--lvl,0)*6px) rgba(220,20,60,.12)!important;animation:none!important;border-radius:50%}
+.bar.listening .mic svg{animation:mikro 1.4s ease-in-out infinite}
+@keyframes mikro{50%{transform:scale(1.12)}}
+.bar.listening{box-shadow:inset 0 0 0 1.5px rgba(220,20,60,.45)}
