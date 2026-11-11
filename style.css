@@ -1,5 +1,5 @@
 :root{
-  --bg:#f2f3f7; --surface:#ffffff; --ink:#111216; --ink2:#5f6270; --ink3:#8b8e9a; --hair:#e3e5eb;
+  --bg:#ebedf2; --surface:#ffffff; --ink:#111216; --ink2:#5f6270; --ink3:#8b8e9a; --hair:#e3e5eb;
   --red:#dc143c; --red-dark:#b30f30; --red-wash:#fdecef;
   --ok:#2e7d32; --ok-wash:#e9f5ea; --warn:#9a5a00; --warn-wash:#fff3df;
   --ease:cubic-bezier(.22,.9,.24,1);
@@ -129,7 +129,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--red);outline-of
 .chips button.next{background:var(--red);color:#fff}
 
 /* pasek do rozmowy */
-.composer{position:absolute;left:0;right:0;bottom:0;padding:8px 12px 30px;z-index:25;background:linear-gradient(to top,var(--bg) 75%,rgba(242,243,247,0))}
+.composer{position:absolute;left:0;right:0;bottom:0;padding:8px 12px 30px;z-index:25;background:linear-gradient(to top,var(--bg) 75%,rgba(235,237,242,0))}
 @media (max-width:520px){.composer{padding-bottom:max(env(safe-area-inset-bottom),12px)}}
 .bar{display:flex;align-items:center;gap:2px;background:var(--surface);border-radius:28px;padding:6px 6px 6px 8px;
   box-shadow:0 1px 2px rgba(15,25,60,.06),0 10px 30px -10px rgba(15,25,60,.22);transition:box-shadow .25s}
@@ -287,7 +287,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--red);outline-of
 .title svg{width:22px;height:22px;color:var(--ink2);transition:transform .3s var(--ease)}
 .phone.menu .title svg{transform:rotate(180deg)}
 .lmenu{position:absolute;inset:0;z-index:19;pointer-events:none}
-.lmenu .scrim{position:absolute;inset:0;background:rgba(242,243,247,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .25s}
+.lmenu .scrim{position:absolute;inset:0;background:rgba(235,237,242,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .25s}
 .lmenu .panel{position:absolute;left:12px;right:12px;top:var(--menuTop,150px);background:#fff;border-radius:20px;padding:8px;box-shadow:0 20px 50px -12px rgba(15,25,60,.35);
   transform:translateY(-14px) scale(.98);transform-origin:top center;opacity:0;transition:transform .32s var(--ease),opacity .2s}
 .phone.menu .lmenu{pointer-events:auto}
@@ -323,7 +323,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--red);outline-of
 .ico.has .hc[hidden]{display:block;min-width:9px;width:9px;height:9px;padding:0;top:8px;right:7px;font-size:0}
 .phone.hist #histBtn{color:var(--red)}
 .hmenu{position:absolute;inset:0;z-index:19;pointer-events:none}
-.hmenu .scrim{position:absolute;inset:0;background:rgba(242,243,247,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .25s}
+.hmenu .scrim{position:absolute;inset:0;background:rgba(235,237,242,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .25s}
 .hmenu .panel{position:absolute;left:12px;right:12px;top:var(--histTop,100px);max-height:calc(100% - var(--histTop,100px) - 104px);display:flex;flex-direction:column;background:#fff;border-radius:20px;padding:6px 8px 8px;box-shadow:0 20px 50px -12px rgba(15,25,60,.35);transform:translateY(-12px) scale(.98);transform-origin:50% 0;opacity:0;transition:transform .3s var(--ease),opacity .2s}
 .phone.hist .hmenu{pointer-events:auto}
 .phone.hist .hmenu .scrim{opacity:1}
@@ -335,7 +335,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--red);outline-of
 .hmenu .hl::-webkit-scrollbar{display:none}
 .hmenu .hl button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 12px;border-radius:14px}
 .hmenu .hl button.on{background:var(--red-wash)}
-.hmenu .hic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:#f2f3f7;color:var(--ink);flex:none}
+.hmenu .hic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:#ebedf2;color:var(--ink);flex:none}
 .hmenu .on .hic{background:#fff;color:var(--red)}
 .hmenu .hic svg{width:20px;height:20px}
 .hmenu .mt{flex:1;min-width:0}
@@ -419,7 +419,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--red);outline-of
 .tl{background:var(--surface);border-radius:18px;overflow-y:auto;min-height:0;box-shadow:0 1px 2px rgba(15,25,60,.06)}
 .tl button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 12px 13px 14px;position:relative}
 .tl button+button::before{content:"";position:absolute;left:62px;right:0;top:0;height:1px;background:var(--hair,#e6e8ee)}
-.tl .ti{flex:none;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:#f2f3f7;color:var(--ink)}
+.tl .ti{flex:none;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:#ebedf2;color:var(--ink)}
 .tl .urgent .ti{background:var(--red-wash);color:var(--red)}
 .tl .ti svg{width:20px;height:20px}
 .tl .tx{flex:1;min-width:0}
@@ -687,7 +687,7 @@ html.ramka .tabbar{padding-bottom:24px}
 /* ---------- pole czatu: szare tło wystające ponad dymek, treść pod nim płynnie się rozmywa i znika ---------- */
 .composer{background:none;padding-top:14px}
 .composer::before{content:"";position:absolute;left:0;right:0;top:-34px;bottom:0;z-index:-1;pointer-events:none;
-  background:linear-gradient(to top,var(--bg) 0%,var(--bg) 58%,rgba(242,243,247,.85) 72%,rgba(242,243,247,0) 100%);
+  background:linear-gradient(to top,var(--bg) 0%,var(--bg) 58%,rgba(235,237,242,.85) 72%,rgba(235,237,242,0) 100%);
   -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   -webkit-mask-image:linear-gradient(to top,#000 60%,transparent 100%);mask-image:linear-gradient(to top,#000 60%,transparent 100%)}
 /* strony przewijają się aż pod pole czatu, ostatnia pozycja da się wysunąć ponad nie */
@@ -736,7 +736,7 @@ html.ramka .tabbar{padding-bottom:24px}
 
 /* ---------- karty chowają się płynnie pod kafelkiem „Wymagane akcje” ---------- */
 #reminders::before{content:none;position:absolute;left:0;right:0;top:-60px;height:66px;pointer-events:none;z-index:0;
-  background:linear-gradient(to bottom,rgba(242,243,247,0) 0%,rgba(242,243,247,.75) 55%,var(--bg) 88%);
+  background:linear-gradient(to bottom,rgba(235,237,242,0) 0%,rgba(235,237,242,.75) 55%,var(--bg) 88%);
   -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   -webkit-mask-image:linear-gradient(to bottom,transparent,#000 70%);mask-image:linear-gradient(to bottom,transparent,#000 70%)}
 #reminders .tiles{position:relative;z-index:1}
