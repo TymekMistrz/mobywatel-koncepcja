@@ -44,7 +44,7 @@ const PHOTO=`<span class="ph" role="img" aria-label="Zdjęcie: ${OS.imie} ${OS.n
 const LIVE='<span class="live" role="button" aria-label="Mój znak aplikacji: powiększ, aby przyjąć dane"></span>';
 /* prywatność: po otwarciu aplikacji Dowód osobisty pokazuje tylko zdjęcie i imię */
 const PRIV=(full,short)=>`<span class="pvf">${full}</span><span class="pvs">${short}</span>`;
-const REVEAL='<span class="reveal" role="button" tabindex="0" aria-label="Pokaż dane z dowodu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg>Pokaż dane</span>';
+const REVEAL='<span class="reveal" role="button" tabindex="0" aria-label="Pokaż dane z dowodu" title="Pokaż dane"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12S6.8 6.5 12 6.5 20.5 12 20.5 12 17.2 17.5 12 17.5 3.5 12 3.5 12z"/><circle cx="12" cy="12" r="2.6"/><path d="M4.5 4.5l15 15"/></svg></span>';
 function shortName(n){const p=n.split(' ');return p.length>1?p.slice(0,-1).join(' '):n}
 function faceHTML(d){
  const cells=d.f.map(p=>`<span><small>${p[0]}</small><b>${p[1]}</b></span>`).join('');   /* karta bez oznaczeń terminów — stan widać w „Wymaganych akcjach” i w szczegółach */
@@ -59,7 +59,7 @@ function renderStack(){
  const st=$('#stack');st.innerHTML='';
  STACK_ORDER.map(id=>DOCS.find(d=>d.id===id)).forEach((d,i)=>{const c=document.createElement('button');c.className='card';c.style.backgroundImage=`url(${d.img})`;c.setAttribute('aria-label',d.name);c.style.zIndex=i+1;c.innerHTML=faceHTML(d);
   /* 1. kliknięcie: karta się wysuwa i pokazuje dane; 2. kliknięcie tej samej karty: otwiera szczegóły */
-  c.onclick=()=>{if(app.classList.contains('chatting')){exitChat();return}if(i===SEL){openDoc(d.id);return}SEL=i;layout()};st.append(c)});
+  c.onclick=()=>{if(app.classList.contains('chatting')){exitChat();return}if(i===SEL){openDoc(d.id);return}SEL=i;app.classList.add('ukryte');layout()};st.append(c)});
 }
 renderStack();
 

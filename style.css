@@ -840,3 +840,10 @@ html.okno .composer{padding-bottom:8px}
 #app.ukryte .face .reveal{position:absolute;left:0;top:50%;transform:translateY(-50%);margin:0;z-index:2;
   background:rgba(255,255,255,.95);color:#173a8a;box-shadow:0 2px 10px rgba(0,0,0,.18);font-size:3.7cqw;padding:2cqw 3.8cqw 2cqw 3cqw}
 #app.ukryte .face .reveal:active{background:#fff;transform:translateY(-50%) scale(.96)}
+
+/* „Pokaż dane”: dyskretna ikonka przekreślonego oka obok imienia, bez napisu */
+#app.ukryte .face .reveal{position:absolute;left:auto;right:0;top:-1cqw;transform:none;width:8.4cqw;height:8.4cqw;padding:0;justify-content:center;
+  border-radius:50%;background:rgba(255,255,255,.18);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);font-size:0}
+#app.ukryte .face .reveal svg{width:4.8cqw;height:4.8cqw}
+#app.ukryte .face .reveal:hover{background:rgba(255,255,255,.28)}
+#app.ukryte .face .reveal:active{background:rgba(255,255,255,.34);transform:scale(.92)}
