@@ -761,3 +761,7 @@ html.ramka .tabbar{padding-bottom:24px}
 .seg.light.anim .seg-wsk{box-shadow:0 1px 3px rgba(15,25,60,.12)}
 .seg.anim button{position:relative;z-index:1;transition:color .25s}
 .seg.anim button.on{background:transparent!important;box-shadow:none!important}
+
+/* ---------- bez widocznych pasków przewijania (jak w aplikacjach na telefonie); przewijanie dalej działa ---------- */
+html,body,*{scrollbar-width:none;-ms-overflow-style:none}
+*::-webkit-scrollbar{width:0;height:0;display:none}
