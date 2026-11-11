@@ -862,3 +862,10 @@ html.okno .composer{padding-bottom:8px}
 .phone.chatting .tabbar{transform:translateY(100%);opacity:0;pointer-events:none}
 .phone.chatting .composer{padding-bottom:28px}
 .phone.chatting .composer::after{display:none}
+/* ikonka „pokaż dane”: na środku rozmytych danych, sama, bez tła */
+#app.ukryte .face .reveal{left:50%;right:auto;top:50%;transform:translate(-50%,-50%);width:10cqw;height:10cqw;background:transparent!important;box-shadow:none!important;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.35))}
+#app.ukryte .face .reveal svg{width:7cqw;height:7cqw}
+#app.ukryte .face .reveal:hover{background:transparent}
+#app.ukryte .face .reveal:active{transform:translate(-50%,-50%) scale(.9)}
+#app.ukryte .face .reveal{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-radius:0}
