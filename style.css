@@ -938,3 +938,8 @@ html.okno .composer{padding-bottom:8px}
 #app.ukryte #stack .face .nm,#app.ukryte .podglad-dok .face .nm{overflow:visible!important;text-overflow:clip}
 #app.ukryte #stack .face .col,#app.ukryte .podglad-dok .face .col{overflow:visible!important}
 #app.ukryte .pvf{display:inline-block!important}
+/* szkło tylko na karcie dowodu w stosie (jedyna z ikoną oka); inne dokumenty i wszystkie widoki szczegółów bez rozmycia */
+#app .face .col:not(:has(.reveal))::after{content:none!important}
+#app #detail .face .col::after{content:none!important}
+#app #detail .face .reveal{display:none!important}
+#app #detail .pvf,#app #detail .face .dl.pv{filter:none!important;opacity:1!important}
