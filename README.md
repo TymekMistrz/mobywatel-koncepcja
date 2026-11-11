@@ -22,7 +22,8 @@ Każdy commit na gałęzi `main` pojawia się pod tym adresem po ok. minucie.
 | `osoby.js` | osoby demo: dokumenty, kafelki „Do załatwienia”, podpowiedzi |
 | `scenarios.js` | scenariusze rozmów (zgubiony portfel, stłuczka, OC…) |
 | `core.js` | stos kart, szczegóły dokumentu, czat |
-| `variants.js` | menu pod tytułem „Dokumenty ▾” (wybór osoby) |
+| `variants.js` | stały układ „stos” |
+| `nawigacja.js` | dolny pasek (Dokumenty, Usługi, Skanuj, Skrzynka, Więcej) i treść tych stron |
 | `assets/` | grafiki |
 
 Parametry adresu: `?osoba=marta|jan|ewa|kacper`, `?dzien=N`.
