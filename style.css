@@ -961,3 +961,18 @@ html.okno .composer{padding-bottom:8px}
 .phone:not(.chatting) .bar{padding-left:0}
 .title{transition:opacity .25s ease!important}
 .phone.chatting .chatonly{animation:fadein .35s ease}
+
+/* ---------- czat: wolniejsze, miękkie przejście; nic nie przeskakuje ---------- */
+:root{--czat-t:.6s;--czat-e:cubic-bezier(.32,.08,.24,1)}
+.chat{transform:translateX(10px);transition:transform var(--czat-t) var(--czat-e),opacity .45s ease}
+.phone.chatting .chat{transition-delay:.12s}
+.page,#stackwrap,#reminders{transition:opacity .45s ease,transform var(--czat-t) var(--czat-e)}
+.phone.chatting .page,.phone.chatting #reminders,.phone.chatting .stackwrap{transition:opacity .35s ease}
+.composer{transition:bottom var(--czat-t) var(--czat-e),padding-bottom var(--czat-t) var(--czat-e)}
+.tabbar{transition:transform var(--czat-t) var(--czat-e)!important}
+/* strzałka wyjścia wysuwa się płynnie, a flaga i napis przesuwają się razem z nią */
+.ico.wyjdz{display:grid!important;width:0;margin:0;opacity:0;overflow:hidden;pointer-events:none;transition:width var(--czat-t) var(--czat-e),margin var(--czat-t) var(--czat-e),opacity .4s ease}
+.phone.chatting .ico.wyjdz{width:40px;margin-left:-8px;margin-right:2px;opacity:1;pointer-events:auto;transition-delay:0s,0s,.15s}
+.title{transition:opacity .3s ease,transform var(--czat-t) var(--czat-e)!important}
+.phone.chatting .title{left:62px!important;transform:translateX(34px)!important}
+.phone.chatting .chatonly{animation:fadein .6s ease}
