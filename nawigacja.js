@@ -79,7 +79,7 @@ const WIECEJ=[
    <div class="plist">${t.map(x=>`<button class="prow" data-q="${(x.q||x.h).replace(/"/g,'&quot;')}"><span class="pic ${x.u?'pil':''}">${ico(x.i==='car'?'car':x.i==='coin'?'coin':'mail')}</span><span class="ptx"><b>${x.h}</b><small class="${/termin minął|po terminie/.test(x.d)?'zle':x.u?'pilne':''}">${x.d}</small><small>${x.s||''}</small></span>${ico('chev','pch')}</button>`).join('')}</div>`}
  function stronaWiecej(){
   return `
-   <div class="pprof"><span class="pav" style="background-image:url(assets/foto-${OS.id}.svg)"></span><span><b>${OS.imie} ${OS.nazwisko}</b><small>${OS.opis}</small></span></div>
+   <div class="pprof"><span class="pav" style="background-image:url(assets/foto-${OS.id}.svg)"></span><span><b>${OS.imie} ${OS.nazwisko}</b><small>${OS.opis.split(',').slice(0,2).join(',')}</small></span></div>
    ${listaH(WIECEJ)}`}
  /* pasek: przesuwający się wskaźnik pod aktywną ikoną i krótki „podskok” ikony */
  const wsk=document.createElement('span');wsk.className='wsk';nav.prepend(wsk);
