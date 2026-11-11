@@ -134,7 +134,7 @@ function openDoc(id){
                      :[['scan','Potwierdź dane','qr'],['shield','Zgubiony portfel','lost'],['dots','Zapytaj asystenta','ask']];
  det.innerHTML=`<div style="height:${top}px;flex:none"></div><div class="nav"><button class="back" id="dclose">${svg('back')}Wróć</button><b>${d.name}</b><span></span></div>
   <div class="clock" id="dclock"></div>
-  <div class="body">${hero}<div class="quick">${q.map(x=>`<button data-a="${x[2]}"><i>${svg(x[0])}</i>${x[1]}</button>`).join('')}</div><div class="qrbox" id="qrbox"></div></div>`;
+  <div class="body">${hero}<div class="qrbox" id="qrbox"></div></div>`;
  tick();det.classList.add('on');
  $('#dclose').onclick=()=>det.classList.remove('on');
  det.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{
