@@ -782,3 +782,13 @@ html,body,*{scrollbar-width:none;-ms-overflow-style:none}
 .ico.skanuj{width:auto;height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px 0 11px;border-radius:19px;background:var(--red,#dc143c);color:#fff;font-size:15px;font-weight:600;letter-spacing:-.01em;box-shadow:0 4px 12px rgba(220,20,60,.28);transition:transform .15s}
 .ico.skanuj svg{width:20px;height:20px}
 .ico.skanuj:active{transform:scale(.95)}
+
+/* ---------- górna krawędź przewijanych stron: treść płynnie rozmywa się i znika pod nagłówkiem ---------- */
+.page,.sheet .body{padding-top:22px;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26px);mask-image:linear-gradient(to bottom,transparent 0,#000 26px)}
+.page::before,.sheet .body::before{content:"";position:sticky;top:0;display:block;height:30px;margin:-22px -16px -8px;z-index:3;pointer-events:none;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  -webkit-mask-image:linear-gradient(to bottom,#000 30%,transparent);mask-image:linear-gradient(to bottom,#000 30%,transparent)}
+.sheet .clock{margin-bottom:0}
+/* rozmowa z asystentem: ten sam, nieco dłuższy zanik u góry */
+.msgs{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26px);mask-image:linear-gradient(to bottom,transparent 0,#000 26px)}
