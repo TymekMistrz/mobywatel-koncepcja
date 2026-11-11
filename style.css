@@ -784,9 +784,11 @@ html,body,*{scrollbar-width:none;-ms-overflow-style:none}
 .ico.skanuj:active{transform:scale(.95)}
 
 /* ---------- górna krawędź przewijanych stron: treść płynnie rozmywa się i znika pod nagłówkiem ---------- */
-.page,.sheet .body{padding-top:22px;
-  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26px);mask-image:linear-gradient(to bottom,transparent 0,#000 26px)}
-.page::before,.sheet .body::before{content:"";position:sticky;top:0;display:block;height:30px;margin:-22px -16px -8px;z-index:3;pointer-events:none;
+.page,.sheet .body{padding-top:22px}
+/* rozmycie u góry tylko po rozpoczęciu przewijania (klasa „przew” dodawana w nawigacja.js) */
+.page.przew,.sheet .body.przew{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26px);mask-image:linear-gradient(to bottom,transparent 0,#000 26px)}
+.page::before,.sheet .body::before{content:none}
+.page.przew::before,.sheet .body.przew::before{content:"";position:sticky;top:0;display:block;height:30px;margin:-22px -16px -8px;z-index:3;pointer-events:none;
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   -webkit-mask-image:linear-gradient(to bottom,#000 30%,transparent);mask-image:linear-gradient(to bottom,#000 30%,transparent)}
 .sheet .clock{margin-bottom:0}
@@ -810,3 +812,5 @@ html.okno .composer{padding-bottom:8px}
 /* animacja zmiany znaku: obroty względem środka znaku */
 #mojZnak svg.znak g.kropki,#mojZnak svg.znak image{transform-box:view-box;transform-origin:0 0}
 #mojZnak svg.znak image{transform-box:fill-box;transform-origin:center}
+.msgs{-webkit-mask-image:none;mask-image:none}
+.msgs.przew{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26px);mask-image:linear-gradient(to bottom,transparent 0,#000 26px)}

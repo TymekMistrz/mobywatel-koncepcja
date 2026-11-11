@@ -249,6 +249,10 @@ const WIECEJ=[
  }
  const szukajSeg=()=>app.querySelectorAll('.seg:not([data-anim])').forEach(segAnim);
  new MutationObserver(szukajSeg).observe(app,{childList:true,subtree:true});szukajSeg();
+ /* rozmycie górnej krawędzi włącza się dopiero, gdy treść jest przewinięta */
+ document.addEventListener('scroll',e=>{const el=e.target;if(el&&el.classList&&(el.matches('.page,.sheet .body,.msgs')))el.classList.toggle('przew',el.scrollTop>2)},true);
+ const msgObs=new MutationObserver(()=>document.querySelectorAll('.msgs').forEach(m=>m.classList.toggle('przew',m.scrollTop>2)));
+ msgObs.observe(app,{childList:true,subtree:true});
  /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
  const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
   const det=$('#detail');if(det)det.classList.remove('on');
