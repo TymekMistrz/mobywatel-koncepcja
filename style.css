@@ -632,3 +632,7 @@ html.ramka .island,html.ramka .homebar{display:block!important}
 
 /* stos: płynne rozsuwanie kart po kliknięciu */
 #app:not(.chatting) .card{transition:top .38s cubic-bezier(.2,.8,.2,1)}
+
+/* prototyp na komputerze (gesty.js): kursor-rączka wszędzie, bez zaznaczania tekstu */
+html.mysz,html.mysz *{cursor:pointer!important;-webkit-user-select:none;user-select:none;-webkit-user-drag:none}
+html.mysz input,html.mysz textarea{-webkit-user-select:text;user-select:text}
