@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Koncepcja aplikacji obywatelskiej — prototyp</title>
+<style>
+/* =========================================================
+   WYGLĄD — zmieniaj kolory tutaj
+   ========================================================= */
+:root{
+  --brand:#1d3f8f;        /* kolor marki / akcji */
+  --brand-soft:#e8eefb;
+  --bg:#f3f4f8;
+  --card:#ffffff;
+  --text:#14171f;
+  --muted:#5b6475;        /* kontrast ≥ 4.5:1 na białym */
+  --line:#e3e6ee;
+  --ok:#1b7a3d;  --ok-soft:#e6f4ea;
+  --warn:#9a5b00; --warn-soft:#fff3dc;
+  --bad:#b3122e;  --bad-soft:#fde8ec;   /* czerwony TYLKO dla pilnych spraw */
+  --fs:17px;
+  --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:#dfe3ec;color:var(--text);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font:inherit}
+:focus-visible{outline:3px solid #f5b700;outline-offset:2px;border-radius:8px}
+
+/* ---------- scena: panel prezentera + telefon ---------- */
+.stage{min-height:100%;display:flex;gap:40px;align-items:center;justify-content:center;padding:32px}
+.presenter{width:340px;max-height:calc(100vh - 64px);overflow:auto;background:#fff;border-radius:20px;padding:22px;box-shadow:0 10px 40px rgba(20,30,60,.12);font-size:14px}
+.presenter h1{font-size:18px;margin-bottom:4px}
+.presenter .sub{color:var(--muted);margin-bottom:16px;line-height:1.4}
+.presenter h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 8px}
+.pbtns{display:flex;flex-wrap:wrap;gap:6px}
+.pbtn{border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:13px;background:#fff}
+.pbtn.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.why{background:var(--brand-soft);border-radius:12px;padding:12px 14px;line-height:1.45;color:#1b2a4a}
+.why b{display:block;margin-bottom:4px}
+.why ul{padding-left:18px}
+.device{width:390px;height:844px;border-radius:54px;background:#111;padding:12px;box-shadow:0 30px 80px rgba(10,20,50,.35);flex-shrink:0}
+.screen{width:100%;height:100%;border-radius:44px;overflow:hidden;background:var(--bg);position:relative;font-size:var(--fs);display:flex;flex-direction:column}
+@media (max-width:820px){
+  .stage{padding:0;display:block}
+  .presenter{display:none}
+  .device{width:100%;height:100dvh;border-radius:0;padding:0;box-shadow:none}
+  .screen{border-radius:0}
+}
+
+/* ---------- tryby dostępności ---------- */
+.screen.large{--fs:21px}
+.screen.contrast{--bg:#fff;--muted:#2b2f38;--line:#5b6475;--brand:#0b2466;--brand-soft:#dfe7fb}
+.screen.contrast .card,.screen.contrast .row{border:2px solid #14171f}
+
+/* ---------- elementy aplikacji ---------- */
+.status{height:44px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:15px;font-weight:600}
+.topbar{display:flex;align-items:center;gap:10px;padding:6px 18px 10px;flex-shrink:0}
+.topbar h1{font-size:1.45em;flex:1;letter-spacing:-.01em}
+.back{display:flex;align-items:center;gap:4px;color:var(--brand);font-weight:600;padding:8px 6px 8px 0;min-height:44px}
+.iconbtn{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--card);position:relative}
+.iconbtn .dot{position:absolute;top:7px;right:8px;width:10px;height:10px;border-radius:50%;background:var(--bad);border:2px solid var(--card)}
+.body{flex:1;overflow-y:auto;padding:4px 18px 120px;-webkit-overflow-scrolling:touch}
+.section{font-size:.82em;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:22px 4px 10px}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:10px}
+.list{background:var(--card);border-radius:var(--radius);overflow:hidden;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:14px;padding:14px 16px;min-height:60px;width:100%;text-align:left;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .t{font-weight:600;line-height:1.25}
+.row .s{color:var(--muted);font-size:.86em;margin-top:2px;line-height:1.3}
+.row .grow{flex:1;min-width:0}
+.chev{color:var(--muted);flex-shrink:0}
+.ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex-shrink:0;background:var(--brand-soft);color:var(--brand);font-size:20px}
+.ico.bad{background:var(--bad-soft);color:var(--bad)} .ico.warn{background:var(--warn-soft);color:var(--warn)} .ico.ok{background:var(--ok-soft);color:var(--ok)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.8em;font-weight:700;border-radius:999px;padding:4px 10px}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.bad{background:var(--bad-soft);color:var(--bad)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:54px;border-radius:16px;background:var(--brand);color:#fff;font-weight:700;padding:0 18px;margin-top:10px;text-align:center}
+.btn.sec{background:var(--card);color:var(--brand);border:2px solid var(--brand-soft)}
+.btn.ghost{background:transparent;color:var(--brand)}
+.btn.danger{background:var(--bad)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.muted{color:var(--muted)}
+p.lead{line-height:1.45;margin:4px 4px 14px}
+.hello{font-size:1.5em;font-weight:800;margin:6px 4px 2px;letter-spacing:-.01em}
+
+/* zadania na teraz */
+.task{display:flex;gap:14px;align-items:flex-start;width:100%;text-align:left;background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:10px;border-left:6px solid transparent}
+.task.bad{border-left-color:var(--bad)} .task.warn{border-left-color:#e19a1c} .task.info{border-left-color:var(--brand)}
+.task .t{font-weight:700;line-height:1.25}
+.task .s{color:var(--muted);font-size:.88em;margin-top:4px;line-height:1.35}
+.task .cta{display:inline-block;margin-top:10px;font-weight:700;color:var(--brand)}
+
+/* karty dokumentów (miniatury) */
+.docs-h{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 6px;margin:0 -18px;padding-left:18px;scrollbar-width:none}
+.mini{flex:0 0 150px;height:96px;border-radius:16px;color:#fff;padding:12px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;position:relative}
+.mini b{font-size:.88em;line-height:1.2}
+.mini .st{font-size:.72em;font-weight:700;background:rgba(255,255,255,.22);border-radius:999px;padding:3px 8px;align-self:flex-start}
+.mini .st.bad{background:#fff;color:var(--bad)} .mini .st.warn{background:#fff;color:var(--warn)}
+.g-dowod{background:linear-gradient(135deg,#2257c9,#163a8a)}
+.g-prawo{background:linear-gradient(135deg,#a23b72,#6c2350)}
+.g-auto{background:linear-gradient(135deg,#d9731e,#a24e0c)}
+.g-kdr{background:linear-gradient(135deg,#6a46c2,#432a87)}
+.g-leg{background:linear-gradient(135deg,#127c72,#0b544d)}
+
+/* duża karta dokumentu */
+.bigdoc{border-radius:22px;color:#fff;padding:20px;min-height:210px;display:flex;flex-direction:column;gap:14px;margin-bottom:12px}
+.bigdoc .name{font-size:1.25em;font-weight:800;letter-spacing:.02em}
+.bigdoc .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.bigdoc .k{font-size:.72em;opacity:.85}
+.bigdoc .v{font-weight:700}
+.avatar{width:64px;height:80px;border-radius:12px;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:1.6em;font-weight:800;flex-shrink:0}
+
+/* usługi */
+.search{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:16px;padding:0 14px;min-height:52px;margin:4px 0 6px;border:2px solid var(--line)}
+.search input{border:0;outline:0;flex:1;background:transparent;font-size:1em;min-height:48px;color:var(--text)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:9px 14px;font-size:.9em;min-height:40px}
+.chip.on{border-color:var(--brand);background:var(--brand-soft);color:var(--brand);font-weight:700}
+
+/* pasek zakładek */
+.tabbar{position:absolute;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;padding:6px 6px 26px;z-index:5}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:600;color:var(--muted);padding:6px 0;min-height:52px;position:relative}
+.screen.large .tab{font-size:13px}
+.tab.on{color:var(--brand)}
+.tab .badge{position:absolute;top:2px;left:calc(50% + 6px);background:var(--bad);color:#fff;border-radius:999px;font-size:11px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 5px}
+.fab{position:absolute;right:16px;bottom:96px;z-index:6;display:flex;align-items:center;gap:8px;background:var(--brand);color:#fff;border-radius:999px;padding:0 18px 0 14px;height:54px;font-weight:700;box-shadow:0 8px 24px rgba(29,63,143,.35)}
+
+/* przepływy */
+.progress{display:flex;gap:6px;margin:4px 4px 16px}
+.progress i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.progress i.on{background:var(--brand)}
+.q{font-size:1.35em;font-weight:800;margin:4px 4px 6px;line-height:1.2}
+.opt{display:flex;gap:14px;align-items:flex-start;width:100%;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+.opt.on{border-color:var(--brand);background:var(--brand-soft)}
+.opt .box{width:26px;height:26px;border-radius:8px;border:2px solid var(--muted);flex-shrink:0;display:grid;place-items:center;color:#fff;margin-top:1px}
+.opt.radio .box{border-radius:50%}
+.opt.on .box{background:var(--brand);border-color:var(--brand)}
+.opt .t{font-weight:700}
+.opt .s{color:var(--muted);font-size:.86em;margin-top:3px;line-height:1.35}
+.note{border-radius:14px;padding:12px 14px;font-size:.9em;line-height:1.4;margin:6px 0 12px}
+.note.info{background:var(--brand-soft);color:#1b2a4a}
+.note.warn{background:var(--warn-soft);color:#5c3a00}
+.note.bad{background:var(--bad-soft);color:#7a0c20}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line)}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{color:var(--muted)}
+.kv span:last-child{font-weight:600;text-align:right}
+.timeline{margin:6px 4px}
+.tl{display:flex;gap:12px;padding-bottom:16px;position:relative}
+.tl:before{content:"";position:absolute;left:13px;top:28px;bottom:0;width:2px;background:var(--line)}
+.tl:last-child:before{display:none}
+.tl .dotb{width:28px;height:28px;border-radius:50%;background:var(--line);display:grid;place-items:center;flex-shrink:0;color:#fff;font-size:14px}
+.tl.done .dotb{background:var(--ok)}
+.tl.now .dotb{background:var(--brand)}
+.success{text-align:center;padding:26px 8px 8px}
+.success .big{width:84px;height:84px;border-radius:50%;background:var(--ok-soft);color:var(--ok);display:grid;place-items:center;margin:0 auto 14px;font-size:42px}
+
+/* nakładki */
+.overlay{position:absolute;inset:0;background:rgba(10,15,30,.45);z-index:20;display:flex;align-items:flex-end}
+.sheet{background:var(--bg);width:100%;border-radius:26px 26px 0 0;max-height:94%;display:flex;flex-direction:column;animation:up .25s ease}
+.sheet.full{height:94%}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+.grab{width:44px;height:5px;border-radius:3px;background:#c4c9d4;margin:8px auto 4px}
+.sheet-h{display:flex;align-items:center;padding:6px 16px 8px;gap:10px}
+.sheet-h h2{flex:1;font-size:1.2em}
+.modal{margin:auto;background:#fff;border-radius:24px;width:84%;padding:26px 22px;text-align:center;animation:up .2s ease}
+.face{width:86px;height:86px;border-radius:24px;border:3px solid var(--brand);margin:6px auto 14px;display:grid;place-items:center;font-size:40px}
+.spin{width:36px;height:36px;border-radius:50%;border:4px solid var(--brand-soft);border-top-color:var(--brand);animation:sp 0.8s linear infinite;margin:10px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:absolute;left:16px;right:16px;bottom:104px;background:#14171f;color:#fff;border-radius:14px;padding:14px 16px;z-index:30;font-size:.92em;animation:up .2s ease}
+
+/* czat */
+.chat{flex:1;overflow-y:auto;padding:8px 16px 12px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:86%;line-height:1.4;padding:11px 14px;border-radius:18px}
+.msg.me{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:6px}
+.msg.bot{align-self:flex-start;background:var(--card);border-bottom-left-radius:6px}
+.msg .card{margin:10px 0 0;padding:12px;border:1.5px solid var(--line)}
+.msg .btn{min-height:46px;margin-top:8px}
+.composer{display:flex;gap:8px;padding:10px 12px 28px;background:var(--card);border-top:1px solid var(--line)}
+.composer input{flex:1;min-width:0;border:2px solid var(--line);border-radius:999px;padding:0 16px;min-height:48px;background:var(--bg);color:var(--text)}
+.round{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:#fff;flex-shrink:0}
+.round.sec{background:var(--brand-soft);color:var(--brand)}
+.listening{animation:pulse 1s ease infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(29,63,143,.15)}}
+
+/* tryb seniora */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:var(--card);border-radius:22px;min-height:140px;padding:18px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;font-weight:800;font-size:1.05em;line-height:1.2}
+.tile .e{font-size:2em}
+.tile.wide{grid-column:1/-1;min-height:96px;flex-direction:row;align-items:center;gap:16px;background:var(--brand);color:#fff}
+.qr{width:200px;height:200px;margin:8px auto;display:grid;grid-template-columns:repeat(21,1fr);background:#fff;padding:10px;border-radius:14px}
+.qr i{background:#fff}.qr i.b{background:#111}
+.switch{width:52px;height:32px;border-radius:999px;background:#c4c9d4;position:relative;flex-shrink:0;transition:.2s}
+.switch:after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.on{background:var(--ok)} .switch.on:after{left:23px}
+.concept{font-size:11px;text-align:center;color:var(--muted);padding:4px 0 0}
+</style>
+</head>
+<body>
+<div class="stage">
+  <aside class="presenter" aria-label="Panel prezentera">
+    <h1>Koncepcja: aplikacja obywatelska</h1>
+    <p class="sub">Klikalny prototyp. Panel po lewej jest tylko dla prezentacji (jury) — w telefonie go nie ma.</p>
+    <h3>Osoba</h3><div class="pbtns" id="p-persona"></div>
+    <h3>Przesuń czas (testuj terminy)</h3><div class="pbtns" id="p-time"></div>
+    <h3>Dostępność</h3><div class="pbtns" id="p-a11y"></div>
+    <h3>Scenariusze — skróty</h3><div class="pbtns" id="p-scen"></div>
+    <h3>Dlaczego ten ekran tak wygląda</h3><div class="why" id="p-why"></div>
+    <h3>&nbsp;</h3><button class="pbtn" data-a="reset">↺ Zacznij od nowa</button>
+  </aside>
+  <div class="device"><div class="screen" id="app"></div></div>
+</div>
+
+<script>
+/* =========================================================
+   1. DANE — osoby, dokumenty, listy (wszystko fikcyjne)
+   Daty są liczone względem DZISIAJ (liczba dni), więc
+   prototyp nigdy się „nie zestarzeje”.
+   ========================================================= */
+const PERSONAS = {
+  marta: {
+    first:"Marta", name:"Marta Kowalska", age:35, city:"Warszawa", initials:"MK",
+    address:"ul. Grochowska 112/4, 04-357 Warszawa",
+    note:"35 lat, troje dzieci, auto na rodzinę",
+    senior:false,
+    docs:[
+      {id:"dowod", type:"Dowód osobisty", grad:"g-dowod", number:"ZZA 482913", validDays:1650,
+        fields:[["PESEL","91071412345"],["Data urodzenia","14.07.1991"],["Seria i numer","ZZA 482913"],["Organ wydający","Prezydent m.st. Warszawy"]]},
+      {id:"prawo", type:"Prawo jazdy", grad:"g-prawo", number:"01234/20/1465", validDays:3150,
+        fields:[["Kategorie","B"],["Punkty karne","5 z 24"],["Nr blankietu","01234/20/1465"]]},
+      {id:"auto", type:"Toyota Corolla · WX 4521K", short:"Pojazd WX 4521K", grad:"g-auto", isCar:true,
+        ocDays:9, inspDays:152, insurer:"Ubezpieczyciel X",
+        fields:[["Pojazd","Toyota Corolla 1.8 Hybrid, 2021"],["Nr rejestracyjny","WX 4521K"],["Przebieg (ost. badanie)","58 210 km"]]},
+      {id:"kdr", type:"Karta Dużej Rodziny", grad:"g-kdr", number:"2024/118554", validDays:null,
+        fields:[["Nr karty","2024/118554"],["Członkowie","Marta, Zosia, Antek, Hania"]]},
+    ],
+    kids:["Zosia (9 lat)","Antek (6 lat)","Hania (1 rok)"],
+    inbox:[
+      {id:"us", from:"Urząd Skarbowy Warszawa-Praga", title:"Wezwanie do wyjaśnień", dueDays:12, unread:true,
+        official:"Na podstawie art. 155 § 1 Ordynacji podatkowej wzywa się Podatnika do złożenia wyjaśnień w zakresie zasadności zastosowania ulgi prorodzinnej za rok 2025 w terminie 14 dni od dnia doręczenia.",
+        plain:"Urząd chce sprawdzić ulgę na dzieci z Twojego PIT za 2025. Wystarczy potwierdzić, że dzieci mieszkały z Tobą — dane mamy z rejestru, możesz odpowiedzieć jednym kliknięciem.",
+        action:{label:"Odpowiedz — potwierdź dane dzieci", flow:"us"}},
+      {id:"podatek", from:"Urząd m.st. Warszawy", title:"Podatek od nieruchomości — IV rata", dueDays:5, unread:false, amount:"210,00 zł",
+        official:"Zawiadamia się o terminie płatności IV raty podatku od nieruchomości za rok 2026 w kwocie 210,00 zł.",
+        plain:"Do zapłacenia 210 zł za mieszkanie. Możesz zapłacić od razu BLIK-iem.",
+        action:{label:"Zapłać 210 zł", flow:"pay"}},
+    ],
+    access:[
+      {who:"Bank (weryfikacja tożsamości)", what:"imię, nazwisko, PESEL", days:-3, you:true},
+      {who:"Policja — kontrola drogowa", what:"prawo jazdy, OC pojazdu", days:-21, you:false},
+      {who:"Przychodnia rodzinna", what:"dane do e-recepty", days:-40, you:true},
+    ],
+    helpers:[],
+  },
+  henryk: {
+    first:"Henryk", voc:"Panie Henryku", name:"Henryk Nowak", age:78, city:"Lublin", initials:"HN",
+    address:"ul. Lipowa 8/3, 20-001 Lublin",
+    note:"78 lat, emeryt, pomaga mu córka Ewa",
+    senior:true,
+    docs:[
+      {id:"dowod", type:"Dowód osobisty", grad:"g-dowod", number:"AYB 120554", validDays:26,
+        fields:[["PESEL","48030312345"],["Data urodzenia","03.03.1948"],["Seria i numer","AYB 120554"]]},
+      {id:"leg", type:"Legitymacja emeryta", grad:"g-leg", number:"ZUS 7781123", validDays:null,
+        fields:[["Nr","ZUS 7781123"],["Wydana przez","ZUS Oddział Lublin"]]},
+    ],
+    kids:[],
+    inbox:[
+      {id:"zus", from:"ZUS", title:"Decyzja o waloryzacji emerytury", dueDays:null, unread:true,
+        official:"Decyzją z dnia 1 marca 2026 r. dokonano waloryzacji świadczenia emerytalnego. Wysokość świadczenia po waloryzacji wynosi brutto 3 412,18 zł.",
+        plain:"Od marca dostaje Pan wyższą emeryturę: 3 412 zł brutto. Nic nie trzeba robić.",
+        action:null},
+    ],
+    access:[
+      {who:"Ewa Nowak (córka, pełnomocnik)", what:"recepty", days:-2, you:true},
+      {who:"Apteka", what:"e-recepta", days:-2, you:true},
+    ],
+    helpers:[{name:"Ewa Nowak", acc:"Ewę", rel:"córka", scope:"recepty, sprawy ZUS, przypomnienia"}],
+  }
+};
+
+/* Katalog usług — wyszukiwarka rozumie potoczne słowa (tags) */
+const SERVICES = [
+  {id:"przeprowadzka", e:"🏠", title:"Zmiana adresu (meldunek)", cat:"Przeprowadzka", tags:"meldunek zameldowanie wymeldowanie adres przeprowadzka mieszkanie przeprowadzam", flow:"przeprowadzka"},
+  {id:"portfel", e:"👛", title:"Zgubiony lub skradziony portfel", cat:"Dokumenty", tags:"zgubiłem zgubiłam portfel kradzież ukradli zastrzeż dowód zastrzeżenie", flow:"portfel"},
+  {id:"dowod", e:"🪪", title:"Nowy dowód osobisty", cat:"Dokumenty", tags:"dowód osobisty nowy wymiana wyrobić traci ważność", flow:"dowod"},
+  {id:"oc", e:"🚗", title:"OC i badanie techniczne pojazdu", cat:"Samochód", tags:"oc ubezpieczenie auto samochód badanie przegląd", flow:"oc"},
+  {id:"pojazd", e:"🔑", title:"Rejestracja kupionego auta", cat:"Samochód", tags:"rejestracja auto kupiłem samochód używane", flow:null},
+  {id:"800", e:"👶", title:"800+ na dziecko", cat:"Rodzina", tags:"800 plus świadczenie dziecko rodzina", flow:null},
+  {id:"urodzenie", e:"🍼", title:"Narodziny dziecka — wszystko w jednym", cat:"Rodzina", tags:"urodzenie dziecko akt pesel becikowe", flow:null},
+  {id:"recepty", e:"💊", title:"E-recepty i upoważnienia", cat:"Zdrowie", tags:"recepta lekarz apteka leki", flow:null},
+  {id:"pit", e:"📄", title:"PIT i ulgi", cat:"Podatki", tags:"pit podatek zeznanie ulga skarbówka", flow:null},
+  {id:"punkty", e:"⚠️", title:"Punkty karne i mandaty", cat:"Samochód", tags:"punkty karne mandat", flow:null},
+  {id:"pomoc", e:"🤝", title:"Pomoc bliskiej osoby (pełnomocnictwo)", cat:"Pomoc", tags:"pełnomocnik pomoc córka syn rodzina upoważnienie", flow:"helper"},
+  {id:"prywatnosc", e:"🔒", title:"Kto sprawdzał moje dane", cat:"Prywatność", tags:"prywatność dane historia kto sprawdzał", flow:"privacy"},
+];
+
+/* Notatki „Dlaczego tak?” dla jury — klucz = nazwa widoku */
+const WHY = {
+  start:["Najpierw to, co pilne","Ekran startowy odpowiada na pytanie „co muszę zrobić?”. Terminy liczone są na żywo: stan zmienia się, gdy minie data (sprawdź „Przesuń czas”).","Czerwony = tylko sprawy po terminie lub krytyczne. Marka jest niebieska, więc czerwień nie traci znaczenia."],
+  dokumenty:["Status zamiast dekoracji","Każdy dokument pokazuje stan słowami (ważny / wygasa za X dni / wygasł), nie tylko kolorem — czytelne też dla daltonistów i czytników ekranu."],
+  doc:["Udostępniaj tylko to, co trzeba","Przy okazaniu dokumentu wybierasz zakres: pełne dane, samo imię i zdjęcie albo tylko „ma 18 lat”. Kontrola nad danymi zamiast „wszystko albo nic”."],
+  uslugi:["Asystent nie jest jedyną drogą","Katalog usług + wyszukiwarka rozumiejąca potoczne słowa („meldunek”, „ukradli”). Gdy AI nie zrozumie, zawsze jest klasyczna ścieżka."],
+  skrzynka:["Urzędowy język → ludzki","Każde pismo ma streszczenie „po ludzku”, termin i jeden przycisk akcji. Oryginał jest pod ręką."],
+  profil:["Dostępność i prywatność w jednym miejscu","Duży tekst, wysoki kontrast, prosty język, tryb uproszczony. Historia: kto i kiedy sprawdzał Twoje dane. Bliscy, którzy mogą pomóc."],
+  flow:["Jedna sprawa od początku do końca","Pytamy tylko o to, czego państwo nie wie. Reszta jest wypełniona z rejestrów. Przed wysłaniem — podsumowanie i świadome potwierdzenie."],
+  chat:["Asystent jako skrót, nie labirynt","Rozmowa uruchamia te same formularze co klasyczne menu. Nigdy nie kończy się ślepą uliczką — jeśli nie zrozumie, pokazuje pasujące usługi. Nic nie wysyła bez potwierdzenia."],
+  senior:["Tryb uproszczony","4 duże kafle, duży tekst, przycisk „Poproś o pomoc” do zaufanej osoby. Ten sam system, mniej decyzji."],
+  privacy:["Przejrzystość","Lista instytucji, które sprawdzały dane, z zakresem i datą. Jedno kliknięcie, żeby zgłosić nieznany dostęp."],
+};
+
+/* =========================================================
+   2. STAN
+   ========================================================= */
+const S = {
+  pid:"marta", shift:0, tab:"start", stack:[], flow:null, overlay:null, toast:null,
+  a11y:{large:false, contrast:false, simple:false, senior:false},
+  chat:[], listening:false, query:"", cat:null, done:{}, share:"full", extraInbox:[],
+};
+const P = () => PERSONAS[S.pid];
+
+/* =========================================================
+   3. POMOCNICZE
+   ========================================================= */
+const DAY = 864e5;
+const today = () => { const d=new Date(); d.setHours(0,0,0,0); return new Date(d.getTime()+S.shift*DAY); };
+const inDays = n => new Date(today().getTime()+n*DAY - S.shift*DAY); // data stała względem „prawdziwego” dziś
+const fmt = d => d.toLocaleDateString("pl-PL",{day:"2-digit",month:"2-digit",year:"numeric"});
+const left = d => Math.round((d - today())/DAY);
+const dni = n => n===1?"1 dzień":`${n} dni`;
+function status(validDays){
+  if(validDays==null) return {cls:"ok", txt:"Ważny bezterminowo", short:"Ważny"};
+  const d=inDays(validDays), n=left(d);
+  if(n<0) return {cls:"bad", txt:`Wygasł ${fmt(d)} (${dni(-n)} temu)`, short:"Wygasł", n};
+  if(n===0) return {cls:"bad", txt:`Wygasa dziś`, short:"Dziś", n};
+  if(n<=45) return {cls:"warn", txt:`Wygasa za ${dni(n)} (${fmt(d)})`, short:`${dni(n)}`, n};
+  return {cls:"ok", txt:`Ważny do ${fmt(d)}`, short:"Ważny", n};
+}
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const I = { // ikony (inline SVG)
+  chev:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>',
+  back:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>',
+  home:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
+  docs:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="11" r="2"/><path d="M14 10h4M14 14h4M6 16c.6-1.2 1.7-2 3-2s2.4.8 3 2" stroke-linecap="round"/></svg>',
+  grid:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>',
+  mail:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M4 7l8 6 8-6" stroke-linejoin="round"/></svg>',
+  user:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6" stroke-linecap="round"/></svg>',
+  spark:'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9z"/></svg>',
+  mic:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+  send:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
+  x:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  search:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  check:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>',
+};
+
+/* =========================================================
+   4. „NA TERAZ” — zadania liczone z dat
+   ========================================================= */
+function tasks(){
+  const p=P(), out=[];
+  p.docs.forEach(d=>{
+    if(d.isCar){
+      const oc=status(d.ocDays);
+      if(oc.cls!=="ok") out.push({lvl:oc.cls, ico:"🚗", n:oc.n,
+        t: oc.cls==="bad" ? `Brak ważnego OC — ${d.short}` : `OC ${d.short} kończy się za ${dni(oc.n)}`,
+        s: oc.cls==="bad" ? "Nie jedź tym autem, dopóki nie przedłużysz OC — grozi wysoka kara z UFG." : `Sprawdź, czy umowa przedłuży się sama (${fmt(inDays(d.ocDays))}).`,
+        cta: oc.cls==="bad" ? "Co teraz zrobić" : "Sprawdź OC", a:"flow:oc"});
+      const ins=status(d.inspDays);
+      if(ins.cls!=="ok") out.push({lvl:ins.cls, ico:"🔧", n:ins.n, t:`Badanie techniczne ${ins.cls==="bad"?"nieważne":"za "+dni(ins.n)}`, s:d.short, cta:"Szczegóły", a:"doc:"+d.id});
+      return;
+    }
+    if(S.done.portfel && d.id==="dowod") return;
+    const st=status(d.validDays);
+    if(st.cls!=="ok") out.push({lvl:st.cls, ico:"🪪", n:st.n, t:`${d.type}: ${st.cls==="bad"?"stracił ważność":"traci ważność za "+dni(st.n)}`,
+      s: st.cls==="bad" ? "Złóż wniosek o nowy — zajmie to 3 minuty." : "Wniosek złożysz w aplikacji. Odbiór w urzędzie.", cta:"Złóż wniosek", a:"flow:dowod"});
+  });
+  allInbox().forEach(m=>{
+    if(m.dueDays==null || S.done[m.id]) return;
+    const d=inDays(m.dueDays), n=left(d);
+    out.push({lvl: n<0?"bad": n<=7?"warn":"info", ico:"✉️", n, t:m.title,
+      s: n<0 ? `Termin minął ${fmt(d)} — załatw to jak najszybciej` : `${m.from} · termin ${fmt(d)} (za ${dni(n)})`, cta:"Otwórz", a:"msg:"+m.id});
+  });
+  return out.sort((a,b)=>(a.n??999)-(b.n??999));
+}
+const allInbox = () => [...S.extraInbox.filter(m=>m.pid===S.pid), ...P().inbox];
+const unread = () => allInbox().filter(m=>m.unread && !S.done["read_"+m.id]).length;
+
+/* =========================================================
+   5. EKRANY
+   ========================================================= */
+function vStart(){
+  const p=P(), t=tasks();
+  if(S.a11y.senior) return vSenior();
+  return `
+  <div class="topbar"><h1 class="hello" style="margin:0">Dzień dobry, ${p.first}</h1>
+    <button class="iconbtn" data-a="tab:skrzynka" aria-label="Skrzynka, ${unread()} nowe">${I.mail}${unread()?'<span class="dot"></span>':''}</button></div>
+  <div class="body">
+    <div class="section">Na teraz ${t.length?`· ${t.length}`:""}</div>
+    ${t.length? t.map(x=>`
+      <button class="task ${x.lvl}" data-a="${x.a}">
+        <span class="ico ${x.lvl==="info"?"":x.lvl}" aria-hidden="true">${x.ico}</span>
+        <span class="grow"><div class="t">${x.t}</div><div class="s">${x.s}</div><span class="cta">${x.cta} →</span></span>
+      </button>`).join("")
+      : `<div class="card"><b>Wszystko załatwione ✓</b><div class="muted" style="margin-top:4px">Damy znać, gdy coś będzie wymagało Twojej uwagi.</div></div>`}
+    <div class="section">Dokumenty</div>
+    <div class="docs-h">${p.docs.map(miniDoc).join("")}</div>
+    <div class="section">Najczęściej załatwiane</div>
+    <div class="list">${["przeprowadzka","portfel","dowod","pomoc"].map(id=>svcRow(SERVICES.find(s=>s.id===id))).join("")}</div>
+    <button class="btn sec" data-a="tab:uslugi">Wszystkie usługi</button>
+    <p class="concept">Prototyp koncepcyjny · osoby i dane fikcyjne</p>
+  </div>`;
+}
+function miniDoc(d){
+  let st = d.isCar ? status(Math.min(d.ocDays,d.inspDays)) : status(d.validDays);
+  if(d.id==="dowod" && S.done.portfel) st={cls:"bad",short:"Zastrzeżony"};
+  const label = d.isCar ? (st.cls==="ok"?"OC i badanie OK":st.cls==="bad"?"Brak OC":"OC: "+st.short) : (st.cls==="warn"?"Wygasa: "+st.short:st.short);
+  return `<button class="mini ${d.grad}" data-a="doc:${d.id}" aria-label="${esc(d.short||d.type)}, ${label}"><b>${d.short||d.type}</b><span class="st ${st.cls}">${label}</span></button>`;
+}
+function svcRow(s){ return `<button class="row" data-a="svc:${s.id}"><span class="ico" aria-hidden="true">${s.e}</span><span class="grow"><div class="t">${s.title}</div><div class="s">${s.cat}${s.flow?"":" · wkrótce"}</div></span><span class="chev">${I.chev}</span></button>`; }
+
+function vSenior(){
+  const p=P(), t=tasks(), h=p.helpers[0];
+  return `
+  <div class="topbar"><h1 class="hello" style="margin:0">Dzień dobry,<br>${p.voc||p.first}</h1></div>
+  <div class="body">
+    ${t.length?`<button class="task ${t[0].lvl}" data-a="${t[0].a}"><span class="ico ${t[0].lvl}">${t[0].ico}</span><span class="grow"><div class="t">${t[0].t}</div><div class="s">${t[0].s}</div><span class="cta">${t[0].cta} →</span></span></button>`:""}
+    <div class="tiles" style="margin-top:12px">
+      <button class="tile wide" data-a="chat"><span class="e">🎙️</span><span>Powiedz, czego Pan potrzebuje</span></button>
+      <button class="tile" data-a="doc:dowod"><span class="e">🪪</span>Pokaż dowód</button>
+      <button class="tile" data-a="tab:skrzynka"><span class="e">✉️</span>Listy z urzędów ${unread()?`(${unread()})`:""}</button>
+      <button class="tile" data-a="tab:dokumenty"><span class="e">📁</span>Moje dokumenty</button>
+      <button class="tile" data-a="callhelper"><span class="e">🤝</span>${h?`Poproś ${h.acc||h.name} o pomoc`:"Poproś o pomoc"}</button>
+    </div>
+    <button class="btn ghost" data-a="a11y:senior">Pokaż pełną wersję aplikacji</button>
+  </div>`;
+}
+
+function vDokumenty(){
+  const p=P();
+  return `<div class="topbar"><h1>Dokumenty</h1></div>
+  <div class="body"><div class="list">${p.docs.map(d=>{
+    let st = d.isCar ? status(Math.min(d.ocDays,d.inspDays)) : status(d.validDays);
+    let txt = d.isCar ? `OC: ${status(d.ocDays).txt.toLowerCase()}` : st.txt;
+    if(d.id==="dowod"&&S.done.portfel){st={cls:"bad"};txt="Zastrzeżony po zgłoszeniu utraty";}
+    return `<button class="row" data-a="doc:${d.id}"><span class="mini ${d.grad}" style="flex:0 0 54px;height:38px;border-radius:8px;padding:0"></span>
+      <span class="grow"><div class="t">${d.type}</div><div class="s"><span class="pill ${st.cls}">${st.cls==="ok"?"✓":st.cls==="warn"?"!":"✕"} ${txt}</span></div></span><span class="chev">${I.chev}</span></button>`;}).join("")}</div>
+    <button class="btn sec" data-a="toast:W wersji docelowej: dodaj legitymację, kartę EKUZ i inne.">+ Dodaj dokument</button>
+  </div>`;
+}
+
+function vDoc(id){
+  const p=P(), d=p.docs.find(x=>x.id===id);
+  const lost = id==="dowod" && S.done.portfel;
+  let statusBlock;
+  if(d.isCar){
+    const oc=status(d.ocDays), ins=status(d.inspDays);
+    statusBlock = `<div class="card"><div class="kv"><span>OC</span><span class="pill ${oc.cls}">${oc.txt}</span></div><div class="kv"><span>Badanie techniczne</span><span class="pill ${ins.cls}">${ins.txt}</span></div></div>`;
+  } else {
+    const st = lost? {cls:"bad",txt:`Zastrzeżony do ${fmt(new Date(S.done.portfel))}`} : status(d.validDays);
+    statusBlock = `<div class="card" style="display:flex;align-items:center;gap:12px"><span class="pill ${st.cls}" style="font-size:.92em">${st.cls==="ok"?"✓":st.cls==="warn"?"!":"✕"} ${st.txt}</span></div>`;
+  }
+  const shareOpts = [["full","Pełne dane"],["name","Imię, nazwisko i zdjęcie"],["age","Tylko: ma ukończone 18 lat"]];
+  return `<div class="topbar"><button class="back" data-a="back">${I.back} Wróć</button></div>
+  <div class="body">
+    <div class="bigdoc ${d.grad}">
+      <div style="display:flex;justify-content:space-between;align-items:center"><b>${d.type}</b><span style="font-size:.75em;opacity:.85">Aktualne: ${new Date().toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"})}</span></div>
+      <div style="display:flex;gap:14px;align-items:center">${d.isCar?'<span class="avatar" style="width:80px;height:60px">🚗</span>':`<span class="avatar">${p.initials}</span>`}<div class="name">${d.isCar?"WX 4521K":p.name.toUpperCase()}</div></div>
+      <div class="grid">${d.fields.slice(0,4).map(([k,v])=>`<div><div class="k">${k}</div><div class="v">${v}</div></div>`).join("")}</div>
+    </div>
+    ${statusBlock}
+    ${lost?`<button class="btn" data-a="unlock">Znalazł${p.first.endsWith("a")?"am":"em"} portfel — odblokuj dowód</button>`:""}
+    ${!d.isCar && !lost ? `
+    <div class="section">Pokaż do sprawdzenia</div>
+    ${shareOpts.map(([k,l])=>`<button class="opt radio ${S.share===k?"on":""}" data-a="share:${k}"><span class="box">${S.share===k?I.check:""}</span><span><div class="t">${l}</div>${k==="age"?'<div class="s">Np. w sklepie przy zakupie alkoholu. Sprzedawca nie zobaczy Twojego PESEL-u ani adresu.</div>':""}</span></button>`).join("")}
+    <button class="btn" data-a="showqr">Pokaż kod do sprawdzenia</button>`:""}
+    ${d.isCar?`<button class="btn" data-a="flow:oc">Sprawdź OC</button>`:""}
+    <div class="section">Kto ostatnio sprawdzał ten dokument</div>
+    <button class="row card" style="margin:0" data-a="privacy"><span class="ico">🔒</span><span class="grow"><div class="t">Historia dostępu</div><div class="s">Zobacz, kto i kiedy</div></span><span class="chev">${I.chev}</span></button>
+  </div>`;
+}
+
+function vUslugi(){
+  const q=S.query.trim().toLowerCase();
+  const cats=[...new Set(SERVICES.map(s=>s.cat))];
+  let list=SERVICES;
+  if(q) list=SERVICES.filter(s=>(s.title+" "+s.tags+" "+s.cat).toLowerCase().split(/\s+/).some(w=>q.split(/\s+/).some(x=>x.length>2&&(w.startsWith(x.slice(0,5))||x.startsWith(w.slice(0,5))))));
+  else if(S.cat) list=SERVICES.filter(s=>s.cat===S.cat);
+  return `<div class="topbar"><h1>Usługi</h1></div>
+  <div class="body">
+    <label class="search">${I.search}<input id="q" type="search" placeholder="Np. meldunek, zgubiłem dowód…" value="${esc(S.query)}" aria-label="Szukaj usługi"></label>
+    ${q?"":`<div class="chips">${cats.map(c=>`<button class="chip ${S.cat===c?"on":""}" data-a="cat:${c}">${c}</button>`).join("")}</div>`}
+    <div class="list" id="svc-list" style="margin-top:8px">${list.length?list.map(svcRow).join(""):`<div class="card">Nic nie znaleziono dla „${esc(S.query)}”.<button class="btn sec" data-a="chatq:${esc(S.query)}">Zapytaj asystenta</button></div>`}</div>
+  </div>`;
+}
+
+function vSkrzynka(){
+  const box=allInbox();
+  return `<div class="topbar"><h1>Skrzynka</h1></div>
+  <div class="body"><div class="list">${box.map(m=>{
+    const due = m.dueDays!=null && !S.done[m.id] ? (()=>{const n=left(inDays(m.dueDays));return `<span class="pill ${n<0?"bad":n<=7?"warn":"ok"}">${n<0?"Po terminie":"Termin: "+fmt(inDays(m.dueDays))}</span>`})() : S.done[m.id]?'<span class="pill ok">✓ Załatwione</span>':"";
+    const isNew = m.unread && !S.done["read_"+m.id];
+    return `<button class="row" data-a="msg:${m.id}"><span class="ico" aria-hidden="true">✉️</span><span class="grow"><div class="t">${isNew?"● ":""}${m.title}</div><div class="s">${m.from}</div><div style="margin-top:6px">${due}</div></span><span class="chev">${I.chev}</span></button>`;}).join("")}</div></div>`;
+}
+
+function vMsg(id){
+  const m=allInbox().find(x=>x.id===id); S.done["read_"+id]=true;
+  const simple=S.a11y.simple;
+  return `<div class="topbar"><button class="back" data-a="back">${I.back} Skrzynka</button></div>
+  <div class="body">
+    <div class="muted" style="margin:0 4px">${m.from}</div>
+    <div class="q">${m.title}</div>
+    ${m.dueDays!=null&&!S.done[m.id]?`<div class="note ${left(inDays(m.dueDays))<=7?"warn":"info"}"><b>Termin: ${fmt(inDays(m.dueDays))}</b> (za ${dni(Math.max(0,left(inDays(m.dueDays))))})</div>`:""}
+    <div class="card"><div class="section" style="margin:0 0 6px">Po ludzku</div><div style="line-height:1.45">${m.plain}</div></div>
+    ${m.amount?`<div class="card"><div class="kv"><span>Kwota</span><span>${m.amount}</span></div></div>`:""}
+    ${m.action&&!S.done[m.id]?`<button class="btn" data-a="flow:${m.action.flow}:${m.id}">${m.action.label}</button>`:""}
+    ${S.done[m.id]?`<div class="note info">✓ Załatwione. Potwierdzenie (UPO) zapisaliśmy w tej wiadomości.</div>`:""}
+    <details class="card" ${simple?"":"open"} style="margin-top:12px"><summary style="font-weight:700;cursor:pointer;min-height:32px">Oryginalna treść pisma</summary><p style="margin-top:8px;line-height:1.5" class="muted">${m.official}</p></details>
+    <button class="btn ghost" data-a="chatq:Pomóż mi zrozumieć pismo: ${esc(m.title)}">Nie rozumiem — zapytaj asystenta</button>
+  </div>`;
+}
+
+function vProfil(){
+  const p=P(), a=S.a11y;
+  const sw=(k,t,s)=>`<button class="row" data-a="a11y:${k}" role="switch" aria-checked="${a[k]}"><span class="grow"><div class="t">${t}</div><div class="s">${s}</div></span><span class="switch ${a[k]?"on":""}"></span></button>`;
+  return `<div class="topbar"><h1>Profil</h1></div>
+  <div class="body">
+    <div class="card" style="display:flex;gap:14px;align-items:center"><span class="avatar" style="background:var(--brand);color:#fff;width:56px;height:56px;border-radius:50%;font-size:1.1em">${p.initials}</span><div><div style="font-weight:800">${p.name}</div><div class="muted" style="font-size:.88em">${S.done.przeprowadzka?S.done.przeprowadzka:p.address}</div></div></div>
+    <div class="section">Wygoda i dostępność</div>
+    <div class="list">${sw("large","Duży tekst","Większe litery w całej aplikacji")}${sw("contrast","Wysoki kontrast","Mocniejsze kolory i obramowania")}${sw("simple","Prosty język","Najpierw streszczenie, oryginał schowany")}${sw("senior","Tryb uproszczony","4 duże przyciski na start")}</div>
+    <div class="section">Prywatność</div>
+    <div class="list"><button class="row" data-a="privacy"><span class="ico">🔒</span><span class="grow"><div class="t">Kto sprawdzał moje dane</div><div class="s">${p.access.length} razy w ostatnich 60 dniach</div></span><span class="chev">${I.chev}</span></button></div>
+    <div class="section">Bliscy, którzy mogą pomóc</div>
+    <div class="list">${p.helpers.map(h=>`<div class="row"><span class="ico">🤝</span><span class="grow"><div class="t">${h.name} (${h.rel})</div><div class="s">Może: ${h.scope}</div></span></div>`).join("")}
+      <button class="row" data-a="flow:helper"><span class="ico">＋</span><span class="grow"><div class="t">Dodaj zaufaną osobę</div><div class="s">Np. dziecko, które pomoże z receptami</div></span><span class="chev">${I.chev}</span></button></div>
+  </div>`;
+}
+
+function vPrivacy(){
+  const p=P();
+  return `<div class="topbar"><button class="back" data-a="back">${I.back} Wróć</button></div>
+  <div class="body"><div class="q">Kto sprawdzał Twoje dane</div><p class="lead muted">Ostatnie 60 dni. Każde sprawdzenie jest zapisywane.</p>
+  <div class="list">${p.access.map((x,i)=>`<div class="row" style="align-items:flex-start"><span class="ico ${x.you?"":"warn"}">${x.you?"✓":"!"}</span><span class="grow"><div class="t">${x.who}</div><div class="s">Zakres: ${x.what}<br>${fmt(inDays(x.days))} · ${x.you?"za Twoją zgodą":"z mocy prawa (kontrola)"}</div>
+  <button class="cta" style="color:var(--brand);font-weight:700;margin-top:8px;min-height:32px" data-a="toast:Zgłoszenie wysłane. Odpowiemy w ciągu 7 dni.">To nie ja / nie rozpoznaję →</button></span></div>`).join("")}</div></div>`;
+}
+
+/* =========================================================
+   6. PRZEPŁYWY (jedna sprawa od początku do końca)
+   Każdy krok: {title, render(), valid()}
+   ========================================================= */
+const FLOWS = {
+  przeprowadzka:{ title:"Zmiana adresu", steps:[
+    {r:f=>`<div class="q">Pod jaki adres się przeprowadzasz?</div>
+      <label class="search">${I.search}<input id="addr" placeholder="Zacznij wpisywać ulicę" value="${esc(f.addr||"")}" aria-label="Nowy adres"></label>
+      <div id="addr-sug">${addrSug(f)}</div>
+      <div class="section">Na jak długo?</div>
+      ${opt(f,"kind","stale","Na stałe","To będzie mój główny adres")}${opt(f,"kind","czasowe","Na jakiś czas","Np. studia, praca w innym mieście — do 10 lat")}`,
+     ok:f=>f.addrPicked&&f.kind},
+    {r:f=>{const k=P().kids; return `<div class="q">Kto przeprowadza się z Tobą?</div><p class="lead muted">Dzieci możesz zgłosić razem ze sobą — dane mamy z rejestru.</p>
+      ${opt(f,"me",true,P().name,"Ty",true)}${k.map((c,i)=>opt(f,"kid"+i,true,c,"Dziecko",false,true)).join("")}${k.length?"":`<div class="note info">Nie masz w rejestrze dzieci do zgłoszenia.</div>`}`},ok:()=>true},
+    {r:f=>`<div class="q">Czy jesteś właścicielem tego mieszkania?</div>
+      ${opt(f,"own","tak","Tak","Potwierdzimy to w księdze wieczystej")}${opt(f,"own","nie","Nie, wynajmuję","Wyślemy właścicielowi prośbę o potwierdzenie w jego aplikacji — bez chodzenia do urzędu")}`, ok:f=>f.own},
+    {r:f=>`<div class="q">Sprawdź i wyślij</div>
+      <div class="card"><div class="kv"><span>Nowy adres</span><span>${f.addrPicked}</span></div><div class="kv"><span>Rodzaj</span><span>${f.kind==="stale"?"pobyt stały":"pobyt czasowy"}</span></div><div class="kv"><span>Osoby</span><span>${1+P().kids.filter((_,i)=>f["kid"+i]).length}</span></div><div class="kv"><span>Potwierdzenie</span><span>${f.own==="tak"?"księga wieczysta":"właściciel (w aplikacji)"}</span></div></div>
+      <div class="section">Powiadomimy za Ciebie</div>
+      <div class="list">${["Urząd skarbowy","Wydział komunikacji — dowód rejestracyjny "+(P().docs.find(d=>d.isCar)?.short||""),"ZUS / NFZ"].filter(x=>!x.endsWith(" ")).map(x=>`<div class="row"><span class="ico ok">✓</span><span class="grow t">${x}</span></div>`).join("")}</div>
+      <div class="note info">Nic nie zostanie wysłane bez Twojego potwierdzenia.</div>`, ok:()=>true, confirm:"Potwierdź i wyślij"},
+  ], done:f=>{S.done.przeprowadzka=f.addrPicked+(f.kind==="czasowe"?" (pobyt czasowy)":""); addUpo("przeprowadzka","Wniosek o zameldowanie — potwierdzenie złożenia"); return {t:"Wniosek wysłany",s:`Nowy adres: ${f.addrPicked}`, tl:[["Wysłano","teraz",1],[f.own==="nie"?"Właściciel potwierdza":"Urząd sprawdza","zwykle do 1 dnia roboczego",0],["Adres zaktualizowany we wszystkich rejestrach","dostaniesz powiadomienie",0]]};}},
+
+  portfel:{ title:"Zgubiony portfel", steps:[
+    {r:f=>`<div class="q">Co było w portfelu?</div><p class="lead muted">Najpierw zabezpieczymy dokumenty, żeby nikt ich nie użył.</p>
+      ${opt(f,"dowod",true,"Dowód osobisty","Zastrzeżemy go w bankach i zawiesimy",false,true)}
+      ${P().docs.some(d=>d.id==="prawo")?opt(f,"prawo",true,"Prawo jazdy","Zgłosimy utratę",false,true):""}
+      ${opt(f,"karty",true,"Karty płatnicze","Tego nie zrobimy za Ciebie — pokażemy, jak szybko zastrzec",false,true)}`, ok:f=>f.dowod||f.prawo||f.karty},
+    {r:f=>`<div class="q">Czy portfel może się znaleźć?</div>
+      ${opt(f,"mode","temp","Może się znajdzie","Zawiesimy dowód na 14 dni. Gdy znajdziesz portfel — odblokujesz jednym kliknięciem.")}
+      ${opt(f,"mode","perm","Na pewno nie / kradzież","Unieważnimy dowód od razu i od razu złożysz wniosek o nowy.")}
+      ${f.mode==="perm"?`<div class="note warn">Unieważnienia nie da się cofnąć.</div>`:""}`, ok:f=>f.mode},
+    {r:f=>`<div class="q">Sprawdź i potwierdź</div>
+      <div class="card">${f.dowod?`<div class="kv"><span>Dowód osobisty</span><span>${f.mode==="temp"?"zawieszony do "+fmt(new Date(Date.now()+14*DAY)):"unieważniony"}</span></div><div class="kv"><span>Zastrzeżenie w bankach</span><span>tak</span></div>`:""}${f.prawo?`<div class="kv"><span>Prawo jazdy</span><span>zgłoszona utrata</span></div>`:""}</div>
+      ${f.karty?`<div class="note warn"><b>Karty płatnicze zastrzeż teraz w aplikacji banku</b> albo telefonicznie na numer z odwrotu karty / strony banku.</div>`:""}
+      <div class="note info">Twoje dokumenty w aplikacji nadal działają.</div>`, ok:()=>true, confirm:"Zastrzeż dokumenty", danger:true},
+  ], done:f=>{ if(f.dowod) S.done.portfel=Date.now()+14*DAY; return {t:"Dokumenty zabezpieczone", s:f.mode==="temp"?"Jeśli portfel się znajdzie, odblokujesz dowód w „Dokumenty → Dowód osobisty”.":"Możesz od razu złożyć wniosek o nowy dowód.", tl:[["Zastrzeżenie w bankach","aktywne",1],[f.mode==="temp"?"Dowód zawieszony na 14 dni":"Dowód unieważniony","teraz",1],[f.mode==="temp"?"Po 14 dniach zapytamy, czy portfel się znalazł":"Wniosek o nowy dowód","",0]], next: f.mode==="perm"?{l:"Złóż wniosek o nowy dowód",a:"flow:dowod"}:null}; }},
+
+  dowod:{ title:"Nowy dowód osobisty", steps:[
+    {r:f=>`<div class="q">Zdjęcie do dowodu</div><p class="lead muted">Zdjęcie musi być aktualne (do 6 miesięcy).</p>
+      ${opt(f,"photo","foto","Mam zdjęcie od fotografa","Wpisz kod z paragonu — zdjęcie przyjdzie samo")}${opt(f,"photo","self","Zrobię zdjęcie telefonem","Poprowadzimy Cię krok po kroku (tło, światło)")}`, ok:f=>f.photo},
+    {r:f=>`<div class="q">Gdzie odbierzesz dowód?</div>
+      ${opt(f,"where","u1","Urząd — Biuro Obsługi Mieszkańców (najbliżej)","ok. 1,2 km od domu · bez kolejki z rezerwacją")}${opt(f,"where","u2","Inny urząd w Polsce","Możesz odebrać w dowolnej gminie")}`, ok:f=>f.where},
+    {r:f=>`<div class="q">Sprawdź i wyślij</div><div class="card"><div class="kv"><span>Imię i nazwisko</span><span>${P().name}</span></div><div class="kv"><span>Adres</span><span>${P().address}</span></div><div class="kv"><span>Zdjęcie</span><span>${f.photo==="foto"?"od fotografa":"z telefonu"}</span></div><div class="kv"><span>Odbiór</span><span>${f.where==="u1"?"najbliższy urząd":"inny urząd"}</span></div><div class="kv"><span>Opłata</span><span>bezpłatnie</span></div></div>`, ok:()=>true, confirm:"Wyślij wniosek"},
+  ], done:f=>{ P().docs.find(d=>d.id==="dowod").validDays=3650; delete S.done.portfel; addUpo("dowod","Wniosek o dowód osobisty — przyjęty"); return {t:"Wniosek przyjęty",s:"Napiszemy, gdy dowód będzie gotowy do odbioru.",tl:[["Wniosek przyjęty","teraz",1],["Produkcja dowodu","zwykle do 30 dni",0],["Gotowy do odbioru","dostaniesz powiadomienie",0]]};}},
+
+  oc:{ title:"OC pojazdu", steps:[
+    {r:f=>{const d=P().docs.find(x=>x.isCar), st=status(d.ocDays); return `<div class="q">${d.short}</div>
+      <div class="card"><div class="kv"><span>Ubezpieczyciel</span><span>${d.insurer}</span></div><div class="kv"><span>Koniec OC</span><span class="pill ${st.cls}">${fmt(inDays(d.ocDays))}</span></div><div class="kv"><span>Źródło</span><span>UFG, CEPiK</span></div></div>
+      ${st.cls==="bad"?`<div class="note bad"><b>To auto nie ma teraz ważnego OC.</b> Nie jedź nim, dopóki nie kupisz nowej polisy — za brak OC UFG nalicza wysoką karę.</div>`:
+      `<div class="note info">Umowa OC zwykle przedłuża się sama, jeśli jej nie wypowiesz. Gdy zmieniasz ubezpieczyciela — wypowiedz ją przed ${fmt(inDays(d.ocDays))}.</div>`}
+      ${opt(f,"rem","yes","Przypomnij mi "+(st.n>3?"3 dni przed końcem":"jutro rano"),"Powiadomienie w telefonie")}${opt(f,"rem","no","Nie trzeba","")}`;}, ok:f=>f.rem, confirm:"Gotowe"},
+  ], done:f=>({t:f.rem==="yes"?"Przypomnienie ustawione":"Gotowe", s:"", tl:null})},
+
+  us:{ title:"Odpowiedź do urzędu skarbowego", steps:[
+    {r:f=>`<div class="q">Potwierdź dane dzieci</div><p class="lead muted">Urząd pyta, czy w 2025 r. dzieci mieszkały z Tobą. Dane z rejestru:</p>
+      ${P().kids.map((c,i)=>opt(f,"k"+i,true,c,"Zameldowane razem z Tobą cały 2025 r.",false,true)).join("")}
+      ${opt(f,"ok",false,"Oświadczam, że dane są prawdziwe","",false,true)}`, ok:f=>f.ok, confirm:"Wyślij odpowiedź"},
+  ], done:f=>{ S.done[f.ref||"us"]=true; return {t:"Odpowiedź wysłana", s:"Urząd ma ją od razu. Potwierdzenie (UPO) jest w Skrzynce.", tl:[["Wysłano do urzędu","teraz",1],["Urząd rozpatruje","",0]]};}},
+
+  pay:{ title:"Płatność", steps:[
+    {r:f=>`<div class="q">Zapłać 210,00 zł</div><div class="card"><div class="kv"><span>Za</span><span>Podatek od nieruchomości, IV rata</span></div><div class="kv"><span>Odbiorca</span><span>Urząd m.st. Warszawy</span></div></div>
+      ${opt(f,"m","blik","BLIK","")}${opt(f,"m","przelew","Przelew z banku","")}`, ok:f=>f.m, confirm:"Zapłać 210,00 zł"},
+  ], done:f=>{ S.done[f.ref||"podatek"]=true; return {t:"Zapłacone",s:"Potwierdzenie jest w Skrzynce.",tl:null};}},
+
+  helper:{ title:"Zaufana osoba", steps:[
+    {r:f=>`<div class="q">W czym ta osoba może Ci pomagać?</div><p class="lead muted">Zawsze możesz to zmienić lub cofnąć.</p>
+      ${opt(f,"rx",true,"Recepty i leki","Może odebrać leki w aptece",false,true)}${opt(f,"zus",true,"Sprawy w ZUS","Widzi pisma z ZUS i może odpowiadać",false,true)}${opt(f,"rem",true,"Przypomnienia","Dostaje kopię ważnych przypomnień",false,true)}
+      <div class="note info">Ta osoba <b>nie zobaczy</b> Twoich dokumentów ani nie podpisze niczego w Twoim imieniu bez Twojej zgody.</div>`, ok:f=>f.rx||f.zus||f.rem},
+    {r:f=>`<div class="q">Kogo zaprosić?</div><label class="search"><input id="hname" placeholder="Numer telefonu lub PESEL" aria-label="Telefon lub PESEL" value="${esc(f.h||"")}"></label><div class="note info">Wyślemy zaproszenie. Ta osoba musi je potwierdzić w swojej aplikacji.</div>`, ok:()=>true, confirm:"Wyślij zaproszenie"},
+  ], done:f=>({t:"Zaproszenie wysłane",s:"Dostaniesz powiadomienie, gdy zostanie przyjęte.",tl:null})},
+
+  privacy:{ redirect:"privacy" },
+};
+function opt(f,key,val,t,s,disabled,multi){
+  const on = multi ? (f[key]===undefined ? (f[key]=!!val) : f[key]) : f[key]===val;
+  if(disabled) f[key]=true;
+  return `<button class="opt ${multi?"":"radio"} ${on?"on":""}" ${disabled?'aria-disabled="true"':""} data-a="${disabled?"noop":`opt:${key}:${multi?"__t":val}`}" role="${multi?"checkbox":"radio"}" aria-checked="${!!on}"><span class="box">${on?I.check:""}</span><span><div class="t">${t}</div>${s?`<div class="s">${s}</div>`:""}</span></button>`;
+}
+const ADDR=["ul. Kwiatowa 5/12, 02-580 Warszawa","ul. Kwiatowa 18, 05-500 Piaseczno","ul. Kwiatkowskiego 3/7, 03-984 Warszawa","ul. Długa 21/4, 31-147 Kraków","ul. Morska 9/2, 81-323 Gdynia"];
+function addrSug(f){
+  const q=(f.addr||"").toLowerCase().trim();
+  if(f.addrPicked) return `<div class="note info">✓ Wybrano: <b>${f.addrPicked}</b></div>`;
+  const l = q.length<2 ? [] : ADDR.filter(a=>a.toLowerCase().includes(q.replace("ul. ","").replace("ul ","")));
+  return q.length<2 ? `<button class="chip" data-a="addrpick:0" style="margin:6px 0">Przykład: ${ADDR[0]}</button>` :
+    `<div class="list">${(l.length?l:ADDR.slice(0,2)).map(a=>`<button class="row" data-a="addrpick:${ADDR.indexOf(a)}"><span class="ico">📍</span><span class="grow t">${a}</span></button>`).join("")}</div>`;
+}
+function addUpo(id,title){ S.extraInbox.unshift({pid:S.pid,id:"upo_"+id+Date.now(),from:"Potwierdzenie systemowe",title,dueDays:null,unread:true,plain:"Twój wniosek został złożony. To jest oficjalne potwierdzenie (UPO).",official:"Urzędowe Poświadczenie Odbioru. Identyfikator: "+Math.random().toString(36).slice(2,10).toUpperCase(),action:null}); }
+
+function vFlow(){
+  const F=FLOWS[S.flow.id], f=S.flow.data;
+  if(S.flow.result){
+    const r=S.flow.result;
+    return `<div class="topbar"><span style="flex:1"></span><button class="iconbtn" data-a="closeflow" aria-label="Zamknij">${I.x}</button></div>
+    <div class="body"><div class="success"><div class="big">✓</div><div class="q">${r.t}</div><p class="lead muted">${r.s}</p></div>
+    ${r.tl?`<div class="card timeline">${r.tl.map(([a,b,d],i)=>`<div class="tl ${d?"done":i===r.tl.findIndex(x=>!x[2])?"now":""}"><span class="dotb">${d?"✓":""}</span><div><div style="font-weight:700">${a}</div><div class="muted" style="font-size:.86em">${b}</div></div></div>`).join("")}</div>`:""}
+    ${r.next?`<button class="btn" data-a="${r.next.a}">${r.next.l}</button>`:""}
+    <button class="btn ${r.next?"sec":""}" data-a="closeflow">Wróć do ekranu głównego</button></div>`;
+  }
+  const st=F.steps[S.flow.step], content=st.r(f), valid=st.ok(f), last=S.flow.step===F.steps.length-1;
+  return `<div class="topbar"><button class="back" data-a="${S.flow.step?"prevstep":"closeflow"}">${I.back} ${S.flow.step?"Wstecz":"Anuluj"}</button><span style="flex:1;text-align:center;font-weight:700">${F.title}</span><span style="width:60px;text-align:right" class="muted">${S.flow.step+1}/${F.steps.length}</span></div>
+  <div class="body">
+    ${F.steps.length>1?`<div class="progress">${F.steps.map((_,i)=>`<i class="${i<=S.flow.step?"on":""}"></i>`).join("")}</div>`:""}
+    ${content}
+    <button class="btn ${st.danger?"danger":""}" data-a="${last?"confirm":"nextstep"}" ${valid?"":"disabled"}>${last?(st.confirm||"Wyślij"):"Dalej"}</button>
+  </div>`;
+}
+
+/* =========================================================
+   7. ASYSTENT — rozpoznaje intencję i uruchamia TEN SAM przepływ
+   ========================================================= */
+const INTENTS = [
+  {re:/portfel|zgubi|ukrad|kradzie|zastrze/i, flow:"portfel", say:"Przykro mi. Najpierw zabezpieczmy dokumenty — zajmie to minutę. Nic nie zrobię bez Twojego potwierdzenia."},
+  {re:/adres|przeprowadz|meldun|zamel|wymel/i, flow:"przeprowadzka", say:"Zmienię adres we wszystkich rejestrach naraz. Zapytam tylko o to, czego nie wiem."},
+  {re:/\boc\b|ubezpiecz|polis/i, flow:"oc", say:()=>{const d=P().docs.find(x=>x.isCar); if(!d) return "Nie masz zarejestrowanego pojazdu."; const s=status(d.ocDays); return `OC dla ${d.short}: ${s.txt.toLowerCase()}.`;}},
+  {re:/dow[oó]d|nowy dow|wa[zż]no[sś][cć]/i, flow:"dowod", say:()=>`Twój dowód: ${status(P().docs.find(d=>d.id==="dowod").validDays).txt.toLowerCase()}. Wniosek o nowy złożysz tutaj w 3 krokach.`},
+  {re:/pismo|rozumie|urz[aą]d skarb|wezwanie/i, open:"msg:us", say:"To pismo w skrócie: urząd chce sprawdzić ulgę na dzieci za 2025. Wystarczy potwierdzić dane z rejestru."},
+  {re:/co mam|do załatwienia|sprawy|terminy/i, list:true, say:()=>{const t=tasks(); return t.length?`Masz ${t.length} ${t.length===1?"sprawę":"sprawy"}. Najpilniejsze:`:"Nie masz teraz nic pilnego ✓";}},
+  {re:/kto.*(sprawdza|dane)|prywatn/i, open:"privacy", say:"Oto lista instytucji, które sprawdzały Twoje dane w ostatnich 60 dniach."},
+  {re:/pomoc|córk|syn|pełnomoc/i, flow:"helper", say:"Możesz dodać zaufaną osobę i ustalić, w czym może Ci pomagać."},
+];
+function botReply(text){
+  const it=INTENTS.find(i=>i.re.test(text));
+  if(!it){
+    const words=text.toLowerCase().split(/\s+/).filter(w=>w.length>3);
+    const hits=SERVICES.filter(s=>words.some(w=>(s.tags+" "+s.title).toLowerCase().includes(w.slice(0,5)))).slice(0,3);
+    return {txt:`Tej sprawy nie załatwię jeszcze rozmową${hits.length?", ale te usługi mogą pasować:":". Zobacz pełną listę usług albo połącz się z konsultantem."}`,
+      cards:hits.map(s=>({l:s.e+" "+s.title,a:"svc:"+s.id})).concat([{l:"Wszystkie usługi",a:"tab:uslugi",sec:true},{l:"📞 Porozmawiaj z konsultantem",a:"toast:Łączymy z infolinią… (w prototypie symulacja)",sec:true}])};
+  }
+  const say = typeof it.say==="function"?it.say():it.say;
+  if(it.flow) return {txt:say, cards:[{l:"Zaczynamy →",a:"flow:"+it.flow}]};
+  if(it.open) return {txt:say, cards:[{l:"Otwórz",a:it.open}]};
+  if(it.list) return {txt:say, cards:tasks().slice(0,3).map(t=>({l:t.t,a:t.a,sec:true}))};
+}
+function vChat(){
+  const sugg = S.a11y.senior ? ["Zgubiłem portfel","Mój dowód traci ważność","Kto sprawdzał moje dane"] : ["Zgubiłam portfel","Przeprowadzam się","Co mam do załatwienia?","Nie rozumiem pisma z urzędu"];
+  return `<div class="overlay" data-a="closechat"><div class="sheet full" data-stop>
+    <div class="grab"></div>
+    <div class="sheet-h"><span class="ico">${I.spark}</span><h2>Asystent</h2><button class="iconbtn" data-a="closechat" aria-label="Zamknij asystenta">${I.x}</button></div>
+    <div class="chat" id="chat" aria-live="polite">
+      <div class="msg bot">W czym mogę pomóc? Możesz pisać albo mówić. <span class="muted">Nic nie wyślę bez Twojego potwierdzenia.</span></div>
+      ${S.chat.map(m=>`<div class="msg ${m.me?"me":"bot"}">${esc(m.txt)}${(m.cards||[]).map(c=>`<button class="btn ${c.sec?"sec":""}" data-a="${c.a}">${esc(c.l)}</button>`).join("")}</div>`).join("")}
+      ${S.chat.length?"":`<div class="chips">${sugg.map(s=>`<button class="chip" data-a="chatq:${s}">${s}</button>`).join("")}</div>`}
+      ${S.typing?`<div class="msg bot muted">…</div>`:""}
+    </div>
+    <form class="composer" id="composer"><input id="chatin" placeholder="${S.listening?"Słucham…":"Napisz, co chcesz załatwić"}" aria-label="Wiadomość do asystenta" autocomplete="off">
+      <button type="button" class="round sec ${S.listening?"listening":""}" data-a="mic" aria-label="Mów">${I.mic}</button>
+      <button class="round" aria-label="Wyślij">${I.send}</button></form>
+  </div></div>`;
+}
+
+/* =========================================================
+   8. NAKŁADKI: potwierdzenie biometrią, kod QR
+   ========================================================= */
+function vConfirm(){
+  return `<div class="overlay"><div class="modal" role="dialog" aria-label="Potwierdzenie">
+    ${S.overlay.stage==="ask"?`<div class="face">🙂</div><div style="font-weight:800;font-size:1.15em">Potwierdź tożsamość</div><p class="muted" style="margin:8px 0 6px;line-height:1.4">Spójrz w telefon albo użyj odcisku palca.</p>
+      <button class="btn" data-a="bio">Potwierdź biometrią</button><button class="btn sec" data-a="bio">Wpisz PIN</button><button class="btn ghost" data-a="closeoverlay">Anuluj</button>`
+    :`<div class="spin"></div><p class="muted">Wysyłam…</p>`}
+  </div></div>`;
+}
+function vQR(){
+  let seed=S.share.length*7+3; const rnd=()=>((seed=(seed*9301+49297)%233280)/233280);
+  const cells=[...Array(441)].map((_,i)=>{const x=i%21,y=(i/21)|0;const f=(a,b)=>x>=a&&x<a+7&&y>=b&&y<b+7;const fin=f(0,0)||f(14,0)||f(0,14);if(fin){const lx=x%14%7,ly=y%14%7;return (lx===0||lx===6||ly===0||ly===6||(lx>1&&lx<5&&ly>1&&ly<5))?1:0}return rnd()>.5?1:0;});
+  const lbl={full:"Pełne dane",name:"Imię, nazwisko i zdjęcie",age:"Tylko: ukończone 18 lat"}[S.share];
+  return `<div class="overlay" data-a="closeoverlay"><div class="sheet" data-stop style="padding:0 20px 34px;text-align:center">
+    <div class="grab"></div><div class="q" style="margin-top:12px">Pokaż ten kod</div>
+    <div class="qr" aria-label="Kod do sprawdzenia">${cells.map(c=>`<i class="${c?"b":""}"></i>`).join("")}</div>
+    <span class="pill ok" style="font-size:.9em">Udostępniasz: ${lbl}</span>
+    <p class="muted" style="margin:12px 0 0;font-size:.88em">Kod ważny 2 minuty. Zobaczysz, kto go zeskanował.</p>
+    <button class="btn sec" data-a="closeoverlay">Zamknij</button></div></div>`;
+}
+
+/* =========================================================
+   9. RENDER
+   ========================================================= */
+const $app=document.getElementById("app");
+function current(){
+  if(S.flow) return "flow";
+  const top=S.stack[S.stack.length-1];
+  return top ? top.split(":")[0] : S.tab;
+}
+function render(keepScroll){
+  const body=$app.querySelector(".body"); const sc=keepScroll&&body?body.scrollTop:0;
+  const a=S.a11y; $app.className="screen"+(a.large||P().senior&&a.senior?" large":"")+(a.contrast?" contrast":"");
+  let view, top=S.stack[S.stack.length-1];
+  if(S.flow) view=vFlow();
+  else if(top){ const [k,arg]=top.split(":"); view={doc:vDoc,msg:vMsg,privacy:vPrivacy}[k](arg); }
+  else view={start:vStart,dokumenty:vDokumenty,uslugi:vUslugi,skrzynka:vSkrzynka,profil:vProfil}[S.tab]();
+  const showTabs=!S.flow;
+  const tabs=[["start","Start",I.home],["dokumenty","Dokumenty",I.docs],["uslugi","Usługi",I.grid],["skrzynka","Skrzynka",I.mail],["profil","Profil",I.user]];
+  $app.innerHTML = `<div class="status" aria-hidden="true"><span>${new Date().toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit"})}</span><span>${S.shift?`⏩ +${S.shift} dni`:""}</span><span>●●● 🔋</span></div>
+    ${view}
+    ${showTabs&&!S.stack.length&&!(S.tab==="start"&&a.senior)?`<button class="fab" data-a="chat" aria-label="Otwórz asystenta">${I.spark} Zapytaj</button>`:""}
+    ${showTabs?`<nav class="tabbar" aria-label="Główne">${tabs.map(([k,l,ic])=>`<button class="tab ${S.tab===k&&!S.stack.length?"on":""}" data-a="tab:${k}" ${S.tab===k?'aria-current="page"':""}>${ic}<span>${l}</span>${k==="skrzynka"&&unread()?`<span class="badge">${unread()}</span>`:""}</button>`).join("")}</nav>`:""}
+    ${S.chatOpen?vChat():""}
+    ${S.overlay?.type==="confirm"?vConfirm():""}${S.overlay?.type==="qr"?vQR():""}
+    ${S.toast?`<div class="toast" role="status">${esc(S.toast)}</div>`:""}`;
+  const nb=$app.querySelector(".body"); if(nb) nb.scrollTop=sc;
+  const ch=document.getElementById("chat"); if(ch) ch.scrollTop=ch.scrollHeight;
+  renderPresenter();
+}
+
+/* =========================================================
+   10. AKCJE (kliknięcia)
+   ========================================================= */
+function go(push){ S.stack.push(push); render(); }
+function startFlow(id,ref){
+  S.chatOpen=false;
+  if(FLOWS[id]?.redirect){ S.flow=null; go(FLOWS[id].redirect); return; }
+  if(id==="oc" && !P().docs.some(d=>d.isCar)){ toast("Nie masz zarejestrowanego pojazdu."); return; }
+  if(!FLOWS[id]){ toast("Ta usługa będzie dostępna w kolejnej wersji prototypu."); return; }
+  S.flow={id,step:0,data:{ref},result:null}; render();
+}
+function toast(t){ S.toast=t; render(true); clearTimeout(toast.t); toast.t=setTimeout(()=>{S.toast=null;render(true)},2600); }
+function send(text){
+  if(!text.trim()) return;
+  S.chat.push({me:1,txt:text}); S.typing=true; render();
+  setTimeout(()=>{ S.typing=false; S.chat.push(botReply(text)); render(); },650);
+}
+const A = {
+  tab:t=>{S.tab=t;S.stack=[];S.cat=null;render();},
+  back:()=>{S.stack.pop();render();},
+  doc:id=>{S.share="full";go("doc:"+id);},
+  msg:id=>{S.chatOpen=false;go("msg:"+id);},
+  privacy:()=>{S.chatOpen=false;go("privacy");},
+  svc:id=>{const s=SERVICES.find(x=>x.id===id); s.flow?startFlow(s.flow):toast("„"+s.title+"” — dostępne w kolejnej wersji prototypu.");},
+  cat:c=>{S.cat=S.cat===c?null:c;render(true);},
+  flow:(id,ref)=>startFlow(id,ref),
+  opt:(k,v)=>{const f=S.flow.data; f[k]= v==="__t"?!f[k]:v; render(true);},
+  addrpick:i=>{S.flow.data.addrPicked=ADDR[+i];S.flow.data.addr=ADDR[+i];render(true);},
+  nextstep:()=>{S.flow.step++;render();},
+  prevstep:()=>{S.flow.step--;render();},
+  closeflow:()=>{S.flow=null;S.stack=[];S.tab="start";render();},
+  confirm:()=>{S.overlay={type:"confirm",stage:"ask"};render(true);},
+  bio:()=>{S.overlay.stage="wait";render(true);setTimeout(()=>{S.overlay=null;S.flow.result=FLOWS[S.flow.id].done(S.flow.data);render();},1100);},
+  closeoverlay:()=>{S.overlay=null;render(true);},
+  share:k=>{S.share=k;render(true);},
+  showqr:()=>{S.overlay={type:"qr"};render(true);},
+  unlock:()=>{delete S.done.portfel;toast("Dowód odblokowany. Zastrzeżenie w bankach zdjęte.");},
+  chat:()=>{S.chatOpen=true;render();setTimeout(()=>document.getElementById("chatin")?.focus(),50);},
+  chatq:q=>{S.chatOpen=true;send(q);},
+  closechat:()=>{S.chatOpen=false;render();},
+  mic:()=>{S.listening=true;render();setTimeout(()=>{S.listening=false;send(S.a11y.senior?"Mój dowód traci ważność, co mam zrobić?":"Przeprowadzam się do nowego mieszkania");},1400);},
+  a11y:k=>{S.a11y[k]=!S.a11y[k];if(k==="senior"&&S.a11y.senior)S.a11y.large=true;if(k==="senior"){S.tab="start";S.stack=[];}render(true);},
+  callhelper:()=>{const h=P().helpers[0];toast(h?`Wysłano prośbę o pomoc do: ${h.name}. Zobaczy ją w swojej aplikacji.`:"Dodaj zaufaną osobę w Profilu.");},
+  toast:t=>toast(t),
+  noop:()=>{},
+  persona:id=>{S.pid=id;S.tab="start";S.stack=[];S.flow=null;S.chat=[];S.chatOpen=false;S.a11y.senior=PERSONAS[id].senior;S.a11y.large=PERSONAS[id].senior;render();},
+  shift:n=>{S.shift=+n;render(true);},
+  reset:()=>location.reload(),
+};
+document.addEventListener("click",e=>{
+  const stop=e.target.closest("[data-stop]"); const el=e.target.closest("[data-a]");
+  if(!el) return;
+  if(stop && !stop.contains(el)) return;
+  if(el.classList.contains("overlay") && e.target!==el) return;
+  e.preventDefault();
+  const [a,...rest]=el.dataset.a.split(":"); A[a]?.(rest[0], rest.slice(1).join(":")||undefined, el);
+});
+// chatq potrzebuje całego tekstu (może zawierać dwukropki)
+A.chatq=(q,rest)=>{S.chatOpen=true;send(rest?q+":"+rest:q);};
+document.addEventListener("submit",e=>{ if(e.target.id==="composer"){ e.preventDefault(); const i=document.getElementById("chatin"); send(i.value); }});
+document.addEventListener("input",e=>{
+  if(e.target.id==="q"){ S.query=e.target.value; const pos=e.target.selectionStart; render(true); const n=document.getElementById("q"); n.focus(); n.setSelectionRange(pos,pos); }
+  if(e.target.id==="addr"){ S.flow.data.addr=e.target.value; S.flow.data.addrPicked=null; document.getElementById("addr-sug").innerHTML=addrSug(S.flow.data); const b=$app.querySelector('[data-a="nextstep"]'); b&&(b.disabled=true); }
+  if(e.target.id==="hname"){ S.flow.data.h=e.target.value; }
+});
+
+/* =========================================================
+   11. PANEL PREZENTERA (tylko na komputerze)
+   ========================================================= */
+function renderPresenter(){
+  const pb=(on,a,l)=>`<button class="pbtn ${on?"on":""}" data-a="${a}">${l}</button>`;
+  document.getElementById("p-persona").innerHTML=Object.entries(PERSONAS).map(([k,p])=>pb(S.pid===k,"persona:"+k,`${p.first}, ${p.age} · ${p.city}`)).join("")+`<div class="muted" style="width:100%;margin-top:4px">${P().note}</div>`;
+  document.getElementById("p-time").innerHTML=[0,7,14,30].map(n=>pb(S.shift===n,"shift:"+n,n?`+${n} dni`:"Dziś")).join("");
+  document.getElementById("p-a11y").innerHTML=[["large","Duży tekst"],["contrast","Kontrast"],["simple","Prosty język"],["senior","Tryb uproszczony"]].map(([k,l])=>pb(S.a11y[k],"a11y:"+k,l)).join("");
+  document.getElementById("p-scen").innerHTML=[["flow:przeprowadzka","🏠 Przeprowadzka"],["flow:portfel","👛 Zgubiony portfel"],["chatq:Jak zmienić adres zameldowania?","💬 Asystent: meldunek"],["chatq:Chcę zarejestrować łódkę","💬 Asystent: coś, czego nie umie"],["msg:"+P().inbox[0].id,"✉️ Pismo po ludzku"],["privacy","🔒 Kto sprawdzał dane"]].map(([a,l])=>pb(false,a,l)).join("");
+  let k=current(); if(S.chatOpen)k="chat"; if(k==="start"&&S.a11y.senior)k="senior";
+  const w=WHY[k]||WHY.start;
+  document.getElementById("p-why").innerHTML=`<b>${w[0]}</b><ul>${w.slice(1).map(x=>`<li>${x}</li>`).join("")}</ul>`;
+}
+render();
+</script>
+</body>
+</html>
