@@ -814,3 +814,8 @@ html.okno .composer{padding-bottom:8px}
 #mojZnak svg.znak image{transform-box:fill-box;transform-origin:center}
 .msgs{-webkit-mask-image:none;mask-image:none}
 .msgs.przew{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 26px);mask-image:linear-gradient(to bottom,transparent 0,#000 26px)}
+/* szczegóły dokumentu: bez rozmycia i gradientu u góry (karta ma wyraźną krawędź) */
+.sheet .body.przew{-webkit-mask-image:none!important;mask-image:none!important}
+.sheet .body::before,.sheet .body.przew::before{content:none!important}
+.sheet .body{padding-top:0}
+.sheet .clock{margin-bottom:12px}
