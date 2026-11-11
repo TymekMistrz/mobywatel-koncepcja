@@ -39,7 +39,7 @@ setInterval(beat,1200);
 let PS=null;
 function pMount(id='qrx'){let o=$('#'+id);if(!o){o=el(`<div class="qrx" id="${id}" role="dialog" aria-modal="true"></div>`);app.append(o)}return o}
 function pScreen(html,cls='',id='qrx'){const o=pMount(id);const juz=o.classList.contains('on');o.className='qrx '+cls;o.innerHTML=html;if(!juz)void o.offsetWidth;o.classList.add('on');/* wjazd od dołu przy pierwszym otwarciu */o.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>id==='qrx'?pFinish({ok:false}):zFinish({ok:false}));return o}
-function pTop(t){return `<div class="qtop"><button class="qclose" data-close aria-label="Zamknij">${qsvg('x',2)}</button><b>${t}</b><span></span></div>`}
+function pTop(t){return `<div class="qtop"><button class="qclose" data-close aria-label="Zamknij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 9.5 5.5 5.5 5.5-5.5"/></svg></button><b>${t}</b><span></span></div>`}
 function pStopCam(){if(PS&&PS.stream){PS.stream.getTracks().forEach(t=>t.stop());PS.stream=null}if(PS)PS.run=false}
 function pFinish(r){const s=PS;if(!s)return;pStopCam();clearInterval(s.tick);PS=null;const o=$('#qrx');if(o){o.classList.remove('on');setTimeout(()=>{if(!PS)o.innerHTML=''},320)}s.resolve(r)}
 
