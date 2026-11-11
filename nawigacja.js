@@ -257,13 +257,15 @@ const WIECEJ=[
  const msgObs=new MutationObserver(()=>document.querySelectorAll('.msgs').forEach(m=>m.classList.toggle('przew',m.scrollTop>2)));
  msgObs.observe(app,{childList:true,subtree:true});
  /* powrót na ekran z dokumentami (z innej zakładki, szczegółów, rozmowy, skanera) zawsze pokazuje stos w ułożeniu domyślnym */
- window.zwinStos=function(){if(typeof SEL==='undefined'||typeof STACK_ORDER==='undefined')return;const d=STACK_ORDER.length-1;if(SEL!==d){SEL=d;if(typeof layout==='function')layout()}};
+ window.zwinStos=function(){app.classList.add('ukryte');if(typeof SEL==='undefined'||typeof STACK_ORDER==='undefined')return;const d=STACK_ORDER.length-1;if(SEL!==d){SEL=d;if(typeof layout==='function')layout()}};
  {let byl={det:false,chat:false,skan:false};
   const sprawdz=()=>{const det=!!($('#detail')&&$('#detail').classList.contains('on')),chat=app.classList.contains('chatting'),skan=!!document.querySelector('#qrx.on');
    if((byl.det&&!det)||(byl.chat&&!chat)||(byl.skan&&!skan))zwinStos();byl={det,chat,skan}};
   new MutationObserver(sprawdz).observe(app,{attributes:true,attributeFilter:['class'],subtree:true});}
  /* w trakcie gestu poziomego nic nie przewija się w pionie (także kółkiem myszy) */
  app.addEventListener('wheel',e=>{if(app.classList.contains('gest'))e.preventDefault()},{passive:false,capture:true});
+ /* po zminimalizowaniu / przełączeniu karty dane dowodu znów się rozmywają */
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')app.classList.add('ukryte')});
  /* logo (flaga) w nagłówku: płynny powrót do ekranu z dokumentami, bez przeładowania strony */
  const hb=$('#homeBtn');if(hb)hb.onclick=()=>{
   const det=$('#detail');if(det)det.classList.remove('on');

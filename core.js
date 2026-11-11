@@ -1,5 +1,6 @@
 const $=s=>document.querySelector(s);
-const app=$('#app'),input=$('#prompt');let msgs=$('#msgs'),inflight=0;
+const app=$('#app'),input=$('#prompt');app.classList.add('ukryte');   /* dane dowodu rozmyte, dopóki ktoś nie dotknie „Pokaż dane” */
+let msgs=$('#msgs'),inflight=0;
 const FAST=!!window.FAST;
 function settle(){setTimeout(()=>{inflight--;if(!inflight&&typeof onIdle==='function')onIdle()},0)}
 const sleep=ms=>{inflight++;return new Promise(r=>setTimeout(()=>{r();settle()},FAST?5:ms))};

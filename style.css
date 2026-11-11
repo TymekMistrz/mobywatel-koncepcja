@@ -830,3 +830,13 @@ html.okno .composer{padding-bottom:8px}
 
 /* gest zmiany strony: blokada przewijania w pionie */
 .phone.gest .page,.phone.gest .podglad,.phone.gest .msgs{overflow:hidden!important;touch-action:none}
+
+/* ---------- dowód: dane rozmyte do czasu „Pokaż dane” ---------- */
+#app.ukryte .pvf{display:inline;filter:blur(1.6cqw);user-select:none}
+#app.ukryte .pvs{display:none}
+#app.ukryte .face .dl.pv{display:grid;filter:blur(1.6cqw);user-select:none}
+.face .pvf,.face .dl.pv{transition:filter .35s ease}
+.face .col{position:relative}
+#app.ukryte .face .reveal{position:absolute;left:0;top:50%;transform:translateY(-50%);margin:0;z-index:2;
+  background:rgba(255,255,255,.95);color:#173a8a;box-shadow:0 2px 10px rgba(0,0,0,.18);font-size:3.7cqw;padding:2cqw 3.8cqw 2cqw 3cqw}
+#app.ukryte .face .reveal:active{background:#fff;transform:translateY(-50%) scale(.96)}
