@@ -131,8 +131,22 @@ const WIECEJ=[
  page.addEventListener('click',e=>{
   const r=e.target.closest('.prow');if(!r)return;
   if(r.dataset.q){TAB='dok';rysuj();startTopic(r.dataset.q);return}
-  r.classList.add('soon');setTimeout(()=>r.classList.remove('soon'),1400);
+  komunikat((r.querySelector('.ptx b')||{}).textContent||'Ta funkcja');
  });
+ /* okienko „funkcja niedostępna w prototypie” (dla pozycji, których jeszcze nie zaprojektowano) */
+ const modal=document.createElement('div');modal.className='alertm';modal.setAttribute('aria-hidden','true');
+ modal.innerHTML=`<div class="alertm-box" role="alertdialog" aria-modal="true" aria-labelledby="alertmT" aria-describedby="alertmO">
+   <b id="alertmT">Funkcja niedostępna w prototypie</b>
+   <p id="alertmO"></p>
+   <button type="button">OK</button></div>`;
+ app.append(modal);
+ const zamknijM=()=>{modal.classList.remove('on');modal.setAttribute('aria-hidden','true')};
+ modal.querySelector('button').onclick=zamknijM;
+ modal.addEventListener('click',e=>{if(e.target===modal)zamknijM()});
+ window.komunikat=function(nazwa){
+  modal.querySelector('#alertmO').textContent=`Sekcja „${nazwa}” jest częścią docelowej koncepcji, ale w tej wersji prototypu nie zaprojektowano jeszcze dalszego przebiegu procesu. Pozostałe sprawy możesz sprawdzić w zakładce Usługi lub zapytać asystenta.`;
+  modal.classList.add('on');modal.setAttribute('aria-hidden','false');setTimeout(()=>modal.querySelector('button').focus(),50);
+ };
  /* pisanie lub mówienie do asystenta z innej strony → wracamy na ekran z rozmową */
  const wroc=()=>{if(TAB!=='dok'){TAB='dok';rysuj()}};
  $('#composer').addEventListener('submit',wroc,true);
