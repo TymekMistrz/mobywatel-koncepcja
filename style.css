@@ -824,3 +824,6 @@ html.okno .composer{padding-bottom:8px}
 .tabbar .wsk{top:6px;height:52px;border-radius:14px;transition:transform .38s cubic-bezier(.3,1.25,.4,1),width .38s cubic-bezier(.3,1.25,.4,1),opacity .2s}
 .tabbar button{padding-top:7px;gap:4px}
 .tabbar button.on span:last-child{font-weight:700}
+/* przewijanie pod nagłówkiem: tylko łagodne zanikanie treści, bez warstwy rozmycia (dawała artefakty przy nagłówku) */
+.page::before,.page.przew::before{content:none!important}
+.page.przew{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 34px);mask-image:linear-gradient(to bottom,transparent 0,#000 34px)}
