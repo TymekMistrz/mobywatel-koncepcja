@@ -46,7 +46,7 @@ const PRIV=(full,short)=>`<span class="pvf">${full}</span><span class="pvs">${sh
 const REVEAL='<span class="reveal" role="button" tabindex="0" aria-label="Pokaż dane z dowodu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg>Pokaż dane</span>';
 function shortName(n){const p=n.split(' ');return p.length>1?p.slice(0,-1).join(' '):n}
 function faceHTML(d){
- const cells=d.f.map(p=>`<span><small>${p[0]}</small><b class="${p.stan||''}">${p[1]}</b></span>`).join('');
+ const cells=d.f.map(p=>`<span><small>${p[0]}</small><b>${p[1]}</b></span>`).join('');   /* karta bez oznaczeń terminów — stan widać w „Wymaganych akcjach” i w szczegółach */
  const ttl=`<span class="ttl">${d.name}</span>`;
  if(d.plate)return `<span class="face">${ttl}${sylH(d)}<span class="ov veh">${plateH(d.plate)}<span class="col"><span class="nm">${d.holder}</span><span class="dl">${cells}</span></span></span></span>`;
  return `<span class="face">${ttl}${d.id==='dowod'?LIVE:''}<span class="ov">${d.photo?PHOTO:''}<span class="col">${d.id==='dowod'?`<span class="nm">${PRIV(d.holder,shortName(d.holder))}</span><span class="dl pv">${cells}</span>${REVEAL}`:`<span class="nm">${d.holder}</span><span class="dl">${cells}</span>`}</span></span></span>`;
