@@ -159,8 +159,9 @@ const WIECEJ=[
   let g=null;
   app.addEventListener('pointerdown',e=>{if(!strefa(e)||zajete()||(e.pointerType==='mouse'&&e.button!==0))return;g={x:e.clientX,y:e.clientY,t:performance.now(),poziom:null,cel:undefined,pg:null}},true);
   app.addEventListener('pointermove',e=>{
-   if(!g)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;
-   if(g.poziom===null&&Math.hypot(dx,dy)>10)g.poziom=Math.abs(dx)>Math.abs(dy)*1.3;
+   if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}   // przycisk puszczony poza ekranem telefonu
+   const dx=e.clientX-g.x,dy=e.clientY-g.y;
+   if(g.poziom===null&&Math.hypot(dx,dy)>10){g.poziom=Math.abs(dx)>Math.abs(dy)*1.3;if(g.poziom)try{app.setPointerCapture(e.pointerId)}catch(_){}}
    if(!g.poziom)return;
    const i=KOLEJ.indexOf(TAB),k=dx<0?KOLEJ[i+1]:KOLEJ[i-1],W=app.clientWidth;
    if(g.cel!==k){if(g.pg){g.pg.remove();g.pg=null}g.cel=k;if(k)g.pg=zrobPodglad(k)}
@@ -169,8 +170,8 @@ const WIECEJ=[
    przesun(g.pg,dx+(dx<0?W:-W));
    const t=$('#title');if(t)t.style.opacity=String(Math.max(0,1-Math.abs(dx)/(W*.45)));
   },true);
-  const koniec=async e=>{
-   if(!g)return;const {x,t,poziom,cel,pg}=g;g=null;if(!poziom){if(pg)pg.remove();return}
+  async function koniec(e){
+   if(!g)return;const {x,t,poziom,cel,pg}=g;g=null;try{app.releasePointerCapture(e.pointerId)}catch(_){}if(!poziom){if(pg)pg.remove();return}
    const dx=(e.clientX??x)-x,v=Math.abs(dx)/Math.max(1,performance.now()-t),W=app.clientWidth,tyt=$('#title');
    const stare=biezace();
    if(cel&&pg&&(Math.abs(dx)>W*.25||(v>.45&&Math.abs(dx)>30))){
@@ -184,7 +185,8 @@ const WIECEJ=[
    /* za krótko: wszystko wraca na miejsce */
    await Promise.all([...stare.map(el=>jedz(el,0)),...(pg?[jedz(pg,dx<0?W:-W)]:[])]);
    sprzataj(stare);if(pg)pg.remove();if(tyt)tyt.style.opacity='';
-  };
+  }
+  app.addEventListener('lostpointercapture',e=>{if(g&&g.poziom)koniec(e)});
   app.addEventListener('pointerup',koniec,true);app.addEventListener('pointercancel',koniec,true);
  }
  /* ---------- gest powrotu: szczegóły dokumentu przeciągnij w prawo, skaner przeciągnij w dół ---------- */
@@ -193,20 +195,21 @@ const WIECEJ=[
   el.style.touchAction=os==='x'?'pan-y':'pan-x';
   el.addEventListener('pointerdown',e=>{if(!el.classList.contains('on')||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('input,textarea'))return;g={x:e.clientX,y:e.clientY,t:performance.now(),moje:null}});
   el.addEventListener('pointermove',e=>{
-   if(!g)return;const dx=e.clientX-g.x,dy=e.clientY-g.y,d=os==='x'?dx:dy,inny=os==='x'?dy:dx;
-   if(g.moje===null&&Math.hypot(dx,dy)>10)g.moje=d>0&&Math.abs(d)>Math.abs(inny)*1.3&&(os==='x'||!el.querySelector('.qbody')||true);
+   if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}
+   const dx=e.clientX-g.x,dy=e.clientY-g.y,d=os==='x'?dx:dy,inny=os==='x'?dy:dx;
+   if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=d>0&&Math.abs(d)>Math.abs(inny)*1.3;if(g.moje)try{el.setPointerCapture(e.pointerId)}catch(_){}}
    if(!g.moje)return;
    el.style.transition='none';el.style.transform=os==='x'?`translateX(${Math.max(0,d)}px)`:`translateY(${Math.max(0,d)}px)`;
    if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.transition='none';x.style.transform=`translateX(${-22+22*Math.min(1,Math.max(0,d)/el.offsetWidth)}%)`});
   });
-  const koniec=e=>{
-   if(!g)return;const {x,y,t,moje}=g;g=null;if(!moje)return;
+  function koniec(e){
+   if(!g)return;const {x,y,t,moje}=g;g=null;try{el.releasePointerCapture(e.pointerId)}catch(_){}if(!moje)return;
    const d=os==='x'?(e.clientX??x)-x:(e.clientY??y)-y,v=d/Math.max(1,performance.now()-t),dl=os==='x'?el.offsetWidth:el.offsetHeight;
    const zamyka=d>dl*.3||(v>.5&&d>40);
    el.style.transition='';void el.offsetWidth;el.style.transform='';
    if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.transition='';x.style.transform=''});
    if(zamyka)zamknij();
-  };
+  }
   el.addEventListener('pointerup',koniec);el.addEventListener('pointercancel',koniec);
  }
  {const det=$('#detail');if(det)gestZamkniecia(det,'x',()=>det.classList.remove('on'))}

@@ -20,6 +20,7 @@
  },true);
  document.addEventListener('pointermove',e=>{
   if(!g)return;
+  if(e.buttons===0){g=null;return}   // przycisk puszczony poza ramką telefonu — kończymy przewijanie
   const dx=e.clientX-g.x,dy=e.clientY-g.y;
   if(!przesuniete&&Math.hypot(dx,dy)>PROG)przesuniete=true;
   if(!przesuniete||!g.p)return;
