@@ -997,3 +997,8 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 .phone.bezanim #stackwrap{clip-path:none!important}
 .phone.bezanim .card,.phone.bezanim .podglad .card{box-shadow:none!important}
 .phone.bezanim .col::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(40,90,200,.92)!important}
+/* pasek nawigacji wtopiony w tło: bez białej płyty, kreski i szarego pasa pod polem czatu */
+.tabbar{background:var(--bg)!important;border-top:0!important;-webkit-backdrop-filter:none;backdrop-filter:none}
+.tabbar .wsk{background:#fff;box-shadow:0 1px 3px rgba(15,25,60,.08)}
+.tabbar .kropka{box-shadow:0 0 0 2px var(--bg)}
+.tabbar button.on .kropka{box-shadow:0 0 0 2px #fff}
