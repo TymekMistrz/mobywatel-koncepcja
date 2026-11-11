@@ -137,6 +137,8 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 .datebox #dRel{grid-area:r;color:var(--ink2);font-size:13px;font-weight:700;white-space:nowrap;text-align:left;width:var(--relw,64px)}   /* „+” zawsze w tej samej odległości od suwaka co data po lewej */
 .datebox input[type=range]{min-width:120px}
 .person.on{box-shadow:none}
+/* panel sterowania bez animacji przejść */
+.panel *{transition:none!important}
 </style>
 </head>
 <body>
@@ -184,7 +186,7 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261111-1825"></script>
+<script src="osoby.js?v=20261111-1827"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
@@ -194,7 +196,7 @@ const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 const DZIS=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})(), PRZES=Math.round((DZIS-DZIEN_0)/DAY);
 const naEkran=d=>new Date(d.getTime()+PRZES*DAY);
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1825';
+const WERSJA='20261111-1827';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 m'],[90,'+3 m'],[180,'+6 m'],[365,'+1 rok']];
@@ -218,7 +220,7 @@ function events(id){
    data i terminy delikatnie się przenikają, a kod QR „miga” miękko przy zmianie. */
 const SPOK=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let ciagnie=false,poprz={osoba:null,dzien:null,tekst:null};
-const miekko=(el)=>{if(SPOK||!el)return;el.animate([{opacity:.35},{opacity:1}],{duration:220,easing:'ease-out'})};
+const miekko=()=>{};   /* panel bez animacji */
 /* szerokość pola „+N dni” = najdłuższa wartość („+730 dni”), żeby suwak nie skakał, a odstęp po „+” był stały */
 function szerRel(){const r=$('#dRel');if(!r)return;const t=r.textContent;r.style.width='auto';r.textContent='+730 dni';const w=Math.ceil(r.getBoundingClientRect().width);r.textContent=t;document.documentElement.style.setProperty('--relw',w+'px');r.style.width=''}
 function render(){
@@ -237,7 +239,7 @@ function render(){
     return `<button class="ev" data-d="${e.n+1}" title="Pokaż stan w dniu następującym po terminie"><i class="${cls}">${t}</i><span>${e.label}</span><em>${fmtS(naEkran(e.d))}</em></button>`}).join(''):'<p class="hint">Brak terminów w najbliższych 2 latach.</p>';
   const box=$('#events'),nowaOsoba=poprz.osoba!==null&&poprz.osoba!==S.osoba;
   if(html!==poprz.tekst){box.innerHTML=html;poprz.tekst=html;fitEvents();
-    if(!ciagnie&&poprz.osoba!==null&&nowaOsoba&&!SPOK)box.animate([{opacity:0},{opacity:1}],{duration:240,easing:'ease-out'});}
+}
   poprz.osoba=S.osoba;poprz.dzien=S.dzien;
 }
 /* lista terminów: pokaż tyle, ile się zmieści (bez przewijania) — najpierw najbliższe nadchodzące */
@@ -291,7 +293,7 @@ function rysujQR(){const box=$('#qrBox');if(!box||$('#qrPop').hidden)return;
   const nowy=q.createSvgTag({cellSize:4,margin:2,scalable:true});
   if(!box.innerHTML||SPOK){box.innerHTML=nowy;return}
   /* spokojna zmiana kodu: krótkie przygaszenie i podmiana */
-  box.getAnimations().forEach(a=>a.cancel());box.innerHTML=nowy;box.animate([{opacity:.25},{opacity:1}],{duration:260,easing:'ease-out'});}
+  box.innerHTML=nowy;}
 /* „albo otwórz w nowym oknie przeglądarki”: osobne okno w rozmiarze iPhone'a 16 (393×852), czyli widok mobilny na komputerze */
 $('#openApp').addEventListener('click',e=>{
   const w=393,h=852,l=Math.max(0,(screen.availWidth-w)/2),t=Math.max(0,(screen.availHeight-h)/2);
