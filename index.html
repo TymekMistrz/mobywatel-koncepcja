@@ -123,6 +123,9 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 .dol{margin-top:14px}
 .screen .ekr{position:absolute;inset:0;width:100%;height:100%}
 .screen .ekr.ukryty{opacity:0;pointer-events:none}
+/* zasłona ładowania: łagodne pojawienie i zniknięcie, nad obiema ramkami */
+.loading{z-index:5;transition:opacity .22s ease}
+.loading:not(.off){transition-duration:.15s}
 </style>
 </head>
 <body>
@@ -169,7 +172,7 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261111-1808"></script>
+<script src="osoby.js?v=20261111-1809"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
@@ -179,7 +182,7 @@ const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 const DZIS=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})(), PRZES=Math.round((DZIS-DZIEN_0)/DAY);
 const naEkran=d=>new Date(d.getTime()+PRZES*DAY);
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261111-1808';
+const WERSJA='20261111-1809';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 m'],[90,'+3 m'],[180,'+6 m'],[365,'+1 rok']];
@@ -227,14 +230,18 @@ function load(){
   $('#openApp').href=u; rysujQR();
   history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}`);
   if(pierwszy){ramA.src=u;return}
-  const nr=++nrLad; ramB.onload=()=>{if(nr!==nrLad)return;setTimeout(()=>{if(nr===nrLad)zamien()},140)}; ramB.src=u;
+  /* krótki ekran ładowania przy każdej zmianie: zasłona wjeżdża, pod nią podmieniamy aplikację,
+     zasłona znika najwcześniej po MIN ms — bez skakania między widokami */
+  const nr=++nrLad,start=performance.now(),MIN=550;
+  $('#loading').classList.remove('off');
+  ramB.onload=()=>{if(nr!==nrLad)return;const reszta=Math.max(0,MIN-(performance.now()-start));
+    setTimeout(()=>{if(nr!==nrLad)return;zamien();requestAnimationFrame(()=>$('#loading').classList.add('off'))},reszta)};
+  ramB.src=u;
 }
 function zamien(){
   const nowa=ramB,stara=ramA;
   nowa.classList.remove('ukryty');nowa.removeAttribute('aria-hidden');nowa.removeAttribute('tabindex');
-  nowa.animate([{opacity:0,transform:'scale(.985)',filter:'blur(4px)'},{opacity:1,transform:'scale(1)',filter:'blur(0)'}],{duration:320,easing:'cubic-bezier(.2,.8,.2,1)'});
-  stara.animate([{opacity:1},{opacity:0}],{duration:320,easing:'ease-out',fill:'forwards'}).finished.then(()=>{
-    stara.classList.add('ukryty');stara.setAttribute('aria-hidden','true');stara.tabIndex=-1;stara.getAnimations().forEach(a=>a.cancel());stara.src='about:blank'});
+  stara.classList.add('ukryty');stara.setAttribute('aria-hidden','true');stara.tabIndex=-1;stara.src='about:blank';
   ramA=nowa;ramB=stara;synchronizuj();
 }
 function synchronizuj(){
