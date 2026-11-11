@@ -22,7 +22,32 @@ const wypelnij=pola=>pola.map(([l,k])=>[l,MOJE[k]||k]);
 /* ---------- mój znak: żeton zmienia się co 30 s, serwer wie, do kogo należy ---------- */
 let TOKEN=0,TOKEN_T=0,MOJ_CEL='tozsamosc',ZS=null;
 function nowyToken(){TOKEN=Math.floor(Math.random()*65536);TOKEN_T=Date.now();rysujZnaki()}
-function rysujZnaki(){document.querySelectorAll('.live').forEach(el=>{el.innerHTML=ZNAK.svg(TOKEN)});const b=$('#mojZnak');if(b)b.innerHTML=ZNAK.svg(TOKEN)}
+function rysujZnaki(){document.querySelectorAll('.live').forEach(el=>{el.innerHTML=ZNAK.svg(TOKEN)});const b=$('#mojZnak');if(b)animujZnak(b,ZNAK.svg(TOKEN))}
+/* Zmiana znaku: stare kropki „wirują” do środka po spirali, flaga pulsuje, a nowy pierścień
+   rysuje się po okręgu jak wskazówka — kropki zapalają się kolejno zgodnie z ruchem wskazówek zegara. */
+function animujZnak(el,nowy){
+ const stary=el.querySelector('svg.znak');
+ if(!stary||matchMedia('(prefers-reduced-motion: reduce)').matches){el.innerHTML=nowy;return}
+ const E='cubic-bezier(.4,0,.2,1)';
+ const g=stary.querySelector('g.kropki')||(()=>{const gg=document.createElementNS('http://www.w3.org/2000/svg','g');gg.setAttribute('class','kropki');stary.querySelectorAll('circle:not(:first-child)').forEach(c=>gg.append(c));stary.insertBefore(gg,stary.querySelector('image'));return gg})();
+ g.animate([{transform:'rotate(0) scale(1)',opacity:1},{transform:'rotate(120deg) scale(.35)',opacity:0}],{duration:280,easing:'ease-in',fill:'forwards'});
+ const fl=stary.querySelector('image');fl&&fl.animate([{transform:'scale(1)'},{transform:'scale(.86)'}],{duration:280,easing:E,fill:'forwards'});
+ setTimeout(()=>{
+  el.innerHTML=nowy;const sv=el.querySelector('svg.znak');if(!sv)return;
+  /* wskazówka: cienki łuk obiega pierścień */
+  const NS='http://www.w3.org/2000/svg',luk=document.createElementNS(NS,'circle');
+  luk.setAttribute('r','37');luk.setAttribute('fill','none');luk.setAttribute('stroke','#dc143c');luk.setAttribute('stroke-width','1.2');luk.setAttribute('stroke-linecap','round');
+  luk.setAttribute('pathLength','100');luk.setAttribute('transform','rotate(-90)');luk.setAttribute('class','luk');sv.insertBefore(luk,sv.querySelector('image'));
+  luk.animate([{strokeDasharray:'0 100',opacity:.9},{strokeDasharray:'100 0',opacity:.9,offset:.85},{strokeDasharray:'100 0',opacity:0}],{duration:620,easing:E,fill:'forwards'}).finished.then(()=>luk.remove());
+  /* kropki zapalają się w kolejności kąta */
+  sv.querySelectorAll('circle:not(:first-child):not(.luk)').forEach(c=>{
+   const k=(Math.atan2(+c.getAttribute('cy'),+c.getAttribute('cx'))+Math.PI/2+2*Math.PI)%(2*Math.PI)/(2*Math.PI);
+   c.style.transformBox='fill-box';c.style.transformOrigin='center';
+   c.animate([{transform:'scale(0)',opacity:0},{transform:'scale(1.6)',opacity:1,offset:.6},{transform:'scale(1)',opacity:1}],{duration:300,delay:k*520,easing:'ease-out',fill:'backwards'});
+  });
+  const f2=sv.querySelector('image');f2&&(f2.style.transformBox='fill-box',f2.style.transformOrigin='center',f2.animate([{transform:'scale(.86)'},{transform:'scale(1.06)',offset:.5},{transform:'scale(1)'}],{duration:420,easing:E}));
+ },260);
+}
 nowyToken();setInterval(nowyToken,30000);
 new MutationObserver(()=>{if(document.querySelector('.live:empty'))rysujZnaki()}).observe(document.body,{childList:true,subtree:true});
 async function beat(){

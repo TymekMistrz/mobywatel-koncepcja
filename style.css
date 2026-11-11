@@ -806,3 +806,7 @@ html.okno .composer{padding-bottom:8px}
 .qclose,.qrx.dark .qclose{background:transparent!important}
 .qclose svg{width:26px;height:26px}
 .qclose:active{opacity:.6}
+
+/* animacja zmiany znaku: obroty względem środka znaku */
+#mojZnak svg.znak g.kropki,#mojZnak svg.znak image{transform-box:view-box;transform-origin:0 0}
+#mojZnak svg.znak image{transform-box:fill-box;transform-origin:center}
