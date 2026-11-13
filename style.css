@@ -1055,3 +1055,7 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 
 /* ekran „Przyjmij dane”: gesty w obie strony obsługuje aplikacja (bez przewijania strony) */
 .qrx .qbody.mz{touch-action:none}
+
+/* zmiana nazwy strony obok flagi (nawigacja.js → ustawTytul) */
+.title .tt-old{position:absolute;left:0;top:0;white-space:nowrap;pointer-events:none}
+.title .tt-new{display:inline-block;white-space:nowrap}

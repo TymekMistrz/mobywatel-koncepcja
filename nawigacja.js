@@ -96,7 +96,7 @@ const WIECEJ=[
  function rysuj(){
   zaznacz(TAB);
   /* tytuł u góry: „mObywatel” na ekranie z dokumentami, na pozostałych nazwa strony */
-  const t=$('#title');if(t)t.textContent=TAB==='dok'?'mObywatel':(ZAKLADKI.find(z=>z[0]===TAB)||[,''])[1];
+  ustawTytul(TAB==='dok'||app.classList.contains('chatting')?'mObywatel':(ZAKLADKI.find(z=>z[0]===TAB)||[,''])[1]);
   app.classList.toggle('nastronie',TAB!=='dok');if(TAB!=='dok')app.classList.add('ukryte');
   if(TAB==='uslugi')page.innerHTML=stronaUslugi();
   if(TAB==='skrzynka')page.innerHTML=stronaSkrzynka();
@@ -121,6 +121,19 @@ const WIECEJ=[
  const SPOKOJ=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const KOLEJ=['dok','uslugi','skrzynka','wiecej'];
  const EASE='cubic-bezier(.22,.8,.24,1)';
+ /* nazwa strony obok flagi: flaga stoi, a napis „przewija się” w pionie — stary odjeżdża w górę, nowy wjeżdża od dołu */
+ function ustawTytul(n){
+  const t=$('#title');if(!t)return;
+  const by=t.dataset.t!==undefined?t.dataset.t:t.textContent;t.dataset.t=n;
+  if(by===n){if(!t.querySelector('.tt-new')&&t.textContent!==n)t.textContent=n;return}   /* ta sama nazwa: nie animujemy drugi raz */
+  if(SPOKOJ||!by||!t.isConnected||getComputedStyle(t).opacity==='0'){t.textContent=n;return}
+  t.innerHTML=`<span class="tt-old" aria-hidden="true"></span><span class="tt-new"></span>`;
+  const o=t.firstChild,w=t.lastChild;o.textContent=by;w.textContent=n;
+  o.animate([{transform:'translateY(0)',opacity:1,filter:'blur(0)'},{transform:'translateY(-14px)',opacity:0,filter:'blur(2px)'}],{duration:200,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
+  w.animate([{transform:'translateY(14px)',opacity:0,filter:'blur(2px)'},{transform:'translateY(0)',opacity:1,filter:'blur(0)'}],{duration:340,delay:70,easing:EASE,fill:'backwards'})
+   .finished.then(()=>{if(t.dataset.t===n)t.textContent=n}).catch(()=>{});
+ }
+ window.ustawTytul=ustawTytul;
  const widokDok=()=>[$('#stackwrap'),$('#reminders')].filter(Boolean);
  function wyjedz(els,dir){return Promise.all(els.map(el=>{const od=el.style.transform||'translateX(0)',op=el.style.opacity||1;el.style.transform='';el.style.opacity='';
   return el.animate([{opacity:op,transform:od},{opacity:0,transform:`translateX(${-dir*Math.max(28,Math.abs(parseFloat(od.replace(/[^-\d.]/g,''))||0)+20)}px)`}],{duration:150,easing:'ease-in',fill:'forwards'}).finished}))}
@@ -135,13 +148,13 @@ const WIECEJ=[
   const dir=Math.sign(KOLEJ.indexOf(k)-KOLEJ.indexOf(TAB))||1;
   if(SPOKOJ){TAB=k;rysuj();return}
   trwa=true;app.classList.add('bezanim');
-  const stare=[...(TAB==='dok'?widokDok():[page]),$('#title')];
+  const stare=[...(TAB==='dok'?widokDok():[page])];
   zaznacz(k);                                   // pasek reaguje od razu
   if(k!=='dok')app.classList.add('ukryte');     // dane dowodu znikają, zanim ekran zacznie odjeżdżać
   await wyjedz(stare,dir);
   stare.forEach(el=>el.getAnimations().forEach(a=>a.cancel()));
   TAB=k;rysuj();
-  wjedz([...(TAB==='dok'?widokDok():[page]),$('#title')],dir);
+  wjedz([...(TAB==='dok'?widokDok():[page])],dir);
   trwa=false;setTimeout(()=>app.classList.remove('bezanim'),360);
  };
  nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)ustawZakladke(b.dataset.tab)});
@@ -183,7 +196,7 @@ const WIECEJ=[
   exitChat()};
  const ex=$('#exitChatBtn');if(ex)ex.onclick=()=>wyjdzZCzatu();
  /* w czacie tytuł zawsze „mObywatel” */
- new MutationObserver(()=>{if(app.classList.contains('chatting')){const t=$('#title');if(t&&t.textContent!=='mObywatel')t.textContent='mObywatel'}else{const t=$('#title');const n=TAB==='dok'?'mObywatel':(ZAKLADKI.find(z=>z[0]===TAB)||[,''])[1];if(t&&t.textContent!==n)t.textContent=n}}).observe(app,{attributes:true,attributeFilter:['class']});
+ new MutationObserver(()=>{ustawTytul(app.classList.contains('chatting')||TAB==='dok'?'mObywatel':(ZAKLADKI.find(z=>z[0]===TAB)||[,''])[1])}).observe(app,{attributes:true,attributeFilter:['class']});
  $('#composer').addEventListener('submit',wroc,true);
  ['#mic','#cam'].forEach(s=>{const b=$(s);b&&b.addEventListener('click',wroc,true)});
  /* nagłówek: wyraźny przycisk „Skanuj” zamiast samej ikony */
@@ -221,7 +234,6 @@ const WIECEJ=[
    if(!k){biezace().forEach(el=>przesun(el,dx*.18));return}      // skrajna zakładka: lekki opór
    biezace().forEach(el=>przesun(el,dx));
    przesun(g.pg,dx+(dx<0?W:-W));
-   const t=$('#title');if(t)t.style.opacity=String(Math.max(0,1-Math.abs(dx)/(W*.45)));
   },true);
   async function koniec(e){
    if(!g)return;const {x,t,poziom,cel,pg,v:vk,lt,lx}=g;g=null;app.classList.remove('gest');if(!poziom)app.classList.remove('bezanim');try{app.releasePointerCapture(e.pointerId)}catch(_){}if(!poziom){if(pg)pg.remove();return}
@@ -236,12 +248,11 @@ const WIECEJ=[
     if(cel==='dok')zwinStos();
     TAB=cel;rysuj();                                  // prawdziwa strona dokładnie w miejscu podglądu
     sprzataj([...stare,...biezace()]);pg.remove();
-    if(tyt){tyt.style.opacity='';tyt.animate([{opacity:0},{opacity:1}],{duration:200})}
     trwa=false;requestAnimationFrame(()=>requestAnimationFrame(()=>app.classList.remove('bezanim')));return;
    }
    /* za krótko: wszystko wraca na miejsce */
    await Promise.all([...stare.map(el=>jedz(el,0)),...(pg?[jedz(pg,dx<0?W:-W)]:[])]);
-   sprzataj(stare);if(pg)pg.remove();if(tyt)tyt.style.opacity='';
+   sprzataj(stare);if(pg)pg.remove();
    requestAnimationFrame(()=>requestAnimationFrame(()=>app.classList.remove('bezanim')));
   }
   /* tylko utrata przechwycenia przez samą aplikację kończy gest (na dotyku najpierw traci je dotknięty element — to nie koniec) */
