@@ -89,10 +89,13 @@ const WIECEJ=[
  function zaznacz(k){
   nav.querySelectorAll('button').forEach(b=>{const on=b.dataset.tab===k;const by=b.classList.contains('on');b.classList.toggle('on',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current');
    if(on&&!by&&!SPOKOJ){const ic=b.querySelector('svg');ic&&ic.animate([{transform:'scale(1)'},{transform:'scale(.82)'},{transform:'scale(1.12)'},{transform:'scale(1)'}],{duration:380,easing:'ease-out'})}});
-  const b=nav.querySelector(`[data-tab="${k}"]`);if(!b)return;
-  const w=Math.min(b.offsetWidth-8,Math.max(64,b.querySelector('span:last-child').offsetWidth+20));wsk.style.width=w+'px';
-  const x=b.offsetLeft+b.offsetWidth/2-w/2;wsk.style.transform=`translateX(${x}px)`;wsk.style.opacity=1;
+  const p=pozWsk(k);if(!p)return;wsk.style.transition='';wsk.style.width=p.w+'px';wsk.style.transform=`translateX(${p.x}px)`;wsk.style.opacity=1;
  }
+ function pozWsk(k){const b=nav.querySelector(`[data-tab="${k}"]`);if(!b)return null;
+  const w=Math.min(b.offsetWidth-8,Math.max(64,b.querySelector('span:last-child').offsetWidth+20));return {w,x:b.offsetLeft+b.offsetWidth/2-w/2}}
+ /* w trakcie przesuwania palcem: wskaźnik paska stoi między obecną a następną zakładką, proporcjonalnie do ruchu */
+ function wskPodglad(a,c,f){const p=pozWsk(a),q=pozWsk(c)||p;if(!p)return;wsk.style.transition='none';
+  wsk.style.width=(p.w+(q.w-p.w)*f)+'px';wsk.style.transform=`translateX(${p.x+(q.x-p.x)*f}px)`}
  function rysuj(){
   zaznacz(TAB);
   /* tytuł u góry: „mObywatel” na ekranie z dokumentami, na pozostałych nazwa strony */
@@ -125,7 +128,8 @@ const WIECEJ=[
  function ustawTytul(n){
   const t=$('#title');if(!t)return;
   const by=t.dataset.t!==undefined?t.dataset.t:t.textContent;t.dataset.t=n;
-  if(by===n){if(!t.querySelector('.tt-new')&&t.textContent!==n)t.textContent=n;return}   /* ta sama nazwa: nie animujemy drugi raz */
+  if(by===n){if(!t.querySelector('.tt-new')&&t.textContent!==n)t.textContent=n;return}
+  if(t.dataset.pod)return;                              /* trwa gest — napisem steruje palec */   /* ta sama nazwa: nie animujemy drugi raz */
   if(SPOKOJ||!by||!t.isConnected||getComputedStyle(t).opacity==='0'){t.textContent=n;return}
   t.innerHTML=`<span class="tt-old" aria-hidden="true"></span><span class="tt-new"></span>`;
   const o=t.firstChild,w=t.lastChild;o.textContent=by;w.textContent=n;
@@ -134,6 +138,25 @@ const WIECEJ=[
    .finished.then(()=>{if(t.dataset.t===n)t.textContent=n}).catch(()=>{});
  }
  window.ustawTytul=ustawTytul;
+ const NAZWA=k=>k==='dok'?'mObywatel':(ZAKLADKI.find(z=>z[0]===k)||[,''])[1];
+ /* w trakcie gestu napis przewija się razem z palcem: f=0 obecna nazwa, f=1 nazwa strony obok */
+ function tytulPodglad(n,f){
+  const t=$('#title');if(!t||SPOKOJ)return;
+  let o=t.querySelector('.tt-old'),w=t.querySelector('.tt-new');
+  if(!o||!w||t.dataset.pod!==n){const by=t.dataset.t!==undefined?t.dataset.t:t.textContent;t.getAnimations({subtree:true}).forEach(a=>a.cancel());
+   t.innerHTML=`<span class="tt-old" aria-hidden="true"></span><span class="tt-new"></span>`;o=t.firstChild;w=t.lastChild;o.textContent=by;w.textContent=n;t.dataset.pod=n;w.dataset.n=n}
+  o.style.transform=`translateY(${-14*f}px)`;o.style.opacity=String(Math.max(0,1-f*1.5));o.style.filter=`blur(${2*f}px)`;
+  w.style.transform=`translateY(${14*(1-f)}px)`;w.style.opacity=String(Math.max(0,(f-.25)/.75));w.style.filter=`blur(${2*(1-f)}px)`;
+ }
+ /* koniec gestu: napis dojeżdża do nowej nazwy albo wraca do obecnej, od miejsca, w którym go puszczono */
+ function tytulKoniec(dalej){
+  const t=$('#title');if(!t)return;delete t.dataset.pod;const o=t.querySelector('.tt-old'),w=t.querySelector('.tt-new');
+  if(!o||!w)return;const n=dalej?w.textContent:o.textContent;t.dataset.t=n;
+  const cel=dalej?[{transform:'translateY(-14px)',opacity:0,filter:'blur(2px)'},{transform:'translateY(0)',opacity:1,filter:'blur(0)'}]
+                 :[{transform:'translateY(0)',opacity:1,filter:'blur(0)'},{transform:'translateY(14px)',opacity:0,filter:'blur(2px)'}];
+  const a=[o,w].map((el,i)=>{const od={transform:el.style.transform,opacity:el.style.opacity,filter:el.style.filter};return el.animate([od,cel[i]],{duration:260,easing:EASE,fill:'forwards'})});
+  Promise.all(a.map(x=>x.finished)).then(()=>{if(t.dataset.t===n&&!t.dataset.pod)t.textContent=n}).catch(()=>{});
+ }
  const widokDok=()=>[$('#stackwrap'),$('#reminders')].filter(Boolean);
  function wyjedz(els,dir){return Promise.all(els.map(el=>{const od=el.style.transform||'translateX(0)',op=el.style.opacity||1;el.style.transform='';el.style.opacity='';
   return el.animate([{opacity:op,transform:od},{opacity:0,transform:`translateX(${-dir*Math.max(28,Math.abs(parseFloat(od.replace(/[^-\d.]/g,''))||0)+20)}px)`}],{duration:150,easing:'ease-in',fill:'forwards'}).finished}))}
@@ -231,9 +254,10 @@ const WIECEJ=[
    if(!g.poziom)return;
    const i=KOLEJ.indexOf(TAB),k=dx<0?KOLEJ[i+1]:KOLEJ[i-1],W=app.clientWidth;
    if(g.cel!==k){if(g.pg){g.pg.remove();g.pg=null}g.cel=k;if(k)g.pg=zrobPodglad(k)}
-   if(!k){biezace().forEach(el=>przesun(el,dx*.18));return}      // skrajna zakładka: lekki opór
+   if(!k){biezace().forEach(el=>przesun(el,dx*.18));{const tt=$('#title');if(tt&&tt.dataset.pod)tytulPodglad(tt.dataset.pod,0)}wskPodglad(TAB,TAB,0);return}      // skrajna zakładka: lekki opór
    biezace().forEach(el=>przesun(el,dx));
    przesun(g.pg,dx+(dx<0?W:-W));
+   {const f=Math.min(1,Math.abs(dx)/W);tytulPodglad(NAZWA(k),f);wskPodglad(TAB,k,f)}
   },true);
   async function koniec(e){
    if(!g)return;const {x,t,poziom,cel,pg,v:vk,lt,lx}=g;g=null;app.classList.remove('gest');if(!poziom)app.classList.remove('bezanim');try{app.releasePointerCapture(e.pointerId)}catch(_){}if(!poziom){if(pg)pg.remove();return}
@@ -243,7 +267,7 @@ const WIECEJ=[
       Za mały lub zawrócony ruch → strona wraca; przejście tylko, gdy rzut mija połowę ekranu w tę samą stronę. */
    const vp=performance.now()-lt>90?0:vk,rzut=dx+vp*200;
    if(!e.anulowano&&cel&&pg&&Math.abs(dx)>24&&Math.sign(rzut)===Math.sign(dx)&&Math.abs(rzut)>W*.5){
-    trwa=true;zaznacz(cel);const s=dx<0?-1:1;
+    trwa=true;zaznacz(cel);tytulKoniec(true);const s=dx<0?-1:1;
     await Promise.all([...stare.map(el=>jedz(el,s*W)),jedz(pg,0)]);
     if(cel==='dok')zwinStos();
     TAB=cel;rysuj();                                  // prawdziwa strona dokładnie w miejscu podglądu
@@ -251,6 +275,7 @@ const WIECEJ=[
     trwa=false;requestAnimationFrame(()=>requestAnimationFrame(()=>app.classList.remove('bezanim')));return;
    }
    /* za krótko: wszystko wraca na miejsce */
+   zaznacz(TAB);if(tyt&&tyt.dataset.pod)tytulKoniec(false);
    await Promise.all([...stare.map(el=>jedz(el,0)),...(pg?[jedz(pg,dx<0?W:-W)]:[])]);
    sprzataj(stare);if(pg)pg.remove();
    requestAnimationFrame(()=>requestAnimationFrame(()=>app.classList.remove('bezanim')));
@@ -294,27 +319,39 @@ const WIECEJ=[
  function gestRodzaju(z){
   let g=null;
   const seg=()=>z.querySelector('.mz .seg'),znak=()=>z.querySelector('#mojZnak');
-  gestEv(z,'pointerdown',e=>{if(!z.classList.contains('on')||!seg()||!e.target.closest('.mz')||e.target.closest('.seg button')||(e.pointerType==='mouse'&&e.button!==0))return;g={x:e.clientX,y:e.clientY,moje:null,lp:e.clientX,lt:performance.now(),v:0}});
+  /* wskaźnik wybranej opcji idzie razem z palcem: pozycja i szerokość płynnie między obecną a sąsiednią opcją */
+  const wsk=(sg,b,i,j,f)=>{const w=sg.querySelector('.seg-wsk');if(!w)return;const a=b[i],c=b[j]||a;
+   w.style.transition='none';w.style.width=(a.offsetWidth+(c.offsetWidth-a.offsetWidth)*f)+'px';w.style.transform=`translate(${a.offsetLeft+(c.offsetLeft-a.offsetLeft)*f}px,${a.offsetTop}px)`};
+  const wskWroc=sg=>{const w=sg.querySelector('.seg-wsk'),a=sg.querySelector('button.on');if(!w||!a)return;
+   w.style.transition='';w.style.width=a.offsetWidth+'px';w.style.transform=`translate(${a.offsetLeft}px,${a.offsetTop}px)`};
+  gestEv(z,'pointerdown',e=>{if(!z.classList.contains('on')||!seg()||!e.target.closest('.mz')||e.target.closest('.seg button')||(e.pointerType==='mouse'&&e.button!==0))return;
+   const b=[...seg().querySelectorAll('button')];g={x:e.clientX,y:e.clientY,moje:null,lp:e.clientX,lt:performance.now(),v:0,b,i:b.findIndex(x=>x.classList.contains('on')),dx:0}});
   gestEv(z,'pointermove',e=>{
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}
-   const dx=e.clientX-g.x,dy=e.clientY-g.y;
+   let dx=e.clientX-g.x;const dy=e.clientY-g.y;
    {const n=performance.now();if(n-g.lt>0)g.v=.6*g.v+.4*((e.clientX-g.lp)/(n-g.lt));g.lp=e.clientX;g.lt=n}
    if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=Math.abs(dx)>Math.abs(dy)*1.2;if(g.moje)app.classList.add('gest')}
    if(!g.moje)return;
-   const b=[...seg().children],i=b.findIndex(x=>x.classList.contains('on')),kraniec=(dx>0&&i===0)||(dx<0&&i===b.length-1);
-   const m=znak();if(m){m.style.transition='none';m.style.transform=`translateX(${kraniec?dx*.25:dx}px)`;m.style.opacity=String(1-Math.min(.6,Math.abs(dx)/500))}
+   /* na skrajnej opcji nie da się pociągnąć w stronę, w której nic już nie ma */
+   if(dx>0&&g.i===0)dx=0;if(dx<0&&g.i===g.b.length-1)dx=0;
+   g.dx=dx;const D=z.offsetWidth*.6,f=Math.min(1,Math.abs(dx)/D);
+   const m=znak();if(m){m.style.transition='none';m.style.transform=`translateX(${dx}px)`;m.style.opacity=String(1-f*.8)}
+   wsk(seg(),g.b,g.i,g.i+(dx<0?1:-1),f);
   });
   function koniec(e){
-   if(!g)return;const {x,moje,v,lt,lp}=g;g=null;app.classList.remove('gest');if(!moje)return;
-   const m=znak(),dx=lp-x,rzut=dx+(performance.now()-lt>90?0:v)*200;
-   const b=[...seg().children],i=b.findIndex(x=>x.classList.contains('on')),j=i+(rzut<0?1:-1);
-   const zmien=!e.anulowano&&Math.abs(dx)>24&&Math.abs(rzut)>90&&j>=0&&j<b.length;
+   if(!g)return;const {moje,v,lt,b,i,dx}=g;g=null;app.classList.remove('gest');if(!moje)return;
+   const m=znak(),sg=seg(),D=z.offsetWidth*.6,rzut=dx+(performance.now()-lt>90?0:v)*200,j=i+(dx<0?1:-1);
+   /* jak przy stronach: zmiana tylko, gdy ruch „dojechałby” za połowę drogi w tę samą stronę */
+   const zmien=!e.anulowano&&dx!==0&&Math.abs(dx)>24&&Math.sign(rzut)===Math.sign(dx)&&Math.abs(rzut)>D*.5&&j>=0&&j<b.length;
+   if(!zmien){if(m){m.style.transition='transform .32s cubic-bezier(.32,.72,0,1),opacity .32s';m.style.transform='';m.style.opacity=''}if(sg)wskWroc(sg);return}
+   const kier=dx<0?-1:1,W=z.offsetWidth;
+   /* bez .click(): gesty.js połyka pierwsze kliknięcie po przeciągnięciu */
+   if(typeof b[j].onclick==='function')b[j].onclick();
+   if(sg)requestAnimationFrame(()=>wskWroc(sg));       // wskaźnik dojeżdża płynnie z miejsca, w którym go puszczono
    if(!m)return;
-   if(!zmien){m.style.transition='transform .3s cubic-bezier(.32,.72,0,1),opacity .3s';m.style.transform='';m.style.opacity='';return}
-   const W=z.offsetWidth,kier=rzut<0?-1:1;
-   m.style.transition='transform .2s ease-in,opacity .2s ease-in';m.style.transform=`translateX(${kier*W*.6}px)`;m.style.opacity='0';
-   setTimeout(()=>{b[j].click();m.style.transition='none';m.style.transform=`translateX(${-kier*W*.6}px)`;void m.offsetWidth;
-    m.style.transition='transform .38s cubic-bezier(.32,.72,0,1),opacity .3s';m.style.transform='';m.style.opacity=''},200);
+   m.style.transition='transform .18s ease-in,opacity .18s ease-in';m.style.transform=`translateX(${kier*W*.7}px)`;m.style.opacity='0';
+   setTimeout(()=>{m.style.transition='none';m.style.transform=`translateX(${-kier*W*.5}px)`;m.style.opacity='0';void m.offsetWidth;
+    m.style.transition='transform .4s cubic-bezier(.32,.72,0,1),opacity .3s';m.style.transform='';m.style.opacity=''},180);
   }
   gestEv(z,'pointerup',koniec);gestEv(z,'pointercancel',koniec);
  }
