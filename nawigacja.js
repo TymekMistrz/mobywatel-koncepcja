@@ -128,7 +128,7 @@ const WIECEJ=[
  let trwa=false;
  window.ustawZakladke=async function(k){
   if(k==='skan'){if(typeof qrFlow==='function')qrFlow({});return}
-  if(app.classList.contains('chatting'))exitChat();
+  if(app.classList.contains('chatting')&&k!=='skan'){przedCzatem=k;wyjdzZCzatu();return}
   if(typeof closeHist==='function')closeHist();
   if(k==='dok'&&TAB!=='dok')zwinStos();
   if(k===TAB||trwa){TAB=k;rysuj();return}
@@ -176,7 +176,11 @@ const WIECEJ=[
  window.odswiezStrone=()=>{if(TAB==='dok')return;const st=page.scrollTop;rysuj();page.scrollTop=st};
  window.doCzatu=q=>{const sp=$('#sprawa');if(sp)sp.classList.remove('on');przedCzatem=TAB;TAB='dok';rysuj();startTopic(q)};
  /* wyjście z rozmowy: powrót do widoku sprzed wejścia w czat */
- window.wyjdzZCzatu=()=>{exitChat();const k=przedCzatem;przedCzatem='dok';if(k!=='dok')ustawZakladke(k)};
+ window.wyjdzZCzatu=()=>{const k=przedCzatem;przedCzatem='dok';
+  /* najpierw po cichu ustawiamy stronę sprzed czatu (bez przesuwania zakładek), potem jedno spokojne przejście */
+  if(k!==TAB){if(k==='dok'&&typeof zwinStos==='function')zwinStos();TAB=k;rysuj()}
+  app.classList.add('zczatu');clearTimeout(window.__zcz);window.__zcz=setTimeout(()=>app.classList.remove('zczatu'),700);
+  exitChat()};
  const ex=$('#exitChatBtn');if(ex)ex.onclick=()=>wyjdzZCzatu();
  /* w czacie tytuł zawsze „mObywatel” */
  new MutationObserver(()=>{if(app.classList.contains('chatting')){const t=$('#title');if(t&&t.textContent!=='mObywatel')t.textContent='mObywatel'}else{const t=$('#title');const n=TAB==='dok'?'mObywatel':(ZAKLADKI.find(z=>z[0]===TAB)||[,''])[1];if(t&&t.textContent!==n)t.textContent=n}}).observe(app,{attributes:true,attributeFilter:['class']});
@@ -331,7 +335,7 @@ const WIECEJ=[
   const det=$('#detail');if(det)det.classList.remove('on');const sp=$('#sprawa');if(sp)sp.classList.remove('on');
   if(typeof pFinish==='function')try{pFinish({ok:false})}catch(e){}
   if(typeof closeTodo==='function')try{closeTodo()}catch(e){}
-  if(app.classList.contains('chatting'))exitChat();
+  if(app.classList.contains('chatting')){przedCzatem='dok';wyjdzZCzatu();return}
   if(TAB!=='dok'){ustawZakladke('dok');return}
   /* już na ekranie głównym: dowód wraca na wierzch, karty lekko się „układają” */
   if(typeof SEL!=='undefined'&&typeof STACK_ORDER!=='undefined'){SEL=STACK_ORDER.length-1;layout()}
