@@ -32,21 +32,24 @@ function animujZnak(el,nowy){
  const g=stary.querySelector('g.kropki')||(()=>{const gg=document.createElementNS('http://www.w3.org/2000/svg','g');gg.setAttribute('class','kropki');stary.querySelectorAll('circle:not(:first-child)').forEach(c=>gg.append(c));stary.insertBefore(gg,stary.querySelector('image'));return gg})();
  g.animate([{transform:'rotate(0) scale(1)',opacity:1},{transform:'rotate(120deg) scale(.35)',opacity:0}],{duration:280,easing:'ease-in',fill:'forwards'});
  const fl=stary.querySelector('image');fl&&fl.animate([{transform:'scale(1)'},{transform:'scale(.86)'}],{duration:280,easing:E,fill:'forwards'});
- setTimeout(()=>{
-  el.innerHTML=nowy;const sv=el.querySelector('svg.znak');if(!sv)return;
+ setTimeout(()=>{el.innerHTML=nowy;wejscieZnaku(el)},260);
+}
+/* rysowanie pierścienia: łuk obiega okrąg, kropki zapalają się kolejno (przy zmianie znaku i przy otwarciu ekranu) */
+function wejscieZnaku(el,op=0){
+  const sv=el.querySelector('svg.znak');if(!sv||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const E='cubic-bezier(.4,0,.2,1)';
   /* wskazówka: cienki łuk obiega pierścień */
   const NS='http://www.w3.org/2000/svg',luk=document.createElementNS(NS,'circle');
   luk.setAttribute('r','37');luk.setAttribute('fill','none');luk.setAttribute('stroke','#dc143c');luk.setAttribute('stroke-width','1.2');luk.setAttribute('stroke-linecap','round');
   luk.setAttribute('pathLength','100');luk.setAttribute('transform','rotate(-90)');luk.setAttribute('class','luk');sv.insertBefore(luk,sv.querySelector('image'));
-  luk.animate([{strokeDasharray:'0 100',opacity:.9},{strokeDasharray:'100 0',opacity:.9,offset:.85},{strokeDasharray:'100 0',opacity:0}],{duration:620,easing:E,fill:'forwards'}).finished.then(()=>luk.remove());
+  luk.animate([{strokeDasharray:'0 100',opacity:.9},{strokeDasharray:'100 0',opacity:.9,offset:.85},{strokeDasharray:'100 0',opacity:0}],{duration:620,delay:op,easing:E,fill:'both'}).finished.then(()=>luk.remove());
   /* kropki zapalają się w kolejności kąta */
   sv.querySelectorAll('circle:not(:first-child):not(.luk)').forEach(c=>{
    const k=(Math.atan2(+c.getAttribute('cy'),+c.getAttribute('cx'))+Math.PI/2+2*Math.PI)%(2*Math.PI)/(2*Math.PI);
    c.style.transformBox='fill-box';c.style.transformOrigin='center';
-   c.animate([{transform:'scale(0)',opacity:0},{transform:'scale(1.6)',opacity:1,offset:.6},{transform:'scale(1)',opacity:1}],{duration:300,delay:k*520,easing:'ease-out',fill:'backwards'});
+   c.animate([{transform:'scale(0)',opacity:0},{transform:'scale(1.6)',opacity:1,offset:.6},{transform:'scale(1)',opacity:1}],{duration:300,delay:op+k*520,easing:'ease-out',fill:'backwards'});
   });
-  const f2=sv.querySelector('image');f2&&(f2.style.transformBox='fill-box',f2.style.transformOrigin='center',f2.animate([{transform:'scale(.86)'},{transform:'scale(1.06)',offset:.5},{transform:'scale(1)'}],{duration:420,easing:E}));
- },260);
+  const f2=sv.querySelector('image');f2&&(f2.style.transformBox='fill-box',f2.style.transformOrigin='center',f2.animate([{transform:'scale(.86)'},{transform:'scale(1.06)',offset:.5},{transform:'scale(1)'}],{duration:420,delay:op,easing:E,fill:'backwards'}));
 }
 nowyToken();setInterval(nowyToken,30000);
 new MutationObserver(()=>{if(document.querySelector('.live:empty'))rysujZnaki()}).observe(document.body,{childList:true,subtree:true});
@@ -136,6 +139,7 @@ function zShow(){
   <p class="qlead c" data-h>Poproś drugą osobę, by w swojej aplikacji dotknęła <b>Potwierdź swoje dane</b> i zeskanowała ten znak.</p>
   ${MOJ_CEL==='mstluczka'?'<p class="qnote c">Zakres: dane do oświadczenia o zdarzeniu</p>':`<div class="seg light">${wyb.map(k=>`<button data-c="${k}" class="${k===MOJ_CEL?'on':''}">${ZAKRESY[k].nazwa}</button>`).join('')}</div>`}
   <div class="wait"><i></i>Czekam na dane…</div></div>`,'light','zx');
+ {const mz=o.querySelector('#mojZnak');if(mz)wejscieZnaku(mz,240)}   /* krąg rysuje się też przy pierwszym otwarciu */
  o.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{MOJ_CEL=b.dataset.c;o.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));nowyToken();beat()});
 }
 function zFinish(r){const s=ZS;ZS=null;MOJ_CEL='tozsamosc';const o=$('#zx');if(o){o.classList.remove('on');setTimeout(()=>{if(!ZS)o.innerHTML=''},320)}clearInterval(s&&s.tick);if(s)s.resolve(r)}

@@ -195,7 +195,7 @@ const WIECEJ=[
     Podczas przeciągania obok widać już sąsiednią stronę (podgląd), która wjeżdża razem z palcem. */
  {
   const strefa=e=>e.target.closest&&e.target.closest('#page,#stackwrap,#reminders');
-  const zajete=()=>app.classList.contains('chatting')||app.classList.contains('todo')||($('#detail')&&$('#detail').classList.contains('on'))||($('#qrx')&&$('#qrx').classList.contains('on'))||($('#sprawa')&&$('#sprawa').classList.contains('on'))||trwa;
+  const zajete=()=>app.classList.contains('chatting')||app.classList.contains('todo')||($('#detail')&&$('#detail').classList.contains('on'))||($('#qrx')&&$('#qrx').classList.contains('on'))||($('#zx')&&$('#zx').classList.contains('on'))||($('#sprawa')&&$('#sprawa').classList.contains('on'))||trwa;
   const biezace=()=>TAB==='dok'?widokDok():[page];
   const tresc=k=>k==='uslugi'?stronaUslugi():k==='skrzynka'?stronaSkrzynka():stronaWiecej();
   function zrobPodglad(k){
@@ -253,7 +253,7 @@ const WIECEJ=[
  function gestZamkniecia(el,os,zamknij){
   let g=null;
   el.style.touchAction=os==='x'?'pan-y':'pan-x';
-  gestEv(el,'pointerdown',e=>{if(!el.classList.contains('on')||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('input,textarea'))return;g={x:e.clientX,y:e.clientY,t:performance.now(),moje:null,lp:os==='x'?e.clientX:e.clientY,lt:performance.now(),v:0}});
+  gestEv(el,'pointerdown',e=>{if(!el.classList.contains('on')||(e.pointerType==='mouse'&&e.button!==0)||e.target.closest('input,textarea'))return;if(os==='y'){const sc=e.target.closest('.qbody,.body');if(sc&&sc.scrollTop>0)return}g={x:e.clientX,y:e.clientY,t:performance.now(),moje:null,lp:os==='x'?e.clientX:e.clientY,lt:performance.now(),v:0}});
   gestEv(el,'pointermove',e=>{
    if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}
    const dx=e.clientX-g.x,dy=e.clientY-g.y,d=os==='x'?dx:dy,inny=os==='x'?dy:dx;
@@ -276,7 +276,37 @@ const WIECEJ=[
  }
  {const det=$('#detail');if(det)gestZamkniecia(det,'x',()=>det.classList.remove('on'))}
  /* skaner tworzy się przy pierwszym otwarciu — gest podpinamy, gdy się pojawi */
- new MutationObserver(()=>{const q=$('#qrx');if(q&&!q.dataset.gest){q.dataset.gest=1;gestZamkniecia(q,'y',()=>{if(typeof pFinish==='function')pFinish({ok:false})})}}).observe(app,{childList:true});
+ new MutationObserver(()=>{const q=$('#qrx');if(q&&!q.dataset.gest){q.dataset.gest=1;gestZamkniecia(q,'y',()=>{if(typeof pFinish==='function')pFinish({ok:false})})}
+  /* ekran „Przyjmij dane” (mój znak) zamyka się tym samym gestem w dół */
+  const z=$('#zx');if(z&&!z.dataset.gest){z.dataset.gest=1;gestZamkniecia(z,'y',()=>{if(typeof zFinish==='function'&&ZS)zFinish({ok:false})});gestRodzaju(z)}}).observe(app,{childList:true});
+ /* „Przyjmij dane”: przeciągnięcie w lewo/prawo zmienia rodzaj (Tożsamość / Pełnoletność / Prawo jazdy); znak idzie za palcem */
+ function gestRodzaju(z){
+  let g=null;
+  const seg=()=>z.querySelector('.mz .seg'),znak=()=>z.querySelector('#mojZnak');
+  gestEv(z,'pointerdown',e=>{if(!z.classList.contains('on')||!seg()||!e.target.closest('.mz')||e.target.closest('.seg button')||(e.pointerType==='mouse'&&e.button!==0))return;g={x:e.clientX,y:e.clientY,moje:null,lp:e.clientX,lt:performance.now(),v:0}});
+  gestEv(z,'pointermove',e=>{
+   if(!g)return;if(e.pointerType==='mouse'&&e.buttons===0){koniec(e);return}
+   const dx=e.clientX-g.x,dy=e.clientY-g.y;
+   {const n=performance.now();if(n-g.lt>0)g.v=.6*g.v+.4*((e.clientX-g.lp)/(n-g.lt));g.lp=e.clientX;g.lt=n}
+   if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=Math.abs(dx)>Math.abs(dy)*1.2;if(g.moje)app.classList.add('gest')}
+   if(!g.moje)return;
+   const b=[...seg().children],i=b.findIndex(x=>x.classList.contains('on')),kraniec=(dx>0&&i===0)||(dx<0&&i===b.length-1);
+   const m=znak();if(m){m.style.transition='none';m.style.transform=`translateX(${kraniec?dx*.25:dx}px)`;m.style.opacity=String(1-Math.min(.6,Math.abs(dx)/500))}
+  });
+  function koniec(e){
+   if(!g)return;const {x,moje,v,lt,lp}=g;g=null;app.classList.remove('gest');if(!moje)return;
+   const m=znak(),dx=lp-x,rzut=dx+(performance.now()-lt>90?0:v)*200;
+   const b=[...seg().children],i=b.findIndex(x=>x.classList.contains('on')),j=i+(rzut<0?1:-1);
+   const zmien=!e.anulowano&&Math.abs(dx)>24&&Math.abs(rzut)>90&&j>=0&&j<b.length;
+   if(!m)return;
+   if(!zmien){m.style.transition='transform .3s cubic-bezier(.32,.72,0,1),opacity .3s';m.style.transform='';m.style.opacity='';return}
+   const W=z.offsetWidth,kier=rzut<0?-1:1;
+   m.style.transition='transform .2s ease-in,opacity .2s ease-in';m.style.transform=`translateX(${kier*W*.6}px)`;m.style.opacity='0';
+   setTimeout(()=>{b[j].click();m.style.transition='none';m.style.transform=`translateX(${-kier*W*.6}px)`;void m.offsetWidth;
+    m.style.transition='transform .38s cubic-bezier(.32,.72,0,1),opacity .3s';m.style.transform='';m.style.opacity=''},200);
+  }
+  gestEv(z,'pointerup',koniec);gestEv(z,'pointercancel',koniec);
+ }
  /* ---------- przełączniki segmentowe (np. Tożsamość / Pełnoletność / Prawo jazdy): przesuwające się tło ---------- */
  function segAnim(seg){
   if(seg.dataset.anim)return;seg.dataset.anim=1;seg.classList.add('anim');

@@ -1052,3 +1052,6 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 .phone.zczatu .chat{transition:opacity .2s ease,transform .3s ease!important;transition-delay:0s!important}
 @keyframes wrocZCzatu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .phone.zczatu:not(.nastronie) #stackwrap,.phone.zczatu:not(.nastronie) #reminders,.phone.zczatu.nastronie .page{animation:wrocZCzatu .5s var(--czat-e) .1s both}
+
+/* ekran „Przyjmij dane”: gesty w obie strony obsługuje aplikacja (bez przewijania strony) */
+.qrx .qbody.mz{touch-action:none}
