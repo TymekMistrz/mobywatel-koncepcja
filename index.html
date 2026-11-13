@@ -186,7 +186,7 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261112-0020"></script>
+<script src="osoby.js?v=20261113-1804"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
@@ -196,7 +196,7 @@ const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 const DZIS=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})(), PRZES=Math.round((DZIS-DZIEN_0)/DAY);
 const naEkran=d=>new Date(d.getTime()+PRZES*DAY);
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261112-0020';
+const WERSJA='20261113-1804';
 const q=new URLSearchParams(location.search);
 const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 m'],[90,'+3 m'],[180,'+6 m'],[365,'+1 rok']];
@@ -248,7 +248,8 @@ function fitEvents(){const box=$('#events');const items=[...box.children];if(!it
   box.innerHTML='';[...up,...past].forEach(e=>box.append(e));
   while(box.children.length>1&&box.scrollHeight>box.clientHeight+1)box.lastElementChild.remove();
   [...box.children].sort((a,b)=>+a.dataset.d-+b.dataset.d).forEach(e=>box.append(e));}
-function appURL(){return `app.html?osoba=${S.osoba}&dzien=${S.dzien}&v=${WERSJA}`}
+const MOTYW=q.get('motyw')||'';
+function appURL(){return `app.html?osoba=${S.osoba}&dzien=${S.dzien}${MOTYW?'&motyw='+MOTYW:''}&v=${WERSJA}`}
 let last='';
 /* Płynna zmiana: nowa wersja aplikacji ładuje się w drugiej, ukrytej ramce, a gdy jest gotowa,
    przenika się z obecną (bez białego ekranu i „zacięcia”). */
@@ -256,7 +257,7 @@ let ramA=$('#app'),ramB=$('#app2'),pierwszy=true,nrLad=0;
 function load(){
   const u=appURL(); if(u===last)return; last=u;
   $('#openApp').href=u; rysujQR();
-  history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}`);
+  history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}${MOTYW?'&motyw='+MOTYW:''}`);
   if(pierwszy){ramA.src=u;return}
   /* krótki ekran ładowania przy każdej zmianie: zasłona wjeżdża, pod nią podmieniamy aplikację,
      zasłona znika najwcześniej po MIN ms — bez skakania między widokami */
@@ -274,7 +275,7 @@ function zamien(){
 }
 function synchronizuj(){
   /* osoba zmieniona wewnątrz aplikacji → zsynchronizuj panel */
-  try{const p=new URLSearchParams(ramA.contentWindow.location.search).get('osoba');if(p&&OSOBY[p]&&p!==S.osoba){S.osoba=p;last=appURL();render();history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}`)}}catch(e){}
+  try{const p=new URLSearchParams(ramA.contentWindow.location.search).get('osoba');if(p&&OSOBY[p]&&p!==S.osoba){S.osoba=p;last=appURL();render();history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}${MOTYW?'&motyw='+MOTYW:''}`)}}catch(e){}
 }
 ramA.addEventListener('load',()=>{if(pierwszy&&ramA.src!=='about:blank'){pierwszy=false;$('#loading').classList.add('off');synchronizuj()}});
 document.addEventListener('click',e=>{

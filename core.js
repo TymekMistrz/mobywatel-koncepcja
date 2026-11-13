@@ -57,7 +57,7 @@ const STACK_ORDER=DOCS.map(d=>d.id).reverse();
 let SEL=STACK_ORDER.length-1;
 function renderStack(){
  const st=$('#stack');st.innerHTML='';
- STACK_ORDER.map(id=>DOCS.find(d=>d.id===id)).forEach((d,i)=>{const c=document.createElement('button');c.className='card';c.style.backgroundImage=`url(${d.img})`;c.setAttribute('aria-label',d.name);c.style.zIndex=i+1;c.innerHTML=faceHTML(d);
+ STACK_ORDER.map(id=>DOCS.find(d=>d.id===id)).forEach((d,i)=>{const c=document.createElement('button');c.className='card';c.dataset.doc=d.id;c.style.backgroundImage=`url(${d.img})`;c.setAttribute('aria-label',d.name);c.style.zIndex=i+1;c.innerHTML=faceHTML(d);
   /* 1. kliknięcie: karta się wysuwa i pokazuje dane; 2. kliknięcie tej samej karty: otwiera szczegóły */
   c.onclick=()=>{if(app.classList.contains('chatting')){exitChat();return}if(i===SEL){openDoc(d.id);return}SEL=i;app.classList.add('ukryte');layout()};st.append(c)});
 }
@@ -133,7 +133,7 @@ function openDoc(id){
  const top=getComputedStyle($('.status')).display!=='none'?50:6;
  const hero=id==='dowod'&&d.screen
   ?`<div class="idcard"><div class="crop"><img src="${d.screen}" alt="Dowód osobisty: ${OS.imie} ${OS.nazwisko}">${window.LANG&&window.LANG!=='pl'?`<div class="valid idv">${svg('check')}Dokument ważny</div>`:''}</div></div>`
-  :`<div class="bigcard" style="background-image:url(${d.img})">${faceHTML(d)}</div>${CZAS.stanHTML(d,`<div class="valid">${svg('check')}Dokument ważny</div>`)}<div class="ui"><div class="rows" style="padding-top:2px">${rowsH(d.rows)}</div></div>`;
+  :`<div class="bigcard" data-doc="${d.id}" style="background-image:url(${d.img})">${faceHTML(d)}</div>${CZAS.stanHTML(d,`<div class="valid">${svg('check')}Dokument ważny</div>`)}<div class="ui"><div class="rows" style="padding-top:2px">${rowsH(d.rows)}</div></div>`;
  const q=id==='dowod'?[['scan','Potwierdź swoje dane','qr'],['shield','Zastrzeż PESEL','pesel'],['dots','Zapytaj asystenta','ask']]
                      :[['scan','Potwierdź dane','qr'],['shield','Zgubiony portfel','lost'],['dots','Zapytaj asystenta','ask']];
  det.innerHTML=`<div style="height:${top}px;flex:none"></div><div class="nav"><button class="back" id="dclose">${svg('back')}Wróć</button><b>${d.name}</b><span></span></div>

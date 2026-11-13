@@ -1,0 +1,107 @@
+/* =========================================================
+   MOTYW „URZĘDOWY” — włącza się parametrem ?motyw=urzedowy
+   Zasady: cienkie linie 1 px zamiast cieni, małe zaokrąglenia (6–10 px),
+   spokojna typografia (bez wielkich, ciężkich tytułów), czerwień tylko
+   dla akcji głównych i stanu aktywnego, ikony liniowe 1,5 px bez kolorowych tła.
+   ========================================================= */
+html[data-motyw="urzedowy"]{
+  --bg:#f4f5f7; --surface:#ffffff; --ink:#15171c; --ink2:#535865; --ink3:#868b96;
+  --hair:#dfe2e7; --line:#d5d9df;
+  --red:#d4213d; --red-dark:#a8162d; --red-wash:#fbeef0;
+  --r-s:6px; --r-m:8px; --r-l:10px;
+}
+html[data-motyw="urzedowy"] .phone{background:var(--bg)}
+
+/* ---------- typografia ---------- */
+html[data-motyw="urzedowy"] .title{font-size:22px!important;font-weight:600!important;letter-spacing:-.005em!important}
+html[data-motyw="urzedowy"] .pgr,
+html[data-motyw="urzedowy"] .sppgr{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--ink2);margin:20px 4px 8px}
+html[data-motyw="urzedowy"] .rhead h2{font-size:15px;font-weight:600}
+html[data-motyw="urzedowy"] .prow b,
+html[data-motyw="urzedowy"] .tile b,
+html[data-motyw="urzedowy"] .rsum b{font-weight:500}
+html[data-motyw="urzedowy"] .sphero h2{font-size:21px;font-weight:600;letter-spacing:0}
+
+/* ---------- ikony: cienka linia, bez tła ---------- */
+html[data-motyw="urzedowy"] .prow svg,
+html[data-motyw="urzedowy"] .tabbar svg,
+html[data-motyw="urzedowy"] .ico svg,
+html[data-motyw="urzedowy"] .bar svg,
+html[data-motyw="urzedowy"] .ui .ic svg,
+html[data-motyw="urzedowy"] .spic svg{stroke-width:1.5}
+html[data-motyw="urzedowy"] .prow .pic,
+html[data-motyw="urzedowy"] .ui .ic,
+html[data-motyw="urzedowy"] .tile .ti,
+html[data-motyw="urzedowy"] .spic{background:transparent!important;color:var(--red);width:28px;height:28px;border-radius:0}
+html[data-motyw="urzedowy"] .prow .pic svg{width:22px;height:22px}
+html[data-motyw="urzedowy"] .prow .pic.pil{color:#9a5a00}
+
+/* ---------- powierzchnie: linia zamiast cienia ---------- */
+html[data-motyw="urzedowy"] .plist,
+html[data-motyw="urzedowy"] .ui,
+html[data-motyw="urzedowy"] .rsum,
+html[data-motyw="urzedowy"] .tile,
+html[data-motyw="urzedowy"] .spkroki,
+html[data-motyw="urzedowy"] .sugg,
+html[data-motyw="urzedowy"] .pprof{border-radius:var(--r-m)!important;box-shadow:none!important;border:1px solid var(--line)}
+html[data-motyw="urzedowy"] .prow{border-bottom-color:var(--hair);min-height:52px}
+html[data-motyw="urzedowy"] .ui .row{border-color:var(--hair)}
+html[data-motyw="urzedowy"] .valid{border-radius:var(--r-s)!important;box-shadow:none!important;border:1px solid var(--line)}
+html[data-motyw="urzedowy"] .valid.bad{border-color:#efc3cb}
+html[data-motyw="urzedowy"] .valid.warn{border-color:#ecd3a6}
+
+/* ---------- licznik i odznaki: prostokątne ---------- */
+html[data-motyw="urzedowy"] .rsum .rdot{border-radius:var(--r-s)!important;width:26px;height:26px;font-size:14px;font-weight:600}
+html[data-motyw="urzedowy"] .sppill{border-radius:4px;font-weight:600;font-size:13px;padding:3px 8px}
+html[data-motyw="urzedowy"] .ev i{border-radius:4px}
+
+/* ---------- przyciski ---------- */
+html[data-motyw="urzedowy"] .ico.skanuj{height:34px;border-radius:var(--r-s);box-shadow:none;padding:0 12px 0 10px;font-size:14.5px;font-weight:600}
+html[data-motyw="urzedowy"] .spbtn{border-radius:var(--r-s);min-height:48px;font-weight:600;font-size:15.5px}
+html[data-motyw="urzedowy"] .spbtn.ghost{box-shadow:none;border:1px solid var(--line)}
+html[data-motyw="urzedowy"] .chips button{border-radius:var(--r-s);box-shadow:none;border:1px solid var(--line);padding:8px 13px}
+html[data-motyw="urzedowy"] .chips button.sel{box-shadow:none;border-color:var(--red)}
+html[data-motyw="urzedowy"] .chips button.next{border-color:var(--red)}
+html[data-motyw="urzedowy"] .ui .actions button,
+html[data-motyw="urzedowy"] .ui button.go{border-radius:var(--r-s)}
+
+/* ---------- pole „Co chcesz załatwić?” ---------- */
+html[data-motyw="urzedowy"] .bar{border-radius:var(--r-l)!important;box-shadow:none!important;border:1px solid #c9cdd4}
+html[data-motyw="urzedowy"] .bar:focus-within{border-color:var(--ink2)}
+html[data-motyw="urzedowy"] .bar .send{border-radius:var(--r-s)!important}
+html[data-motyw="urzedowy"] .bar.listening{box-shadow:none!important;border-color:var(--red)}
+
+/* ---------- czat ---------- */
+html[data-motyw="urzedowy"] .msg.user{border-radius:12px 12px 3px 12px}
+html[data-motyw="urzedowy"] .seg.light{border-radius:var(--r-s);background:#e7e9ed}
+html[data-motyw="urzedowy"] .seg.light button,
+html[data-motyw="urzedowy"] .seg.anim .seg-wsk{border-radius:4px}
+
+/* ---------- pasek nawigacji: biały, linia u góry, aktywna zakładka = czerwona kreska ---------- */
+html[data-motyw="urzedowy"] .tabbar{background:#fff!important;border-top:1px solid var(--line)!important}
+html[data-motyw="urzedowy"] .tabbar .wsk{top:0;height:2px;border-radius:0 0 2px 2px;background:var(--red);box-shadow:none}
+html[data-motyw="urzedowy"] .tabbar button{font-weight:500}
+html[data-motyw="urzedowy"] .tabbar button.on span:last-child{font-weight:600}
+html[data-motyw="urzedowy"] .tabbar .kropka{width:8px;height:8px}
+
+/* ---------- dokumenty: płaskie karty z cienkim giloszem, bez połysku ---------- */
+html[data-motyw="urzedowy"] .card,
+html[data-motyw="urzedowy"] .bigcard{border-radius:12px!important;box-shadow:0 1px 2px rgba(15,20,30,.12),0 0 0 .5px rgba(15,20,30,.08)!important}
+html[data-motyw="urzedowy"] .face::after{display:none!important}
+html[data-motyw="urzedowy"] [data-doc="dowod"]{background-image:url(assets/karta2-dowod.svg)!important}
+html[data-motyw="urzedowy"] [data-doc="pj"]{background-image:url(assets/karta2-pj.svg)!important}
+html[data-motyw="urzedowy"] [data-doc="kdr"]{background-image:url(assets/karta2-kdr.svg)!important}
+html[data-motyw="urzedowy"] [data-doc="auto"]{background-image:url(assets/karta2-pojazdy.svg)!important}
+html[data-motyw="urzedowy"] [data-doc="leg"]{background-image:url(assets/karta2-legitymacja.svg)!important}
+
+/* ---------- ekrany spraw ---------- */
+html[data-motyw="urzedowy"] .spsw{width:44px;height:26px}
+html[data-motyw="urzedowy"] .spsw::after{width:20px;height:20px}
+html[data-motyw="urzedowy"] .spsw.on::after{transform:translateX(18px)}
+html[data-motyw="urzedowy"] .spkroki li::before{border-radius:4px;background:transparent;border:1px solid var(--red);width:24px;height:24px;font-size:13px}
+html[data-motyw="urzedowy"] .sptoast{border-radius:var(--r-m)}
+
+/* ikonka „pokaż dane”: prosta, cienka, bez efektu szkła */
+html[data-motyw="urzedowy"] #app.ukryte .face .reveal{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  box-shadow:none!important;border:1px solid rgba(255,255,255,.7)!important;border-radius:var(--r-s)!important;width:11cqw!important;height:9cqw!important}
+html[data-motyw="urzedowy"] #app.ukryte .face .reveal svg{width:6cqw!important;height:6cqw!important;stroke-width:1.5;filter:none!important}
