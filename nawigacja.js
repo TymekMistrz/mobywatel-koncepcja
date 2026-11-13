@@ -219,7 +219,10 @@ const WIECEJ=[
   exitChat()};
  const ex=$('#exitChatBtn');if(ex)ex.onclick=()=>wyjdzZCzatu();
  /* w czacie tytuł zawsze „mObywatel” */
- new MutationObserver(()=>{ustawTytul(app.classList.contains('chatting')||TAB==='dok'?'mObywatel':(ZAKLADKI.find(z=>z[0]===TAB)||[,''])[1])}).observe(app,{attributes:true,attributeFilter:['class']});
+ /* reagujemy tylko na wejście do czatu i wyjście z niego — inne zmiany klas (gest, ukryte, nastronie…) w trakcie
+    przejścia między stronami cofały napis do starej nazwy, zanim strona zdążyła się zmienić */
+ let bylCzat=app.classList.contains('chatting');
+ new MutationObserver(()=>{const c=app.classList.contains('chatting');if(c===bylCzat)return;bylCzat=c;ustawTytul(c||TAB==='dok'?'mObywatel':(ZAKLADKI.find(z=>z[0]===TAB)||[,''])[1])}).observe(app,{attributes:true,attributeFilter:['class']});
  $('#composer').addEventListener('submit',wroc,true);
  ['#mic','#cam'].forEach(s=>{const b=$(s);b&&b.addEventListener('click',wroc,true)});
  /* nagłówek: wyraźny przycisk „Skanuj” zamiast samej ikony */
