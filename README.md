@@ -45,3 +45,6 @@ oznacza terminy po czasie i pokazuje „Dokument nieważny / Brak ważnego OC”
 Odpowiedzi asystenta w scenariuszach (`scenarios.js`) są pisane dla dnia 0.
 
 `lib/qrcode.js` — generator kodów QR (Kazuhiko Arase, licencja MIT), używany w przycisku „Otwórz na swoim telefonie”.
+
+## Wygląd
+`motyw.css` nadpisuje `style.css`: cienkie linie 1 px zamiast cieni, małe zaokrąglenia, płaskie karty z giloszem (`assets/karta2-*.svg`). Kolory i promienie zmieniasz w pierwszych linijkach `motyw.css`.
