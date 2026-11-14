@@ -81,7 +81,7 @@ async function pScan(){
  const o=pScreen(`${pTop('Potwierdź swoje dane')}<div class="cam"><video playsinline muted autoplay></video><div class="guide"><span></span></div><p class="camhint">Uruchamiam aparat…</p></div>
   <div class="qscanfoot"><p class="lh">Nakieruj aparat na znak aplikacji: na ekranie telefonu obok, na stronie internetowej albo w okienku urzędu. Przekażesz dane temu, czyj znak zeskanujesz.</p>
   <button class="qalt" id="pokazZnak">${qsvg('inbox',1.7)}Chcę przyjąć dane: pokaż mój znak</button></div>`,'dark scan');
- o.querySelector('#pokazZnak').onclick=()=>{pFinish({ok:false});setTimeout(()=>przyjmijFlow({}),330)};
+ o.querySelector('#pokazZnak').onclick=()=>przejdzDoZnaku();
  const hint=t=>{const h=o.querySelector('.camhint');if(h)h.textContent=t};
  let stream;
  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false})}
@@ -127,6 +127,21 @@ function pConsent(j){
 }
 
 /* ---------- mój znak: przyjmowanie danych od osoby, która go zeskanuje ---------- */
+/* Skaner → „Przyjmij dane” bez zamykania: arkusz zostaje na miejscu, ciemne tło skanera przechodzi w jasne,
+   a znak wyrasta na środku. Skaner chowamy dopiero, gdy jest już całkiem przykryty. */
+function przejdzDoZnaku(){
+ const q=$('#qrx');pStopCam();
+ przyjmijFlow({});
+ const z=$('#zx');if(!z||!q||matchMedia('(prefers-reduced-motion: reduce)').matches){q&&(q.style.transition='none');pFinish({ok:false});q&&requestAnimationFrame(()=>q.style.transition='');return}
+ z.style.zIndex='81';getComputedStyle(z).transform;z.getAnimations().forEach(a=>a.cancel());   // bez wjazdu od dołu
+ const EZ='cubic-bezier(.22,.8,.24,1)';
+ z.animate([{opacity:0},{opacity:1}],{duration:320,easing:'ease'});
+ const zn=z.querySelector('.mojznak');zn&&zn.animate([{opacity:0,transform:'scale(.86)'},{opacity:1,transform:'scale(1)'}],{duration:460,delay:40,easing:EZ,fill:'backwards'});
+ [...z.querySelectorAll('.mz>p,.mz>.seg,.mz>.wait')].forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:380,delay:140+i*50,easing:EZ,fill:'backwards'}));
+ [...q.children].forEach(el=>el.animate([{opacity:1},{opacity:0}],{duration:200,fill:'forwards'}));
+ setTimeout(()=>{q.style.transition='none';pFinish({ok:false});q.getAnimations({subtree:true}).forEach(a=>a.cancel());
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{q.style.transition='';z.style.zIndex=''}))},360);
+}
 function przyjmijFlow(opt={}){
  if(ZS)zFinish({ok:false});
  MOJ_CEL=opt.cel&&ZAKRESY[opt.cel]?opt.cel:'tozsamosc';
