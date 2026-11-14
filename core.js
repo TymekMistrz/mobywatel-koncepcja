@@ -204,15 +204,31 @@ function onIdle(){
 }
 function idle(){return inflight?new Promise(r=>idleQ.push(r)):Promise.resolve()}
 async function act(fn){if(inflight&&WR!==VIS)await idle();fn()}
-function switchTo(c){
+/* przejście między rozmowami: stara gaśnie na wierzchu jako „duch”, nowa wjeżdża pod nią
+   rodzaj 'nowa' — nowa rozmowa wjeżdża z prawej, 'hist' — wybór z historii: spokojne przenikanie z lekkim uniesieniem */
+function przejscieRozmow(stary,nowy,rodzaj){
+ if(!rodzaj||matchMedia('(prefers-reduced-motion: reduce)').matches||!app.classList.contains('chatting'))return;
+ const ch=$('#chat'),st=stary.scrollTop;stary.classList.add('msgs-duch');ch.append(stary);stary.scrollTop=st;
+ const E='cubic-bezier(.22,.8,.24,1)';
+ const out=rodzaj==='nowa'?[{opacity:1,transform:'none'},{opacity:0,transform:'translateX(-28px)'}]:[{opacity:1,transform:'none'},{opacity:0,transform:'scale(.97)'}];
+ const inn=rodzaj==='nowa'?[{opacity:0,transform:'translateX(36px)'},{opacity:1,transform:'none'}]:[{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}];
+ const a=stary.animate(out,{duration:220,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});
+ nowy.animate(inn,{duration:420,delay:90,easing:E,fill:'backwards'});
+ a.finished.then(()=>sprzatnijDucha(stary)).catch(()=>{});
+}
+function sprzatnijDucha(el){if(!el.classList.contains('msgs-duch'))return;el.getAnimations().forEach(x=>x.cancel());el.classList.remove('msgs-duch');if(!VIS||el!==VIS.el)el.remove()}
+function switchTo(c,rodzaj){
  if(c===VIS)return;
+ document.querySelectorAll('#chat .msgs-duch').forEach(sprzatnijDucha);c.el.getAnimations().forEach(x=>x.cancel());
+ const stary=VIS.el;
  $('#chat').replaceChild(c.el,VIS.el);VIS=c;c.unread=false;
+ przejscieRozmow(stary,c.el,rodzaj);
  if(!inflight){WR.pending=pending;pending=c.pending;WR=c;msgs=c.el}
  emptyState(c.el);requestAnimationFrame(()=>{c.el.scrollTop=c.el.scrollHeight});renderHist();
 }
 function newConv(){
  if(!VIS.title){emptyState(VIS.el);return VIS}
- const c=CONVS.find(x=>!x.title&&x!==WR)||mkConv();switchTo(c);return c;
+ const c=CONVS.find(x=>!x.title&&x!==WR)||mkConv();switchTo(c,'nowa');return c;
 }
 function topicIcon(t){const n=norm(t);return /portfel|zgubil|ukrad|zastrz/.test(n)?'shield':/stluczk|kolizj|wypadek|auto|samoch|pojazd|\boc\b|ubezpiecz/.test(n)?'car':/urodzi|dzieck|noworod/.test(n)?'baby':/sms|oszust|dziwn|podejrz/.test(n)?'alert':/skrzynk|pismo|doreczen|urzedu/.test(n)?'mail':/podatek|zaplac|oplat|kdr|duzej rodziny/.test(n)?'coin':/punkt/.test(n)?'clock':/dowod|pesel/.test(n)?'id':/zalatwienia|przypomn/.test(n)?'bell':'doc'}
 const plain=h=>{const d=document.createElement('div');d.innerHTML=h;return d.textContent.replace(/\s+/g,' ').trim()};
@@ -231,7 +247,7 @@ function renderHist(){
  const h=$('#hlist');if(!h)return;
  h.innerHTML=list.length?list.map(c=>`<button data-c="${c.id}" class="${c===VIS?'on':''}${c.unread?' unread':''}"><span class="hic">${svg(c.icon)}</span><span class="mt"><b>${esc(c.title)}</b><small>${inflight&&c===WR?'<em>pisze…</em>':esc(c.last||'')}</small></span><span class="hr"><time>${hm(c.t)}</time>${c.unread?'<i></i>':''}</span></button>`).join('')
   :`<div class="hempty">${(window.T||(s=>s))('Tu pojawią się Twoje rozmowy.')}</div>`;
- h.querySelectorAll('button').forEach(x=>x.onclick=()=>{switchTo(CONVS.find(c=>c.id===+x.dataset.c));closeHist()});
+ h.querySelectorAll('button').forEach(x=>x.onclick=()=>{switchTo(CONVS.find(c=>c.id===+x.dataset.c),'hist');closeHist()});
 }
 function openHist(){if(!app.classList.contains('chatting'))return;renderHist();app.classList.add('hist');$('#histBtn').setAttribute('aria-expanded','true')}
 function closeHist(){app.classList.remove('hist');const b=$('#histBtn');b&&b.setAttribute('aria-expanded','false')}

@@ -1064,3 +1064,6 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 .mz .qalt.wstecz{margin:auto auto 0;color:var(--ink);background:var(--surface,#fff);border:1px solid var(--line,#d5d9df);font-size:14px;font-weight:500}
 .mz .qalt.wstecz svg{color:var(--red)}
 .mz{padding-bottom:max(env(safe-area-inset-bottom),20px)}
+
+/* przejście między rozmowami: poprzednia rozmowa gaśnie nad nową (core.js → przejscieRozmow) */
+#chat .msgs.msgs-duch{position:absolute!important;inset:0;z-index:2;pointer-events:none}
