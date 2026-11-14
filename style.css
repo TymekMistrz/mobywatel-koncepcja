@@ -1073,3 +1073,5 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 .phone:has(#detail.on) #stackwrap,.phone:has(#detail.on) #reminders,.phone:has(#detail.on) #top,.phone:has(#detail.on) #title,.phone:has(#detail.on) #composer{transform:translateX(calc(var(--appW,393px) * -.22))}
 /* nazwa strony jedzie tym samym tempem co pasek z flagą (szczegóły dokumentu: wjazd i powrót) */
 .phone:not(.chatting):not(.zczatu) .title{transition:opacity .3s ease,transform .42s cubic-bezier(.32,.72,0,1)!important}
+/* powrót ze szczegółów dokumentu (i z ekranu sprawy): karty, kafelek i lista jadą tym samym tempem co nagłówek, pole czatu i sam arkusz */
+.phone:not(.chatting):not(.zczatu) #stackwrap,.phone:not(.chatting):not(.zczatu) #reminders,.phone:not(.chatting):not(.zczatu) .page{transition:opacity .42s,transform .42s cubic-bezier(.32,.72,0,1)}
