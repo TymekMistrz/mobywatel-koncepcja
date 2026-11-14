@@ -338,23 +338,30 @@ const WIECEJ=[
    /* na skrajnej opcji nie da się pociągnąć w stronę, w której nic już nie ma */
    if(dx>0&&g.i===0)dx=0;if(dx<0&&g.i===g.b.length-1)dx=0;
    g.dx=dx;const D=z.offsetWidth*.6,f=Math.min(1,Math.abs(dx)/D);
-   const m=znak();if(m){m.style.transition='none';m.style.transform=`translateX(${dx}px)`;m.style.opacity=String(1-f*.8)}
+   /* białe koło stoi; obraca się sam pierścień kropek (jak pokrętło), lekko się kurczy i przygasa, flaga delikatnie się zmniejsza */
+   const sv=z.querySelector('#mojZnak svg.znak');
+   if(sv&&typeof kropkiZnaku==='function'){const k=kropkiZnaku(sv),fl=sv.querySelector('image');
+    k.getAnimations().forEach(a=>a.cancel());k.style.transition='none';k.style.transform=`rotate(${-dx/D*90}deg) scale(${1-.18*f})`;k.style.opacity=String(1-.45*f);
+    if(fl){fl.getAnimations().forEach(a=>a.cancel());fl.style.transformBox='fill-box';fl.style.transformOrigin='center';fl.style.transform=`scale(${1-.08*f})`}}
    wsk(seg(),g.b,g.i,g.i+(dx<0?1:-1),f);
   });
   function koniec(e){
    if(!g)return;const {moje,v,lt,b,i,dx}=g;g=null;app.classList.remove('gest');if(!moje)return;
-   const m=znak(),sg=seg(),D=z.offsetWidth*.6,rzut=dx+(performance.now()-lt>90?0:v)*200,j=i+(dx<0?1:-1);
+   const sg=seg(),D=z.offsetWidth*.6,rzut=dx+(performance.now()-lt>90?0:v)*200,j=i+(dx<0?1:-1);
    /* jak przy stronach: zmiana tylko, gdy ruch „dojechałby” za połowę drogi w tę samą stronę */
    const zmien=!e.anulowano&&dx!==0&&Math.abs(dx)>24&&Math.sign(rzut)===Math.sign(dx)&&Math.abs(rzut)>D*.5&&j>=0&&j<b.length;
-   if(!zmien){if(m){m.style.transition='transform .32s cubic-bezier(.32,.72,0,1),opacity .32s';m.style.transform='';m.style.opacity=''}if(sg)wskWroc(sg);return}
-   const kier=dx<0?-1:1,W=z.offsetWidth;
+   const sv=z.querySelector('#mojZnak svg.znak'),k=sv&&sv.querySelector('g.kropki'),fl=sv&&sv.querySelector('image');
+   if(!zmien){
+    /* za mało: pierścień odkręca się z powrotem */
+    if(k){const od={transform:k.style.transform||'none',opacity:k.style.opacity||1};k.style.transform='';k.style.opacity='';
+     k.animate([od,{transform:'rotate(0deg) scale(1)',opacity:1}],{duration:380,easing:'cubic-bezier(.32,.72,0,1)'})}
+    if(fl){const od=fl.style.transform||'scale(1)';fl.style.transform='';fl.animate([{transform:od},{transform:'scale(1)'}],{duration:380,easing:'cubic-bezier(.32,.72,0,1)'})}
+    if(sg)wskWroc(sg);return}
+   /* zmiana: obrót kręci się dalej, stare kropki wirują do środka i rysuje się nowy pierścień (animujZnak w znak.js) */
+   if(k){const m=/rotate\(([-\d.]+)deg\) scale\(([\d.]+)\)/.exec(k.style.transform||'');window.ZNAK_OBR={kat:m?+m[1]:0,kier:dx<0?1:-1,sk:m?+m[2]:1,op:+(k.style.opacity||1)}}
    /* bez .click(): gesty.js połyka pierwsze kliknięcie po przeciągnięciu */
    if(typeof b[j].onclick==='function')b[j].onclick();
    if(sg)requestAnimationFrame(()=>wskWroc(sg));       // wskaźnik dojeżdża płynnie z miejsca, w którym go puszczono
-   if(!m)return;
-   m.style.transition='transform .18s ease-in,opacity .18s ease-in';m.style.transform=`translateX(${kier*W*.7}px)`;m.style.opacity='0';
-   setTimeout(()=>{m.style.transition='none';m.style.transform=`translateX(${-kier*W*.5}px)`;m.style.opacity='0';void m.offsetWidth;
-    m.style.transition='transform .4s cubic-bezier(.32,.72,0,1),opacity .3s';m.style.transform='';m.style.opacity=''},180);
   }
   gestEv(z,'pointerup',koniec);gestEv(z,'pointercancel',koniec);
  }

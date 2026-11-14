@@ -25,13 +25,18 @@ function nowyToken(){TOKEN=Math.floor(Math.random()*65536);TOKEN_T=Date.now();ry
 function rysujZnaki(){document.querySelectorAll('.live').forEach(el=>{el.innerHTML=ZNAK.svg(TOKEN)});const b=$('#mojZnak');if(b)animujZnak(b,ZNAK.svg(TOKEN))}
 /* Zmiana znaku: stare kropki „wirują” do środka po spirali, flaga pulsuje, a nowy pierścień
    rysuje się po okręgu jak wskazówka — kropki zapalają się kolejno zgodnie z ruchem wskazówek zegara. */
+/* kropki pierścienia w jednej grupie (obraca się wokół środka znaku; flaga zostaje) */
+function kropkiZnaku(sv){return sv.querySelector('g.kropki')||(()=>{const gg=document.createElementNS('http://www.w3.org/2000/svg','g');gg.setAttribute('class','kropki');sv.querySelectorAll('circle:not(:first-child)').forEach(c=>gg.append(c));sv.insertBefore(gg,sv.querySelector('image'));return gg})()}
 function animujZnak(el,nowy){
  const stary=el.querySelector('svg.znak');
  if(!stary||matchMedia('(prefers-reduced-motion: reduce)').matches){el.innerHTML=nowy;return}
  const E='cubic-bezier(.4,0,.2,1)';
- const g=stary.querySelector('g.kropki')||(()=>{const gg=document.createElementNS('http://www.w3.org/2000/svg','g');gg.setAttribute('class','kropki');stary.querySelectorAll('circle:not(:first-child)').forEach(c=>gg.append(c));stary.insertBefore(gg,stary.querySelector('image'));return gg})();
- g.animate([{transform:'rotate(0) scale(1)',opacity:1},{transform:'rotate(120deg) scale(.35)',opacity:0}],{duration:280,easing:'ease-in',fill:'forwards'});
- const fl=stary.querySelector('image');fl&&fl.animate([{transform:'scale(1)'},{transform:'scale(.86)'}],{duration:280,easing:E,fill:'forwards'});
+ const g=kropkiZnaku(stary);
+ /* po geście kręcenia znakiem obrót startuje z miejsca, w którym puszczono palec, i biegnie dalej w tę samą stronę */
+ const ob=window.ZNAK_OBR||{kat:0,kier:1,sk:1,op:1};window.ZNAK_OBR=null;
+ g.style.transform='';g.style.opacity='';
+ g.animate([{transform:`rotate(${ob.kat}deg) scale(${ob.sk})`,opacity:ob.op},{transform:`rotate(${ob.kat+ob.kier*120}deg) scale(.35)`,opacity:0}],{duration:280,easing:'ease-in',fill:'forwards'});
+ const fl=stary.querySelector('image');if(fl){const s0=fl.style.transform||'scale(1)';fl.style.transform='';fl.animate([{transform:s0},{transform:'scale(.86)'}],{duration:280,easing:E,fill:'forwards'})}
  setTimeout(()=>{el.innerHTML=nowy;wejscieZnaku(el)},260);
 }
 /* rysowanie pierścienia: łuk obiega okrąg, kropki zapalają się kolejno (przy zmianie znaku i przy otwarciu ekranu) */
