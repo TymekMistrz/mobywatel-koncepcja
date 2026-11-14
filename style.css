@@ -1067,3 +1067,9 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 
 /* przejście między rozmowami: poprzednia rozmowa gaśnie nad nową (core.js → przejscieRozmow) */
 #chat .msgs.msgs-duch{position:absolute!important;inset:0;z-index:2;pointer-events:none}
+
+/* szczegóły dokumentu: wszystko pod spodem odjeżdża o tę samą odległość (22% szerokości ekranu), więc nazwa strony trzyma się flagi.
+   Wcześniej translateX(-22%) liczył się od szerokości każdego elementu osobno — krótki napis przesuwał się mniej niż pasek z flagą. */
+.phone:has(#detail.on) #stackwrap,.phone:has(#detail.on) #reminders,.phone:has(#detail.on) #top,.phone:has(#detail.on) #title,.phone:has(#detail.on) #composer{transform:translateX(calc(var(--appW,393px) * -.22))}
+/* nazwa strony jedzie tym samym tempem co pasek z flagą (szczegóły dokumentu: wjazd i powrót) */
+.phone:not(.chatting):not(.zczatu) .title{transition:opacity .3s ease,transform .42s cubic-bezier(.32,.72,0,1)!important}

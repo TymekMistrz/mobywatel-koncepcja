@@ -67,6 +67,7 @@ renderStack();
 function layout(){
  /* wysokość bez dolnego paska nawigacji (nawigacja.js) */
  const tb=app.classList.contains('chatting')?0:(($('#tabbar')||{}).offsetHeight||0);app.style.setProperty('--tb',tb+'px');
+ app.style.setProperty('--appW',app.clientWidth+'px');
  const H=app.clientHeight-tb,W=app.clientWidth,framed=getComputedStyle($('.status')).display!=='none';
  const T=framed?50:Math.max(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0,6);
  const comp=$('#composer').offsetHeight;app.style.setProperty('--compH',comp+'px');

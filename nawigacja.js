@@ -300,7 +300,7 @@ const WIECEJ=[
    if(g.moje===null&&Math.hypot(dx,dy)>10){g.moje=d>0&&Math.abs(d)>Math.abs(inny)*(e.pointerType==='mouse'?1.3:1);if(g.moje){app.classList.add('gest');try{el.setPointerCapture(e.pointerId)}catch(_){}}}
    if(!g.moje)return;
    el.style.transition='none';el.style.transform=os==='x'?`translateX(${Math.max(0,d)}px)`:`translateY(${Math.max(0,d)}px)`;
-   if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.transition='none';x.style.transform=`translateX(${-22+22*Math.min(1,Math.max(0,d)/el.offsetWidth)}%)`});
+   if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.setProperty('transition','none','important');x.style.transform=`translateX(${-.22*el.offsetWidth*(1-Math.min(1,Math.max(0,d)/el.offsetWidth))}px)`   /* w pikselach, nie w %: nazwa strony i flaga przesuwają się o tyle samo */});
   });
   function koniec(e){
    if(!g)return;const {x,y,t,moje,v:vk,lt,lp}=g;g=null;app.classList.remove('gest');try{el.releasePointerCapture(e.pointerId)}catch(_){}if(!moje)return;
@@ -308,7 +308,7 @@ const WIECEJ=[
    const vp=performance.now()-lt>90?0:vk,rzut=d+vp*200;
    const zamyka=!e.anulowano&&d>24&&rzut>dl*.5;          // zamyka tylko, gdy ruch „dojechałby” za połowę ekranu
    el.style.transition='';void el.offsetWidth;el.style.transform='';
-   if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.transition='';x.style.transform=''});
+   if(os==='x')widokDok().concat([$('#top'),$('#title'),$('#composer')].filter(Boolean)).forEach(x=>{x.style.removeProperty('transition');x.style.transform=''});
    if(zamyka)zamknij();
   }
   gestEv(el,'pointerup',koniec);gestEv(el,'pointercancel',koniec);
