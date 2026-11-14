@@ -108,3 +108,4 @@ html[data-motyw="urzedowy"] #app.ukryte .face .reveal svg{width:6cqw!important;h
 
 /* licznik przy „Wymagane akcje”: cyfra dokładnie na środku (iOS dokładał wysokość linii pod cyfrą) */
 html[data-motyw="urzedowy"] .rsum .rdot{display:flex;align-items:center;justify-content:center;line-height:1;padding:0;font-variant-numeric:tabular-nums}
+html[data-motyw="urzedowy"] .qalt{border-radius:var(--r-s)}

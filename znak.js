@@ -127,6 +127,20 @@ function pConsent(j){
 }
 
 /* ---------- mój znak: przyjmowanie danych od osoby, która go zeskanuje ---------- */
+/* „Przyjmij dane” → skaner: to samo przejście w drugą stronę (jasne tło gaśnie w ciemne, znak zmienia się w celownik) */
+function przejdzDoSkanera(){
+ const z=$('#zx');
+ qrFlow({});
+ const q=$('#qrx');if(!z||!q||matchMedia('(prefers-reduced-motion: reduce)').matches){z&&(z.style.transition='none');zFinish({ok:false});z&&requestAnimationFrame(()=>z.style.transition='');return}
+ q.style.zIndex='81';getComputedStyle(q).transform;q.getAnimations().forEach(a=>a.cancel());   // bez wjazdu od dołu
+ const EZ='cubic-bezier(.22,.8,.24,1)';
+ q.animate([{opacity:0},{opacity:1}],{duration:320,easing:'ease'});
+ const cel=q.querySelector('.guide');cel&&cel.animate([{opacity:0,transform:'scale(1.12)'},{opacity:1,transform:'scale(1)'}],{duration:460,delay:40,easing:EZ,fill:'backwards'});
+ [...q.querySelectorAll('.qscanfoot>*,.camhint')].forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:380,delay:140+i*50,easing:EZ,fill:'backwards'}));
+ const zn=z.querySelector('.mojznak');zn&&zn.animate([{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(.9)'}],{duration:240,easing:'ease-in',fill:'forwards'});
+ setTimeout(()=>{z.style.transition='none';zFinish({ok:false});z.getAnimations({subtree:true}).forEach(a=>a.cancel());
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{z.style.transition='';q.style.zIndex=''}))},360);
+}
 /* Skaner → „Przyjmij dane” bez zamykania: arkusz zostaje na miejscu, ciemne tło skanera przechodzi w jasne,
    a znak wyrasta na środku. Skaner chowamy dopiero, gdy jest już całkiem przykryty. */
 function przejdzDoZnaku(){
@@ -153,7 +167,9 @@ function zShow(){
   <div class="mojznak" id="mojZnak">${ZNAK.svg(TOKEN)}</div>
   <p class="qlead c" data-h>Poproś drugą osobę, by w swojej aplikacji dotknęła <b>Potwierdź swoje dane</b> i zeskanowała ten znak.</p>
   ${MOJ_CEL==='mstluczka'?'<p class="qnote c">Zakres: dane do oświadczenia o zdarzeniu</p>':`<div class="seg light">${wyb.map(k=>`<button data-c="${k}" class="${k===MOJ_CEL?'on':''}">${ZAKRESY[k].nazwa}</button>`).join('')}</div>`}
-  <div class="wait"><i></i>Czekam na dane…</div></div>`,'light','zx');
+  <div class="wait"><i></i>Czekam na dane…</div>
+  ${MOJ_CEL==='mstluczka'?'':`<button class="qalt wstecz" id="doSkanera">${qsvg('scan',1.7)}Chcę przekazać dane: skanuj znak</button>`}</div>`,'light','zx');
+ {const w=o.querySelector('#doSkanera');if(w)w.onclick=()=>przejdzDoSkanera()}
  {const mz=o.querySelector('#mojZnak');if(mz)wejscieZnaku(mz,240)}   /* krąg rysuje się też przy pierwszym otwarciu */
  o.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{MOJ_CEL=b.dataset.c;o.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));nowyToken();beat()});
 }

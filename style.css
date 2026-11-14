@@ -1059,3 +1059,8 @@ html,body{overscroll-behavior:none;overflow:hidden;position:fixed;inset:0;width:
 /* zmiana nazwy strony obok flagi (nawigacja.js → ustawTytul) */
 .title .tt-old{position:absolute;left:0;top:0;white-space:nowrap;pointer-events:none}
 .title .tt-new{display:inline-block;white-space:nowrap}
+
+/* „Przyjmij dane”: powrót do skanera, na dole ekranu */
+.mz .qalt.wstecz{margin:auto auto 0;color:var(--ink);background:var(--surface,#fff);border:1px solid var(--line,#d5d9df);font-size:14px;font-weight:500}
+.mz .qalt.wstecz svg{color:var(--red)}
+.mz{padding-bottom:max(env(safe-area-inset-bottom),20px)}
