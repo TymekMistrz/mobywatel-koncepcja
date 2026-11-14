@@ -25,6 +25,9 @@ function nowyToken(){TOKEN=Math.floor(Math.random()*65536);TOKEN_T=Date.now();ry
 function rysujZnaki(){document.querySelectorAll('.live').forEach(el=>{el.innerHTML=ZNAK.svg(TOKEN)});const b=$('#mojZnak');if(b)animujZnak(b,ZNAK.svg(TOKEN))}
 /* Zmiana znaku: stare kropki „wirują” do środka po spirali, flaga pulsuje, a nowy pierścień
    rysuje się po okręgu jak wskazówka — kropki zapalają się kolejno zgodnie z ruchem wskazówek zegara. */
+/* po puszczeniu palca obrót nie może ruszać od zera (ease-in) — wtedy pierścień „staje” na ułamek sekundy.
+   Krzywa zaczyna się z prędkością, z jaką palec kręcił znakiem, i dalej płynnie przyspiesza do końca. */
+function ciagObrotu(pr,dur,kat){const sl=Math.max(.35,Math.min(2.5,pr*dur/kat));return `cubic-bezier(.3,${(.3*sl).toFixed(3)},.75,.9)`}
 /* kropki pierścienia w jednej grupie (obraca się wokół środka znaku; flaga zostaje) */
 function kropkiZnaku(sv){return sv.querySelector('g.kropki')||(()=>{const gg=document.createElementNS('http://www.w3.org/2000/svg','g');gg.setAttribute('class','kropki');sv.querySelectorAll('circle:not(:first-child)').forEach(c=>gg.append(c));sv.insertBefore(gg,sv.querySelector('image'));return gg})()}
 function animujZnak(el,nowy){
@@ -35,7 +38,7 @@ function animujZnak(el,nowy){
  /* po geście kręcenia znakiem obrót startuje z miejsca, w którym puszczono palec, i biegnie dalej w tę samą stronę */
  const ob=window.ZNAK_OBR||{kat:0,kier:1,sk:1,op:1};window.ZNAK_OBR=null;
  g.style.transform='';g.style.opacity='';
- g.animate([{transform:`rotate(${ob.kat}deg) scale(${ob.sk})`,opacity:ob.op},{transform:`rotate(${ob.kat+ob.kier*120}deg) scale(.35)`,opacity:0}],{duration:280,easing:'ease-in',fill:'forwards'});
+ g.animate([{transform:`rotate(${ob.kat}deg) scale(${ob.sk})`,opacity:ob.op},{transform:`rotate(${ob.kat+ob.kier*120}deg) scale(.35)`,opacity:0}],{duration:280,easing:ob.pr!==undefined?ciagObrotu(ob.pr,280,120):'ease-in',fill:'forwards'});
  const fl=stary.querySelector('image');if(fl){const s0=fl.style.transform||'scale(1)';fl.style.transform='';fl.animate([{transform:s0},{transform:'scale(.86)'}],{duration:280,easing:E,fill:'forwards'})}
  setTimeout(()=>{el.innerHTML=nowy;wejscieZnaku(el)},260);
 }

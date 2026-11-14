@@ -358,7 +358,7 @@ const WIECEJ=[
     if(fl){const od=fl.style.transform||'scale(1)';fl.style.transform='';fl.animate([{transform:od},{transform:'scale(1)'}],{duration:380,easing:'cubic-bezier(.32,.72,0,1)'})}
     if(sg)wskWroc(sg);return}
    /* zmiana: obrót kręci się dalej, stare kropki wirują do środka i rysuje się nowy pierścień (animujZnak w znak.js) */
-   if(k){const m=/rotate\(([-\d.]+)deg\) scale\(([\d.]+)\)/.exec(k.style.transform||'');window.ZNAK_OBR={kat:m?+m[1]:0,kier:dx<0?1:-1,sk:m?+m[2]:1,op:+(k.style.opacity||1)}}
+   if(k){const m=/rotate\(([-\d.]+)deg\) scale\(([\d.]+)\)/.exec(k.style.transform||'');window.ZNAK_OBR={kat:m?+m[1]:0,kier:dx<0?1:-1,sk:m?+m[2]:1,op:+(k.style.opacity||1),pr:Math.abs(performance.now()-lt>90?0:v)*90/D}   /* pr: prędkość obrotu przy puszczeniu (°/ms) */}
    /* bez .click(): gesty.js połyka pierwsze kliknięcie po przeciągnięciu */
    if(typeof b[j].onclick==='function')b[j].onclick();
    if(sg)requestAnimationFrame(()=>wskWroc(sg));       // wskaźnik dojeżdża płynnie z miejsca, w którym go puszczono
