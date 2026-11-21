@@ -171,6 +171,10 @@
  }
 
  /* ostrzeżenie przed oszustwem „na policjanta / urzędnika” — w kreatorze i na ekranie pomocy */
+ /* w kreatorze krótko — pełna wersja jest na ekranie „Pomoc bliskiej osoby” */
+ const OSTRZ_K=`<div class="pmostrz kr" role="note">${ico('alert')}<span><b>Uwaga na oszustów.</b> Policja, urząd ani bank nigdy nie poproszą Cię o takie upoważnienie.</span></div>`;
+ const dokiedyTxt=w=>{const ok=OKRESY.find(o=>o[0]===w.okres);return w.okres==='wlasny'?'do '+D.fmt(zIso(w.koniec)):ok[2]?'do '+D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania'};
+ const IKZ={sprawy:'bell',oplaty:'coin',pisma:'mail',recepty:'doc'},KROT={oplaty:'płaci za Ciebie',pisma:'czyta pisma',recepty:'kody do apteki'};
  const OSTRZ=`<div class="pmostrz" role="note">${ico('alert')}<span><b>Policja, urząd, bank ani ZUS nigdy nie poproszą Cię o takie upoważnienie</b> — ani przez telefon, ani osobiście. Jeśli ktoś Cię do tego namawia albo pogania, to oszustwo. Przerwij i zadzwoń do kogoś bliskiego.</span></div>`;
 
  /* PESEL: suma kontrolna; numer dowodu: 3 litery + 6 cyfr */
@@ -265,39 +269,42 @@
   const kogo=w.do?imie(w.do):'';
   let h='';
   if(w.krok===1)h=`${kropki}<h2 class="pmh">Kto ma Ci pomagać?</h2>
-   <div class="sptxt" style="margin-top:4px">Może to być ktoś z rodziny, przyjaciel albo sąsiad — każda pełnoletnia osoba z mObywatelem.</div>
-   <div class="sptxt">Osobę dodajesz tylko na swoim telefonie. Ona nie może sama uzyskać dostępu do Twoich spraw.</div>
-   ${OSTRZ}
-   <div class="plist pmsposob">
-    <button class="prow" data-spos="znak"><span class="pic">${ico('scan')}</span><span class="ptx"><b>Zeskanuj jej znak</b><small>Gdy jesteście obok siebie. Ona pokazuje znak w swojej aplikacji, Ty go skanujesz.</small></span>${ico('chev','pch')}</button>
-    <button class="prow" data-spos="pesel"><span class="pic">${ico('id')}</span><span class="ptx"><b>Wpisz PESEL i numer dowodu</b><small>Obie dane muszą się zgadzać z rejestrem.</small></span>${ico('chev','pch')}</button>
-   </div>`;
-  if(w.krok==='pesel')h=`${kropki}<h2 class="pmh">Dane osoby, która ma pomagać</h2>
-   <div class="sptxt">Przepisz je z jej dowodu osobistego. Nie podawaj nikomu własnych.</div>
+   <div class="pmopcje">
+    <button class="pmopcja" data-spos="znak"><span class="pmoi">${ico('scan')}</span><b>Zeskanuj znak</b><small>gdy jesteście razem</small></button>
+    <button class="pmopcja" data-spos="pesel"><span class="pmoi">${ico('id')}</span><b>Wpisz PESEL i dowód</b><small>gdy nie ma jej obok</small></button>
+   </div>
+   <ul class="pmfakty"><li>${ico('users')}Rodzina, przyjaciel albo sąsiad</li><li>${ico('lock')}Tylko Ty możesz ją dodać</li></ul>
+   ${OSTRZ_K}`;
+  if(w.krok==='pesel')h=`${kropki}<h2 class="pmh">Dane z dowodu tej osoby</h2>
    <div class="pmpole"><span id="pmlpes">PESEL</span>${kratki('pmpesel','DDDDDDDDDDD',[6],w.pesel,'pmlpes')}</div>
-   <div class="pmpole"><span id="pmldow">Seria i numer dowodu osobistego</span>${kratki('pmdow','LLLDDDDDD',[3],w.dow,'pmldow')}<small class="pmpodp">3 litery i 6 cyfr — jak na dowodzie</small></div>
+   <div class="pmpole"><span id="pmldow">Seria i numer dowodu</span>${kratki('pmdow','LLLDDDDDD',[3],w.dow,'pmldow')}</div>
    <div class="pmblad" id="pmblad" role="alert">${w.blad?esc(w.blad):''}</div>
    <button class="spbtn" data-szukaj>Dalej</button>
    <div class="pmpokaz"><span>Pokaz — wpisz dane:</span>${(()=>{const z=opublikowany(),ids=Object.keys(OSOBY).filter(k=>k!==OS.id);if(z&&z.osoba!==OS.id)ids.sort((a,b)=>(b===z.osoba)-(a===z.osoba));
     return ids.map(k=>`<button data-przyklad="${k}">${nazwa(k)}</button>`).join('')})()}</div>`;
   if(w.krok===2){const os=OSOBY[w.do];
    h=`${kropki}<h2 class="pmh">Czy to ta osoba?</h2>
-   <div class="pmosoba"><span class="pmav duzy" style="background-image:url(assets/foto-${w.do}.svg)"></span><span><b>${nazwa(w.do)}</b><small>ur. ${urodz(w.do)} · ${(MIEJSCA[w.do]||{}).miasto||''}</small><small>${w.przez==='znak'?'Znak zeskanowany przed chwilą':'PESEL i numer dowodu zgadzają się z rejestrem'}</small></span></div>
-   <div class="sptxt">Daj dostęp tylko komuś, kogo znasz osobiście i komu ufasz.</div>
-   <button class="spbtn" data-dalej>Tak, to ${os.plec==='K'?'ona':'on'}</button><button class="spbtn ghost" data-od-nowa style="margin-top:10px;width:100%">Nie, zacznij od nowa</button>`}
+   <div class="pmkto"><span class="pmav duzy" style="background-image:url(assets/foto-${w.do}.svg)"></span><b>${nazwa(w.do)}</b><small>ur. ${urodz(w.do)} · ${(MIEJSCA[w.do]||{}).miasto||''}</small>
+    <span class="pmzgod">${svg('check')}${w.przez==='znak'?'Znak zeskanowany':'Dane zgodne z rejestrem'}</span></div>
+   <button class="spbtn" data-dalej>Tak, to ${os.plec==='K'?'ona':'on'}</button><button class="spbtn ghost" data-od-nowa style="margin-top:10px;width:100%">To nie ta osoba</button>
+   <p class="pmpod">Daj dostęp tylko komuś, kogo znasz osobiście.</p>`}
   if(w.krok===3)h=`${kropki}<h2 class="pmh">W czym ${kogo} może pomagać?</h2>
-   <div class="plist">${ZAKRESY.map(([k,t,s,staly])=>SP.przelacznik(t,s+(staly?' · zawsze':''),w.zakres.includes(k)).replace('class="prow sw"',`class="prow sw" data-zk="${k}" ${staly?'aria-disabled="true"':''}`)).join('')}</div>
-   <div class="spnote">${ico('lock')}<span>${kogo} nie zobaczy Twoich dokumentów i niczego za Ciebie nie podpisze.</span></div>
+   <div class="pmzakresy">${ZAKRESY.map(([k,t,s,staly])=>`<button type="button" class="pmzak ${w.zakres.includes(k)?'on':''} ${staly?'staly':''}" data-zk="${k}" aria-pressed="${w.zakres.includes(k)}" ${staly?'aria-disabled="true"':''}>
+    <span class="pmzi">${ico(IKZ[k])}</span><b>${t}</b><small>${staly?'zawsze':KROT[k]}</small><span class="pmzc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></button>`).join('')}</div>
+   <p class="pmpod">${ico('lock')}Dokumentów nie zobaczy i niczego nie podpisze.</p>
    <button class="spbtn" data-dalej>Dalej</button>`;
   if(w.krok===4){const ok=OKRESY.find(o=>o[0]===w.okres);
-   const jutro=dzis();jutro.setDate(jutro.getDate()+1);const max=dzis();max.setFullYear(max.getFullYear()+5);
    h=`${kropki}<h2 class="pmh">Na jak długo?</h2>
    <div class="pmokres" role="radiogroup" aria-label="Na jak długo">${OKRESY.map(([k,l])=>`<button role="radio" aria-checked="${w.okres===k}" data-ok="${k}" class="${w.okres===k?'on':''}">${l}</button>`).join('')}</div>
    <div class="pmdata ${w.okres==='wlasny'?'on':''}"><div><div class="pmkal" id="pmkal">${kalendarz(w)}</div></div></div>
-   <div class="ui"><div class="rows">${rowsH([['Komu',nazwa(w.do)],['Data urodzenia',urodz(w.do)],['W czym',cap(zakresTxt(w.zakres))],['Do kiedy',`<span class="pmdokiedy">${w.okres==='wlasny'?D.fmt(zIso(w.koniec)):ok[2]?D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania'}</span>`]])}</div></div>
-   ${OSTRZ}
-   <div class="sptxt">${kogo} dostanie zaproszenie w swojej aplikacji. Dostęp zacznie działać, gdy je przyjmie. Cofniesz go w każdej chwili.</div>
-   <button class="spbtn" data-dalej>Potwierdź i wyślij</button>`}
+   <div class="pmpodsum">
+    <div class="pmpk"><span class="pmav" style="background-image:url(assets/foto-${w.do}.svg)"></span><span><b>${nazwa(w.do)}</b><small>ur. ${urodz(w.do)}</small></span></div>
+    <div class="pmpz">${ZAKRESY.filter(z=>w.zakres.includes(z[0])).map(([k,t])=>`<span>${ico(IKZ[k])}${t}</span>`).join('')}</div>
+    <div class="pmpd">${ico('clock')}<span>Ważne <b class="pmdokiedy">${dokiedyTxt(w)}</b></span></div>
+   </div>
+   ${OSTRZ_K}
+   <button class="spbtn" data-dalej>Wyślij zaproszenie</button>
+   <p class="pmpod">Dostęp ruszy, gdy ${kogo} przyjmie zaproszenie. Cofniesz go w każdej chwili.</p>`}
   /* przejście między krokami: poprzedni ekran odjeżdża, nowy wjeżdża z kierunku ruchu; pasek zostaje na miejscu */
   const klucz=String(w.krok),kier=w._kier||1;w._kier=1;
   const stary=w._klucz&&w._klucz!==klucz?zdejmij():null;
@@ -306,14 +313,17 @@
    przesun(stary,kier,true);
    requestAnimationFrame(()=>requestAnimationFrame(()=>el.querySelectorAll('.pmkroki i').forEach((x,n)=>{x.classList.toggle('on',n<nr);x.style.transitionDelay=Math.abs(n-(bylo-1))*60+'ms'})));
    el.querySelectorAll('[data-spos]').forEach(b=>b.onclick=()=>{if(b.dataset.spos==='znak'){skanuj(w);return}w.krok=b.dataset.spos;kreator(w)});
-   el.querySelectorAll('[data-zk]').forEach(b=>b.onclick=()=>{if(b.getAttribute('aria-disabled')==='true')return;const k=b.dataset.zk;w.zakres=w.zakres.includes(k)?w.zakres.filter(x=>x!==k):[...w.zakres,k];
-    b.setAttribute('aria-checked',w.zakres.includes(k));b.querySelector('.spsw').classList.toggle('on',w.zakres.includes(k))});
+   el.querySelectorAll('[data-zk]').forEach(b=>b.onclick=()=>{
+    if(b.getAttribute('aria-disabled')==='true'){if(!SPOK())b.animate([{transform:'translateX(0)'},{transform:'translateX(-3px)'},{transform:'translateX(3px)'},{transform:'none'}],{duration:240});return}
+    const k=b.dataset.zk,on=!w.zakres.includes(k);w.zakres=on?[...w.zakres,k]:w.zakres.filter(x=>x!==k);
+    b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);
+    if(on&&!SPOK())b.querySelector('.pmzc').animate([{transform:'scale(.4)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:260,easing:'cubic-bezier(.3,1.6,.5,1)'})});
    el.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{w.okres=b.dataset.ok;
     /* bez przeładowania kroku: zaznaczenie, pole daty i podsumowanie zmieniają się na miejscu */
     el.querySelectorAll('[data-ok]').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)});
     const pd=el.querySelector('.pmdata');pd.classList.toggle('on',w.okres==='wlasny');podsum()});
    const podsum=()=>{const r=el.querySelector('.pmdokiedy');if(!r)return;const ok=OKRESY.find(o=>o[0]===w.okres);
-    r.textContent=w.okres==='wlasny'?D.fmt(zIso(w.koniec)):ok[2]?D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania';
+    r.textContent=dokiedyTxt(w);
     r.animate([{opacity:.3},{opacity:1}],{duration:260})};
    /* własny kalendarz zamiast systemowego pola daty (to na iPhonie wychodziło poza ekran) */
    const kal=el.querySelector('#pmkal');
@@ -359,7 +369,7 @@
     /* zaproszenie do drugiego urządzenia: na temat zeskanowanego znaku albo (po PESEL) na temat osoby */
     {const u=st.up[0];wyslij(w.przez==='znak'&&w.token!=null?tematZnaku(w.token):tematOsoby(w.do),paczka(u))}
     const box=SP.sh.querySelector('.body');
-    box.innerHTML=`<div class="spok">${svg('check')}<b>Zaproszenie wysłane</b><div class="sptxt">${kogo} zobaczy je w swojej aplikacji, w „Twoich sprawach”. Gdy je przyjmie, dostaniesz powiadomienie.</div></div>
+    box.innerHTML=`<div class="spok">${svg('check')}<b>Zaproszenie wysłane</b><div class="sptxt">${kogo} musi je przyjąć w swojej aplikacji. Dostaniesz powiadomienie.</div></div>
      <div id="spakcja"><button class="spbtn ghost" data-wroc>Gotowe</button></div>`;
     if(!SPOK())[...box.children].forEach((c,i)=>c.animate([{opacity:0,transform:'translateY(12px) scale(.98)'},{opacity:1,transform:'none'}],{duration:420,delay:i*90,easing:EASE,fill:'backwards'}));
     box.querySelector('[data-wroc]').onclick=()=>{const s0=zdejmij();ekranPomocy({nowe:true});przesun(s0,-1,false)};

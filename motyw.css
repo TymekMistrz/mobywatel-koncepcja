@@ -224,3 +224,48 @@ html[data-motyw="urzedowy"] .qalt{border-radius:var(--r-s)}
 .pmkdni button.dzis{box-shadow:inset 0 0 0 1px var(--line)}
 .pmkdni button.on{background:var(--red);color:#fff;box-shadow:none;font-weight:600}
 .pmdata{margin:0}
+/* ---------- kreator upoważnienia: mniej tekstu, więcej kształtów ---------- */
+.pmopcje{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 4px}
+.pmopcja{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r-m,8px);padding:16px 14px 14px;min-height:132px;transition:border-color .2s,transform .15s}
+.pmopcja:active{transform:scale(.98);border-color:var(--red)}
+.pmoi{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#fdecef;color:var(--red);margin-bottom:8px}
+.pmoi svg{width:24px;height:24px}
+.pmopcja b{font-size:15.5px;font-weight:600;line-height:1.2}
+.pmopcja small{font-size:13px;color:var(--ink2)}
+.pmfakty{list-style:none;margin:14px 2px 0;padding:0;display:grid;gap:8px}
+.pmfakty li{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink)}
+.pmfakty svg{width:20px;height:20px;color:var(--ink2);flex:none}
+.pmostrz.kr{font-size:13px;padding:10px 12px;margin-top:16px}
+.pmkto{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:var(--r-m,8px);padding:22px 16px 18px;margin:10px 0 16px}
+.pmkto .pmav.duzy{width:84px;height:84px;margin-bottom:8px}
+.pmkto b{font-size:20px;font-weight:600}
+.pmkto small{font-size:14px;color:var(--ink2)}
+.pmzgod{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 10px;border-radius:999px;background:#e8f5ec;color:#1b7a3d;font-size:13px;font-weight:600}
+.pmzgod svg{width:16px;height:16px}
+.pmpod{display:flex;align-items:center;justify-content:center;gap:6px;text-align:center;font-size:13px;color:var(--ink2);margin:12px 4px 0;line-height:1.35}
+.pmpod svg{width:16px;height:16px;flex:none}
+.pmzakresy{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 0}
+.pmzak{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:var(--r-m,8px);padding:14px 12px 12px;min-height:116px;transition:border-color .2s,background .2s,box-shadow .2s}
+.pmzak .pmzi{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#f1f3f6;color:var(--ink2);margin-bottom:6px;transition:background .2s,color .2s}
+.pmzak .pmzi svg{width:21px;height:21px}
+.pmzak b{font-size:14.5px;font-weight:600;line-height:1.2}
+.pmzak small{font-size:12.5px;color:var(--ink2)}
+.pmzak .pmzc{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:#fff;transition:background .2s,border-color .2s}
+.pmzak .pmzc svg{width:14px;height:14px;opacity:0;stroke-width:3}
+.pmzak.on{border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.pmzak.on .pmzi{background:#fdecef;color:var(--red)}
+.pmzak.on .pmzc{background:var(--red);border-color:var(--red)}
+.pmzak.on .pmzc svg{opacity:1}
+.pmzak.staly{cursor:default}
+.pmzak.staly.on{box-shadow:none;border-color:var(--line);background:#fafbfc}
+.pmzak.staly .pmzc{background:#9aa1ad;border-color:#9aa1ad}
+.pmpodsum{background:#fff;border:1px solid var(--line);border-radius:var(--r-m,8px);padding:14px;display:grid;gap:12px}
+.pmpk{display:flex;align-items:center;gap:12px}
+.pmpk b{display:block;font-size:16px;font-weight:600}.pmpk small{display:block;font-size:13px;color:var(--ink2)}
+.pmpz{display:flex;flex-wrap:wrap;gap:6px}
+.pmpz span{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;background:#f1f3f6;font-size:12.5px;font-weight:600;color:var(--ink)}
+.pmpz svg{width:15px;height:15px;color:var(--ink2)}
+.pmpd{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink2);border-top:1px solid var(--line);padding-top:10px}
+.pmpd svg{width:18px;height:18px}
+.pmpd b{color:var(--ink);font-weight:600}
+.pmh{margin-top:2px}
