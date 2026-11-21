@@ -3,7 +3,7 @@
 Statyczna kopia frontu prototypu „mObywatel.ai” (autor: Janusz Cieszyński, licencja MIT — zob. `LICENSE`),
 przygotowana jako punkt wyjścia do zgłoszenia w mObywatel Challenge.
 
-**Podgląd na żywo:** https://tymekmistrz.github.io/mobywatel-koncepcja/
+**Podgląd na żywo:** https://mobywatel.tymoteuszsen.pl/
 Każdy commit na gałęzi `main` pojawia się pod tym adresem po ok. minucie.
 
 ## Co zostało zmienione względem oryginału
