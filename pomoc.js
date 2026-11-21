@@ -13,7 +13,18 @@
   ['oplaty','Opłaty i podatki','może zapłacić w Twoim imieniu'],
   ['pisma','Pisma z urzędów','czyta pisma z e-Doręczeń'],
   ['recepty','Recepty','widzi recepty do wykupienia w aptece']];
- const OKRESY=[['miesiac','1 miesiąc',30],['rok','1 rok',365],['bez','Do odwołania',0]];
+ const OKRESY=[['miesiac','1 miesiąc',30],['bez','Do odwołania',0],['wlasny','Własny termin',null]];
+ const EASE='cubic-bezier(.22,.8,.24,1)',SPOK=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const dzis=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+ const isoDzien=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+ const zIso=t=>{const [y,m,d]=String(t).split('-').map(Number);return new Date(y,m-1,d,23,59,59)};
+ /* koniec upoważnienia: z liczby dni (od przyjęcia) albo konkretna data wybrana przez osobę dającą dostęp */
+ /* pole daty pokazuje daty tak jak reszta aplikacji (przesunięte o CZAS.PRZES dni względem osi danych) */
+ const PR=(window.CZAS&&CZAS.PRZES)||0;
+ const naEkran=iso=>{const d=zIso(iso);d.setDate(d.getDate()+PR);return isoDzien(d)};
+ const zEkranu=iso=>{const d=zIso(iso);d.setDate(d.getDate()-PR);return isoDzien(d)};
+ const koniecDla=w=>w.okres==='wlasny'?zIso(w.koniec).getTime():null;
+ const okresTxt=u=>u.koniec?'do '+D.fmt(new Date(u.koniec)):u.dni?'1 miesiąc':'do odwołania';
  const PUSTY=()=>({up:[],log:[],zal:{},pros:[]});
  const ico=(k,c)=>window.icoH?icoH(k,c):'';
  const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
@@ -44,13 +55,15 @@
  }
 
  /* ---------- „Twoje sprawy”: zaproszenie, przełącznik „Moje / Mama”, sprawy mamy ---------- */
- let KTO=null;   /* czyje sprawy oglądam: null = moje, albo id osoby, która dała mi upoważnienie */
+ let KTO=null,segPrzed=null;   /* segPrzed: skąd ma ruszyć wskaźnik przełącznika „Moje / Mama” */   /* czyje sprawy oglądam: null = moje, albo id osoby, która dała mi upoważnienie */
  function naglowek(){
   const p=st.up.filter(u=>u.do===OS.id&&u.status==='oczekuje');
   const a=aktywneDlaMnie();
   let h=p.map(u=>`<button class="pmbaner" data-pm="zapro" data-id="${u.id}"><span class="pmav" style="background-image:url(assets/foto-${u.od}.svg)"></span>
     <span class="ptx"><b>${nazwa(u.od)} prosi Cię o pomoc</b><small>Zobacz, w czym możesz ${rel(OS.id,u.od)?'pomagać '+rel(OS.id,u.od).relD:'pomagać'}</small></span>${ico('chev','pch')}</button>`).join('');
-  if(a.length)h+=`<div class="pmseg" role="tablist">${[['','Moje sprawy'],...a.map(u=>[u.od,rel(OS.id,u.od)?cap(rel(OS.id,u.od).rel):imie(u.od)])].map(([k,l])=>
+  const opcje=[['','Moje sprawy'],...a.map(u=>[u.od,rel(OS.id,u.od)?cap(rel(OS.id,u.od).rel):imie(u.od)])],teraz=Math.max(0,opcje.findIndex(o=>o[0]===(KTO||'')));
+  if(segPrzed===null||segPrzed>=opcje.length)segPrzed=teraz;
+  if(a.length)h+=`<div class="pmseg" role="tablist" style="--n:${opcje.length};--i:${segPrzed}"><span class="pmwsk" aria-hidden="true"></span>${opcje.map(([k,l])=>
     `<button role="tab" data-pm="kto" data-k="${k}" aria-selected="${(KTO||'')===k}" class="${(KTO||'')===k?'on':''}">${l}</button>`).join('')}</div>`;
   return h;
  }
@@ -110,30 +123,50 @@
 
  /* ---------- Więcej → „Pomoc bliskiej osoby” ---------- */
  let ekran=null;   /* co jest otwarte w arkuszu, żeby odświeżyć po zmianie w drugim telefonie */
- function ekranPomocy(){
+ let byloKl=null;   /* klucze wierszy z poprzedniego rysowania — nowe wiersze dostają animację wejścia */
+ function ekranPomocy(opt={}){
+  const pierwszy=ekran!=='pomoc'&&!opt.nowe;
   ekran='pomoc';
   const moje=odeMnie(),dla=dlaMnie(),rodz=(RODZ[OS.id]||[]);
   const pros=st.pros.filter(p=>p.do===OS.id&&p.status==='czeka');
   const hist=st.log.filter(l=>l.za===OS.id).slice(0,8);
   SP.pokaz('Pomoc bliskiej osoby',`
    <div class="sptxt" style="margin-top:0">Ktoś, komu ufasz — z rodziny, przyjaciel albo sąsiad — może pomagać Ci w sprawach urzędowych na swoim telefonie. Ty decydujesz, w czym, i w każdej chwili możesz to cofnąć.</div>
-   ${pros.length?`<div class="sppgr">Prośby</div><div class="plist">${pros.map(p=>`<div class="prow pmprow"><span class="pmav" style="background-image:url(assets/foto-${p.od}.svg)"></span><span class="ptx"><b>${nazwa(p.od)} prosi o dostęp</b><small>${(ZAKRESY.find(q=>q[0]===p.zakres)||[,''])[1]}</small>
+   ${pros.length?`<div class="sppgr">Prośby</div><div class="plist">${pros.map(p=>`<div class="prow pmprow" data-klucz="p${p.id}"><span class="pmav" style="background-image:url(assets/foto-${p.od}.svg)"></span><span class="ptx"><b>${nazwa(p.od)} prosi o dostęp</b><small>${(ZAKRESY.find(q=>q[0]===p.zakres)||[,''])[1]}</small>
      <span class="pmprz"><button class="pmmaly" data-pm="pros-tak" data-id="${p.id}">Zgadzam się</button><button class="pmmaly ghost" data-pm="pros-nie" data-id="${p.id}">Nie teraz</button></span></span></div>`).join('')}</div>`:''}
    <div class="sppgr">Pomagają Ci</div>
-   ${moje.length?`<div class="plist">${moje.map(u=>`<div class="prow pmprow"><span class="pmav" style="background-image:url(assets/foto-${u.do}.svg)"></span><span class="ptx"><b>${nazwa(u.do)}${rel(OS.id,u.do)?', '+rel(OS.id,u.do).rel:''}</b>
+   ${moje.length?`<div class="plist">${moje.map(u=>`<div class="prow pmprow" data-klucz="m${u.id}${u.status}"><span class="pmav" style="background-image:url(assets/foto-${u.do}.svg)"></span><span class="ptx"><b>${nazwa(u.do)}${rel(OS.id,u.do)?', '+rel(OS.id,u.do).rel:''}</b>
      <small>${u.status==='oczekuje'?'Czeka na przyjęcie zaproszenia':'Aktywne '+doKiedy(u)}</small><small>${cap(zakresTxt(u.zakres))}</small>
      <span class="pmprz"><button class="pmmaly ghost pmcofnij" data-pm="cofnij" data-id="${u.id}">${u.status==='oczekuje'?'Anuluj zaproszenie':'Cofnij dostęp'}</button></span></span></div>`).join('')}</div>`
     :`<div class="pmpusto">Nikt nie ma teraz dostępu do Twoich spraw.</div>`}
    <button class="spbtn" data-pm="nowe">${ico('users')}Upoważnij bliską osobę</button>
-   ${hist.length?`<div class="sppgr">Co zrobiono w Twoim imieniu</div><div class="plist">${hist.map(l=>`<div class="prow pmprow"><span class="pic">${svg('check')}</span><span class="ptx"><b>${imie(l.kto)} ${esc(l.co)}</b><small>${D.fmt(new Date(l.t))}, ${new Date(l.t).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</small></span></div>`).join('')}</div>`:''}
-   ${dla.length?`<div class="sppgr">Pomagasz</div><div class="plist">${dla.map(u=>`<div class="prow pmprow"><span class="pmav" style="background-image:url(assets/foto-${u.od}.svg)"></span><span class="ptx"><b>${nazwa(u.od)}${rel(OS.id,u.od)?', '+rel(OS.id,u.od).rel:''}</b>
+   ${hist.length?`<div class="sppgr">Co zrobiono w Twoim imieniu</div><div class="plist">${hist.map(l=>`<div class="prow pmprow" data-klucz="l${l.t}"><span class="pic">${svg('check')}</span><span class="ptx"><b>${imie(l.kto)} ${esc(l.co)}</b><small>${D.fmt(new Date(l.t))}, ${new Date(l.t).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</small></span></div>`).join('')}</div>`:''}
+   ${dla.length?`<div class="sppgr">Pomagasz</div><div class="plist">${dla.map(u=>`<div class="prow pmprow" data-klucz="d${u.id}${u.status}"><span class="pmav" style="background-image:url(assets/foto-${u.od}.svg)"></span><span class="ptx"><b>${nazwa(u.od)}${rel(OS.id,u.od)?', '+rel(OS.id,u.od).rel:''}</b>
      <small>${u.status==='oczekuje'?'Zaprasza Cię do pomocy':'Aktywne '+doKiedy(u)}</small><small>${cap(zakresTxt(u.zakres))}</small>
      <span class="pmprz">${u.status==='oczekuje'?`<button class="pmmaly" data-pm="zapro" data-id="${u.id}">Zobacz zaproszenie</button>`:`<button class="pmmaly" data-pm="idz" data-k="${u.od}">${rel(OS.id,u.od)&&rel(OS.id,u.od).relB==='mamę'?'Sprawy mamy':'Przejdź do spraw'}</button><button class="pmmaly ghost" data-pm="rezygnuj" data-id="${u.id}">Zrezygnuj</button>`}</span></span></div>`).join('')}</div>`:''}
    <div class="sppgr">Chcesz pomagać komuś bliskiemu?</div>
    <div class="plist"><button class="prow" data-pm="mojznak"><span class="pic">${ico('scan')}</span><span class="ptx"><b>Pokaż mój znak</b><small>Ta osoba skanuje go w swoim telefonie i sama decyduje, w czym możesz pomagać.</small></span>${ico('chev','pch')}</button></div>
    ${OSTRZ}
    <div class="pmstopka">${ico('shield')}<span>Upoważniona osoba nie widzi Twoich dokumentów i niczego za Ciebie nie podpisze. Wszystko, co zrobi, zobaczysz tutaj i w „Kto sprawdzał moje dane”.</span></div>`,
-   el=>el.querySelectorAll('[data-pm]').forEach(b=>b.onclick=()=>klik(b)));
+   el=>{el.querySelectorAll('[data-pm]').forEach(b=>b.onclick=()=>klik(b));
+    const body=el.querySelector('.body'),kl=new Set([...body.querySelectorAll('[data-klucz]')].map(x=>x.dataset.klucz));
+    if(!SPOK()){
+     if(pierwszy)   /* otwarcie: sekcje spokojnie wchodzą jedna po drugiej */
+      [...body.children].forEach((c,i)=>c.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:380,delay:Math.min(i,8)*35,easing:EASE,fill:'backwards'}));
+     else if(byloKl)   /* odświeżenie (np. zmiana na drugim telefonie): wchodzą tylko nowe wiersze, z krótkim podświetleniem */
+      body.querySelectorAll('[data-klucz]').forEach(x=>{if(byloKl.has(x.dataset.klucz))return;
+       x.animate([{opacity:0,transform:'translateY(-6px) scale(.98)'},{opacity:1,transform:'none'}],{duration:360,easing:EASE});
+       x.animate([{background:'#fff6d6'},{background:'#fff'}],{duration:1400,easing:'ease-out'})});
+    }
+    byloKl=kl;
+   });
+ }
+ /* wiersz znika: zwija się i odjeżdża, dopiero potem zmieniamy stan i rysujemy na nowo */
+ function zwin(row,ok){
+  if(!row||SPOK())return Promise.resolve();
+  if(ok){const p=row.querySelector('.pmprz');if(p)p.innerHTML=`<span class="pmok">${svg('check')}${ok}</span>`}
+  const h=row.offsetHeight;row.style.overflow='hidden';
+  return row.animate([{height:h+'px',opacity:1,transform:'none'},{height:h+'px',opacity:ok?1:.4,transform:ok?'none':'translateX(-24px)',offset:ok?.55:.35},{height:'0px',opacity:0,paddingTop:'0px',paddingBottom:'0px',marginTop:'0px',marginBottom:'0px',transform:ok?'none':'translateX(-24px)'}],{duration:ok?900:420,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'}).finished.catch(()=>{});
  }
 
  /* ostrzeżenie przed oszustwem „na policjanta / urzędnika” — w kreatorze i na ekranie pomocy */
@@ -184,11 +217,29 @@
   });
  }
 
+ /* „duch” obecnej treści arkusza: zostaje na wierzchu i odjeżdża, a pod nim wjeżdża nowy ekran */
+ function zdejmij(){
+  const sh=SP.sh;if(!sh.classList.contains('on')||SPOK())return null;const b=sh.querySelector('.body');if(!b)return null;
+  const r=b.getBoundingClientRect(),rs=sh.getBoundingClientRect(),y=b.scrollTop;
+  return {b,r,rs,y};
+ }
+ function przesun(st0,kier,bezPaska){
+  const sh=SP.sh,b=sh.querySelector('.body');if(!b||SPOK())return;
+  if(st0){const g=st0.b;g.classList.add('pmduch');
+   Object.assign(g.style,{position:'absolute',left:(st0.r.left-st0.rs.left)+'px',top:(st0.r.top-st0.rs.top)+'px',width:st0.r.width+'px',height:st0.r.height+'px',pointerEvents:'none',zIndex:2,overflow:'hidden'});
+   if(bezPaska)g.querySelectorAll('.pmkroki').forEach(k=>k.style.visibility='hidden');
+   sh.append(g);g.scrollTop=st0.y;
+   g.animate([{opacity:1,transform:'none'},{opacity:0,transform:`translateX(${-kier*40}px)`}],{duration:200,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'}).finished.then(()=>g.remove(),()=>g.remove());}
+  [...b.children].filter(c=>!(bezPaska&&c.classList.contains('pmkroki'))).forEach((c,i)=>c.animate([{opacity:0,transform:`translateX(${kier*48}px)`},{opacity:1,transform:'none'}],{duration:400,delay:70+Math.min(i,6)*18,easing:EASE,fill:'backwards'}));
+ }
  /* kreator u osoby, która daje dostęp: jak znaleźć osobę → potwierdź osobę → w czym → na jak długo */
  function kreator(w){
   ekran='kreator';
-  w=w||{krok:1,do:null,przez:null,zakres:['sprawy','oplaty'],okres:'rok'};
-  const N=4,nr=typeof w.krok==='number'?w.krok:1,kropki=`<div class="pmkroki" aria-label="Krok ${nr} z ${N}">${Array.from({length:N},(_,n)=>`<i class="${n<nr?'on':''}"></i>`).join('')}</div>`;
+  w=w||{krok:1,do:null,przez:null,zakres:['sprawy','oplaty'],okres:'miesiac'};
+  if(!w.koniec){const d=dzis();d.setMonth(d.getMonth()+3);w.koniec=isoDzien(d)}
+  const N=4,nr=typeof w.krok==='number'?w.krok:1,bylo=w._nr||nr;
+  /* pasek postępu: rysujemy stan poprzedni, a w następnej klatce przełączamy — wypełnienie płynnie rośnie albo się cofa */
+  const kropki=`<div class="pmkroki" role="progressbar" aria-valuemin="1" aria-valuemax="${N}" aria-valuenow="${nr}" aria-label="Krok ${nr} z ${N}">${Array.from({length:N},(_,n)=>`<i class="${n<bylo?'on':''}"><b></b></i>`).join('')}</div>`;
   const r=w.do?rel(OS.id,w.do):null,kogo=w.do?imie(w.do):'';
   let h='';
   if(w.krok===1)h=`${kropki}<h2 class="pmh">Kto ma Ci pomagać?</h2>
@@ -216,18 +267,35 @@
    <div class="spnote">${ico('lock')}<span>${kogo} nie zobaczy Twoich dokumentów i niczego za Ciebie nie podpisze.</span></div>
    <button class="spbtn" data-dalej>Dalej</button>`;
   if(w.krok===4){const ok=OKRESY.find(o=>o[0]===w.okres);
+   const jutro=dzis();jutro.setDate(jutro.getDate()+1);const max=dzis();max.setFullYear(max.getFullYear()+5);
    h=`${kropki}<h2 class="pmh">Na jak długo?</h2>
-   <div class="pmokres">${OKRESY.map(([k,l])=>`<button data-ok="${k}" class="${w.okres===k?'on':''}">${l}</button>`).join('')}</div>
-   <div class="ui"><div class="rows">${rowsH([['Komu',nazwa(w.do)+(r?', '+r.rel:'')],['W czym',cap(zakresTxt(w.zakres))],['Do kiedy',ok[2]?D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania']])}</div></div>
+   <div class="pmokres" role="radiogroup" aria-label="Na jak długo">${OKRESY.map(([k,l])=>`<button role="radio" aria-checked="${w.okres===k}" data-ok="${k}" class="${w.okres===k?'on':''}">${l}</button>`).join('')}</div>
+   <div class="pmdata ${w.okres==='wlasny'?'on':''}"><label class="pmpole"><span>Dostęp wygaśnie</span><input type="date" id="pmkoniec" min="${naEkran(isoDzien(jutro))}" max="${naEkran(isoDzien(max))}" value="${naEkran(w.koniec)}"></label></div>
+   <div class="ui"><div class="rows">${rowsH([['Komu',nazwa(w.do)+(r?', '+r.rel:'')],['W czym',cap(zakresTxt(w.zakres))],['Do kiedy',`<span class="pmdokiedy">${w.okres==='wlasny'?D.fmt(zIso(w.koniec)):ok[2]?D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania'}</span>`]])}</div></div>
    ${OSTRZ}
    <div class="sptxt">${kogo} dostanie zaproszenie w swojej aplikacji. Dostęp zacznie działać, gdy je przyjmie. Cofniesz go w każdej chwili.</div>
    <button class="spbtn" data-dalej>Potwierdź i wyślij</button>`}
+  /* przejście między krokami: poprzedni ekran odjeżdża, nowy wjeżdża z kierunku ruchu; pasek zostaje na miejscu */
+  const klucz=String(w.krok),kier=w._kier||1;w._kier=1;
+  const stary=w._klucz&&w._klucz!==klucz?zdejmij():null;
+  w._klucz=klucz;w._nr=nr;
   SP.pokaz('Upoważnij bliską osobę',h,el=>{
+   przesun(stary,kier,true);
+   requestAnimationFrame(()=>requestAnimationFrame(()=>el.querySelectorAll('.pmkroki i').forEach((x,n)=>{x.classList.toggle('on',n<nr);x.style.transitionDelay=Math.abs(n-(bylo-1))*60+'ms'})));
    el.querySelectorAll('[data-spos]').forEach(b=>b.onclick=()=>{if(b.dataset.spos==='znak'){skanuj(w);return}w.krok=b.dataset.spos;kreator(w)});
    el.querySelectorAll('[data-zk]').forEach(b=>b.onclick=()=>{if(b.getAttribute('aria-disabled')==='true')return;const k=b.dataset.zk;w.zakres=w.zakres.includes(k)?w.zakres.filter(x=>x!==k):[...w.zakres,k];
     b.setAttribute('aria-checked',w.zakres.includes(k));b.querySelector('.spsw').classList.toggle('on',w.zakres.includes(k))});
-   el.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{w.okres=b.dataset.ok;kreator(w)});
-   const nowa=el.querySelector('[data-od-nowa]');if(nowa)nowa.onclick=()=>kreator();
+   el.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{w.okres=b.dataset.ok;
+    /* bez przeładowania kroku: zaznaczenie, pole daty i podsumowanie zmieniają się na miejscu */
+    el.querySelectorAll('[data-ok]').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)});
+    const pd=el.querySelector('.pmdata');pd.classList.toggle('on',w.okres==='wlasny');podsum()});
+   const kn=el.querySelector('#pmkoniec');
+   const podsum=()=>{const r=el.querySelector('.pmdokiedy');if(!r)return;const ok=OKRESY.find(o=>o[0]===w.okres);
+    r.textContent=w.okres==='wlasny'?D.fmt(zIso(w.koniec)):ok[2]?D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania';
+    r.animate([{opacity:.3},{opacity:1}],{duration:260})};
+   if(kn)kn.onchange=()=>{if(!kn.value)return;const v=zEkranu(kn.value),t=zIso(v);const j=dzis();j.setDate(j.getDate()+1);
+    if(t<j){kn.value=naEkran(w.koniec);SP.toast('Wybierz datę od jutra.');return}w.koniec=v;podsum()};
+   const nowa=el.querySelector('[data-od-nowa]');if(nowa)nowa.onclick=()=>{w.krok=1;w.do=null;w._kier=-1;kreator(w)};
    /* PESEL + numer dowodu */
    const sz=el.querySelector('[data-szukaj]');
    if(sz){const pe=el.querySelector('#pmpesel'),dw=el.querySelector('#pmdow');
@@ -248,12 +316,13 @@
     if(w.krok<4){w.krok++;kreator(w);return}
     await faceid();
     st=wczytaj();const ok=OKRESY.find(o=>o[0]===w.okres);
-    st.up.unshift({id:'u'+Date.now(),od:OS.id,do:w.do,przez:w.przez,zakres:ZAKRESY.map(z=>z[0]).filter(k=>w.zakres.includes(k)),okres:w.okres,dni:ok[2],utw:Date.now(),status:'oczekuje'});
+    st.up.unshift({id:'u'+Date.now(),od:OS.id,do:w.do,przez:w.przez,zakres:ZAKRESY.map(z=>z[0]).filter(k=>w.zakres.includes(k)),okres:w.okres,dni:ok[2]||0,koniec:koniecDla(w),utw:Date.now(),status:'oczekuje'});
     zapisz();ekran='pomoc';
     const box=SP.sh.querySelector('.body');
     box.innerHTML=`<div class="spok">${svg('check')}<b>Zaproszenie wysłane</b><div class="sptxt">${kogo} zobaczy je w swojej aplikacji, w „Twoich sprawach”. Gdy je przyjmie, dostaniesz powiadomienie.</div></div>
      <div id="spakcja"><button class="spbtn ghost" data-wroc>Gotowe</button></div>`;
-    box.querySelector('[data-wroc]').onclick=()=>ekranPomocy();
+    if(!SPOK())[...box.children].forEach((c,i)=>c.animate([{opacity:0,transform:'translateY(12px) scale(.98)'},{opacity:1,transform:'none'}],{duration:420,delay:i*90,easing:EASE,fill:'backwards'}));
+    box.querySelector('[data-wroc]').onclick=()=>{const s0=zdejmij();ekranPomocy({nowe:true});przesun(s0,-1,false)};
    };
   });
  }
@@ -308,11 +377,11 @@
    <div class="sphero"><span class="pmav duzy" style="background-image:url(assets/foto-${u.od}.svg)"></span><h2>${nazwa(u.od)}${r?', Twoja '+r.rel:''}, prosi Cię o pomoc w sprawach urzędowych</h2></div>
    <div class="sppgr">Będziesz ${OS.plec==='K'?'mogła':'mógł'}</div>
    <div class="plist">${ZAKRESY.filter(z=>u.zakres.includes(z[0])).map(([k,t,s])=>`<div class="prow pmprow"><span class="pic">${svg('check')}</span><span class="ptx"><b>${t}</b><small>${s.replace('Twoje','jej').replace('Twoim imieniu','jej imieniu')}</small></span></div>`).join('')}</div>
-   <div class="ui"><div class="rows">${rowsH([['Na',(OKRESY.find(o=>o[0]===u.okres)||[,''])[1].toLowerCase()],['Każde działanie','widzi '+imie(u.od)]])}</div></div>
+   <div class="ui"><div class="rows">${rowsH([['Na',okresTxt(u)],['Każde działanie','widzi '+imie(u.od)]])}</div></div>
    <div id="spakcja"><button class="spbtn" id="pmtak">Przyjmij</button><button class="spbtn ghost" id="pmnie">Odrzuć</button></div>`,
    el=>{
     el.querySelector('#pmtak').onclick=async()=>{await faceid();st=wczytaj();const x=st.up.find(y=>y.id===id);if(!x)return;
-     x.status='aktywne';x.od_dnia=Date.now();x.do_dnia=x.dni?Date.now()+x.dni*DAY:null;loguj(OS.id,x.od,rodzaj('przyjęła','przyjął')+' upoważnienie');zapisz();
+     x.status='aktywne';x.od_dnia=Date.now();x.do_dnia=x.koniec||(x.dni?Date.now()+x.dni*DAY:null);loguj(OS.id,x.od,rodzaj('przyjęła','przyjął')+' upoważnienie');zapisz();
      KTO=x.od;ekran=null;
      el.querySelector('#spakcja').innerHTML=`<div class="spok">${svg('check')}<b>Możesz już pomagać</b><div class="sptxt">${r&&r.relB==='mamę'?'Sprawy mamy są':'Sprawy: '+nazwa(x.od)+' są'} w „Twoich sprawach”.</div></div><button class="spbtn" id="pmidz">Przejdź do spraw</button>`;
      el.querySelector('#pmidz').onclick=()=>{SP.zamknij();idzDoSpraw(x.od)}};
@@ -324,11 +393,24 @@
  /* jeden punkt obsługi przycisków z data-pm (strona i arkusz) */
  function klik(b){
   const a=b.dataset.pm,id=b.dataset.id;
-  if(a==='kto'){KTO=b.dataset.k||null;if(window.odswiezStrone)odswiezStrone();return}
+  if(a==='kto'){
+   const seg=b.closest('.pmseg'),bt=seg?[...seg.querySelectorAll('button')]:[],od=bt.findIndex(x=>x.classList.contains('on')),do_=bt.indexOf(b);
+   if(od===do_)return;
+   segPrzed=od;KTO=b.dataset.k||null;if(window.odswiezStrone)odswiezStrone();
+   /* wskaźnik przejeżdża pod nową opcję, a lista wjeżdża z tej strony, w którą przesuwa się wskaźnik */
+   const pg=document.querySelector('#page'),ns=pg&&pg.querySelector('.pmseg');
+   if(ns)requestAnimationFrame(()=>requestAnimationFrame(()=>{ns.style.setProperty('--i',do_);segPrzed=do_}));else segPrzed=do_;
+   if(pg&&ns&&!SPOK()){const k=do_>od?1:-1;let i=0;for(let el=ns.nextElementSibling;el;el=el.nextElementSibling)
+    el.animate([{opacity:0,transform:`translateX(${k*36}px)`},{opacity:1,transform:'none'}],{duration:380,delay:Math.min(i++,5)*25,easing:EASE,fill:'backwards'})}
+   return}
   if(a==='zapro'){zaproszenie(id);return}
-  if(a==='nowe'){kreator();return}
+  if(a==='nowe'){const s0=zdejmij();kreator();przesun(s0,1,false);return}
   if(a==='mojznak'){mojZnak();return}
   if(a==='idz'){SP.zamknij();idzDoSpraw(b.dataset.k);return}
+  const row=b.closest&&b.closest('.prow');
+  if((a==='cofnij'||a==='rezygnuj'||a==='pros-tak'||a==='pros-nie')&&row&&!b.dataset.anim){
+   b.dataset.anim=1;row.querySelectorAll('button').forEach(x=>x.disabled=true);
+   zwin(row,a==='pros-tak'?'Dostęp rozszerzony':null).then(()=>{byloKl=null;klik(b)});return}
   st=wczytaj();
   if(a==='cofnij'||a==='rezygnuj'){const u=st.up.find(x=>x.id===id);if(u){const by=u.status;u.status='cofniete';u.cofn=Date.now();u.kto_cofnal=OS.id;
     if(a==='rezygnuj'&&by==='aktywne')loguj(OS.id,u.od,rodzaj('zrezygnowała','zrezygnował')+' z upoważnienia');zapisz()}
@@ -373,6 +455,7 @@
 
  /* zamknięcie arkusza ze znakiem = znak przestaje działać */
  addEventListener('pagehide',schowajZnak);
+ new MutationObserver(()=>{if(!SP.sh.classList.contains('on')&&ekran!=='mojznak'){ekran=null;byloKl=null}}).observe(SP.sh,{attributes:true,attributeFilter:['class']});
  /* Więcej → „Pomoc bliskiej osoby” otwiera nasz ekran */
  const ow=window.otworzWiecej;
  window.otworzWiecej=n=>n==='Pomoc bliskiej osoby'?ekranPomocy():(ekran=null,ow(n));

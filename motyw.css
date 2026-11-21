@@ -177,3 +177,24 @@ html[data-motyw="urzedowy"] .qalt{border-radius:var(--r-s)}
 .pmkratki input.zly{border-color:#b3122e;animation:pmzly .3s}
 @keyframes pmzly{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
 .pmpodp{display:block;font-size:12.5px;color:var(--ink2);margin:6px 2px 0}
+/* upoważnienia: animacje */
+.pmkroki i{position:relative;overflow:hidden;background:var(--line)}
+.pmkroki i.on{background:var(--line)}
+.pmkroki i b{position:absolute;inset:0;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .45s cubic-bezier(.22,.8,.24,1)}
+.pmkroki i.on b{transform:scaleX(1)}
+.pmseg{position:relative}
+.pmseg .pmwsk{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:4px;background:var(--ink,#1b1f27);transform:translateX(calc(100% * var(--i,0)));transition:transform .38s cubic-bezier(.22,.8,.24,1)}
+.pmseg button{position:relative;z-index:1;background:none!important;transition:color .25s}
+.pmdata{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s cubic-bezier(.22,.8,.24,1),opacity .25s;opacity:0}
+.pmdata>*{overflow:hidden;margin-top:0}
+.pmdata.on{grid-template-rows:1fr;opacity:1}
+.pmdata .pmpole{padding:2px 1px 10px}
+.pmdata input[type=date]{width:100%;min-height:48px;border:1px solid var(--line);border-radius:var(--r-s,6px);background:#fff;padding:0 14px;font:inherit;font-size:17px}
+.pmokres button{transition:border-color .2s,color .2s,box-shadow .2s}
+.pmok{display:inline-flex;align-items:center;gap:6px;color:#1b7a3d;font-weight:600;font-size:13.5px}
+.pmok svg{width:18px;height:18px;animation:pmpop .35s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pmpop{from{transform:scale(.3);opacity:0}}
+.pmbaner{animation:pmwjazd .45s cubic-bezier(.22,.8,.24,1) both}
+@keyframes pmwjazd{from{opacity:0;transform:translateY(-8px)}}
+.pmimie{animation:pmwjazd .4s cubic-bezier(.22,.8,.24,1) both}
+@media (prefers-reduced-motion:reduce){.pmkroki i b,.pmseg .pmwsk,.pmdata{transition:none}.pmbaner,.pmimie,.pmok svg{animation:none}}
