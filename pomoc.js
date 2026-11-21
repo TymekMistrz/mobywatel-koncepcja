@@ -193,6 +193,25 @@
  const osobaZTokenu=t=>((t>>8)&31)===TAG?IDS[(t>>13)&7]||null:null;
  const opublikowany=()=>{try{const z=JSON.parse(localStorage.getItem(KZNAK));if(z&&Date.now()-z.t<5*60e3)return z}catch(e){}return null};
 
+ /* kalendarz terminu upoważnienia: daty takie, jak widzi je użytkownik (oś danych + CZAS.PRZES) */
+ const MIES=['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'];
+ const dzisEkran=()=>{const d=dzis();d.setDate(d.getDate()+PR);return d};
+ function kalendarz(w){
+  const sel=zIso(naEkran(w.koniec));sel.setHours(0,0,0,0);
+  const min=dzisEkran();min.setDate(min.getDate()+1);const max=dzisEkran();max.setFullYear(max.getFullYear()+5);
+  if(!w.kal)w.kal=[sel.getFullYear(),sel.getMonth()];
+  const [y,m]=w.kal,pierwszy=new Date(y,m,1),przes=(pierwszy.getDay()+6)%7,ile=new Date(y,m+1,0).getDate(),dz=dzisEkran();
+  const poprz=new Date(y,m,0)>=min,nast=new Date(y,m+1,1)<=max;
+  let dni='';for(let i=0;i<przes;i++)dni+='<span></span>';
+  for(let d=1;d<=ile;d++){const t=new Date(y,m,d),off=t<min||t>max,on=t.getTime()===sel.getTime(),dzis_=t.getTime()===dz.getTime();
+   dni+=`<button type="button" data-kd="${isoDzien(t)}" class="${on?'on':''} ${dzis_?'dzis':''}" ${off?'disabled':''} aria-pressed="${on}" aria-label="${d} ${MIES[m]} ${y}">${d}</button>`}
+  const ileDni=Math.round((sel-dz)/DAY);
+  return `<div class="pmkwyb" data-stala><b>${String(sel.getDate()).padStart(2,'0')}.${String(sel.getMonth()+1).padStart(2,'0')}.${sel.getFullYear()}</b><small>za ${ileDni} ${ileDni===1?'dzień':'dni'}</small></div>
+   <div class="pmkszyb">${[[3,'3 miesiące'],[6,'pół roku'],[12,'rok']].map(([k,l])=>`<button type="button" data-kq="${k}">${l}</button>`).join('')}</div>
+   <div class="pmkgl"><button type="button" data-km="-1" ${poprz?'':'disabled'} aria-label="Poprzedni miesiąc">‹</button><b>${MIES[m]} ${y}</b><button type="button" data-km="1" ${nast?'':'disabled'} aria-label="Następny miesiąc">›</button></div>
+   <div class="pmktyg"><span>Pn</span><span>Wt</span><span>Śr</span><span>Cz</span><span>Pt</span><span>Sb</span><span>Nd</span></div>
+   <div class="pmkdni">${dni}</div>`;
+ }
  /* kratki: jedna kratka na znak. D = cyfra, L = litera (A–Z). przerwy: indeksy, przed którymi jest odstęp */
  function kratki(id,wzor,przerwy,wart,etyk){
   return `<div class="pmkratki" id="${id}" role="group" aria-labelledby="${etyk}">${[...wzor].map((t,i)=>`<input class="${przerwy.includes(i)?'od':''}" data-t="${t}" maxlength="1" inputmode="${t==='D'?'numeric':'text'}" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" aria-label="${t==='D'?'cyfra':'litera'} ${i+1}" value="${esc((wart||'')[i]||'')}">`).join('')}</div>`}
@@ -274,7 +293,7 @@
    const jutro=dzis();jutro.setDate(jutro.getDate()+1);const max=dzis();max.setFullYear(max.getFullYear()+5);
    h=`${kropki}<h2 class="pmh">Na jak długo?</h2>
    <div class="pmokres" role="radiogroup" aria-label="Na jak długo">${OKRESY.map(([k,l])=>`<button role="radio" aria-checked="${w.okres===k}" data-ok="${k}" class="${w.okres===k?'on':''}">${l}</button>`).join('')}</div>
-   <div class="pmdata ${w.okres==='wlasny'?'on':''}"><label class="pmpole"><span>Dostęp wygaśnie</span><input type="date" id="pmkoniec" min="${naEkran(isoDzien(jutro))}" max="${naEkran(isoDzien(max))}" value="${naEkran(w.koniec)}"></label></div>
+   <div class="pmdata ${w.okres==='wlasny'?'on':''}"><div><div class="pmkal" id="pmkal">${kalendarz(w)}</div></div></div>
    <div class="ui"><div class="rows">${rowsH([['Komu',nazwa(w.do)],['Data urodzenia',urodz(w.do)],['W czym',cap(zakresTxt(w.zakres))],['Do kiedy',`<span class="pmdokiedy">${w.okres==='wlasny'?D.fmt(zIso(w.koniec)):ok[2]?D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania'}</span>`]])}</div></div>
    ${OSTRZ}
    <div class="sptxt">${kogo} dostanie zaproszenie w swojej aplikacji. Dostęp zacznie działać, gdy je przyjmie. Cofniesz go w każdej chwili.</div>
@@ -293,12 +312,19 @@
     /* bez przeładowania kroku: zaznaczenie, pole daty i podsumowanie zmieniają się na miejscu */
     el.querySelectorAll('[data-ok]').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)});
     const pd=el.querySelector('.pmdata');pd.classList.toggle('on',w.okres==='wlasny');podsum()});
-   const kn=el.querySelector('#pmkoniec');
    const podsum=()=>{const r=el.querySelector('.pmdokiedy');if(!r)return;const ok=OKRESY.find(o=>o[0]===w.okres);
     r.textContent=w.okres==='wlasny'?D.fmt(zIso(w.koniec)):ok[2]?D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania';
     r.animate([{opacity:.3},{opacity:1}],{duration:260})};
-   if(kn)kn.onchange=()=>{if(!kn.value)return;const v=zEkranu(kn.value),t=zIso(v);const j=dzis();j.setDate(j.getDate()+1);
-    if(t<j){kn.value=naEkran(w.koniec);SP.toast('Wybierz datę od jutra.');return}w.koniec=v;podsum()};
+   /* własny kalendarz zamiast systemowego pola daty (to na iPhonie wychodziło poza ekran) */
+   const kal=el.querySelector('#pmkal');
+   if(kal)kal.addEventListener('click',e=>{
+    const d=e.target.closest('[data-kd]'),m=e.target.closest('[data-km]'),q=e.target.closest('[data-kq]');
+    if(d&&!d.disabled){w.koniec=zEkranu(d.dataset.kd);kal.innerHTML=kalendarz(w);podsum();return}
+    if(q){const t=dzisEkran();t.setMonth(t.getMonth()+ +q.dataset.kq);w.koniec=zEkranu(isoDzien(t));w.kal=null;kal.innerHTML=kalendarz(w);podsum();return}
+    if(m&&!m.disabled){const k=+m.dataset.km,[y,mo]=w.kal;const n=new Date(y,mo+k,1);w.kal=[n.getFullYear(),n.getMonth()];
+     const st=kal.querySelector('.pmkdni');kal.innerHTML=kalendarz(w);
+     if(!SPOK())kal.querySelector('.pmkdni').animate([{opacity:0,transform:`translateX(${k*28}px)`},{opacity:1,transform:'none'}],{duration:300,easing:EASE})}
+   });
    const nowa=el.querySelector('[data-od-nowa]');if(nowa)nowa.onclick=()=>{w.krok=1;w.do=null;w._kier=-1;kreator(w)};
    /* PESEL + numer dowodu */
    const sz=el.querySelector('[data-szukaj]');
