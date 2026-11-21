@@ -90,7 +90,8 @@ const OSOBY={
   ask:{dowod:'Kiedy mój dowód traci ważność?',pj:'Ile mam punktów karnych?',auto:'Kiedy kończy się OC Golfa?',leg:'Jaką zniżkę na pociąg daje mi legitymacja?'}
  }
 };
-/* rodzina z rejestru PESEL: kto może komu udzielić upoważnienia (pomoc.js, panel pokazu) */
+/* pary w pokazie: bliska osoba obok (panel: drugi telefon) i jak się do siebie zwracają.
+   Upoważnić można każdą osobę z mObywatelem — nie tylko krewnych (pomoc.js szuka po PESEL i dowodzie albo po znaku). */
 const RODZINA={halina:[{id:'ewa',rel:'córka',relD:'córce',relB:'córkę'}],ewa:[{id:'halina',rel:'mama',relD:'mamie',relB:'mamę'}]};
 const OSOBA_ID=(()=>{let q=null;try{q=new URLSearchParams(location.search).get('osoba')}catch(e){}
  if(q&&OSOBY[q]){try{localStorage.setItem('mobOsoba',q)}catch(e){}return q}

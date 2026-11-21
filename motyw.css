@@ -146,3 +146,27 @@ html[data-motyw="urzedowy"] .qalt{border-radius:var(--r-s)}
 .pmbaner b,.pmimie b{display:block;font-weight:600;line-height:1.25}
 .pmbaner small,.pmimie small{display:block;line-height:1.3;margin-top:2px}
 .pmbaner .pch{width:18px;height:18px;color:#a0a6b2;flex-shrink:0}
+.pmostrz{display:flex;gap:10px;align-items:flex-start;background:#fff4e5;border:1px solid #f3cf95;border-radius:var(--r-m,8px);padding:12px 14px;margin:12px 0 4px;font-size:13.5px;line-height:1.4;color:#5b3a00}
+.pmostrz svg{width:20px;height:20px;flex:none;color:#b45309;margin-top:1px}
+.pmostrz b{font-weight:700}
+.pmsposob{margin-top:12px}
+.pmpole{display:block;margin:12px 0 0}
+.pmpole span{display:block;font-size:13px;font-weight:600;color:var(--ink2);margin:0 2px 6px}
+.pmpole input{width:100%;min-height:48px;border:1px solid var(--line);border-radius:var(--r-s,6px);background:#fff;padding:0 14px;font:inherit;font-size:17px;letter-spacing:.04em}
+.pmpole input:focus{outline:2px solid var(--red);outline-offset:1px;border-color:transparent}
+.pmblad{min-height:20px;color:#b3122e;font-size:13.5px;margin:8px 2px 4px}
+.pmblad:empty{min-height:8px}
+.pmpokaz{display:block;margin:12px auto 0;font-size:13px;color:var(--ink2);text-decoration:underline;padding:6px}
+.sp [data-szukaj]{width:100%}
+.pmcel{position:relative;aspect-ratio:1;max-width:280px;margin:8px auto 4px;background:#111418;border-radius:var(--r-m,8px);display:grid;place-items:center;overflow:hidden}
+.pmcel .pmramka{width:62%;aspect-ratio:1;border-radius:50%;border:2px dashed rgba(255,255,255,.55);animation:pmpuls 1.6s ease-in-out infinite}
+@keyframes pmpuls{50%{transform:scale(1.05);border-color:rgba(255,255,255,.85)}}
+.pmcel p{position:absolute;left:14px;right:14px;bottom:12px;margin:0;color:#e8eaef;font-size:13px;line-height:1.35;text-align:center}
+.pmosoba{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:var(--r-m,8px);padding:14px;margin-top:6px}
+.pmosoba b{display:block;font-size:17px}.pmosoba small{display:block;color:var(--ink2);font-size:13px;margin-top:3px}
+.pmznak{width:min(72%,260px);aspect-ratio:1;margin:10px auto 4px;border-radius:50%;box-shadow:0 18px 50px -20px rgba(15,25,60,.45)}
+.pmznak svg{display:block;width:100%;height:100%}
+.sptxt.c{text-align:center}
+.pmczek{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink2);font-size:14px;margin:10px 0}
+.pmczek i{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pmpuls2 1.2s ease-in-out infinite}
+@keyframes pmpuls2{50%{opacity:.25}}

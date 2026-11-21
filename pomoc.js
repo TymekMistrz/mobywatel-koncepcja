@@ -1,4 +1,4 @@
-/* ---------- Pomoc bliskiej osoby: upoważnienia w rodzinie ----------
+/* ---------- Pomoc bliskiej osoby: upoważnienie dla zaufanej osoby (rodzina, przyjaciel, sąsiad) ----------
    Osoba starsza (Halina) daje bliskiej osobie (córce Ewie) dostęp do wybranych spraw:
    zakres, czas, potwierdzenie Face ID. Ewa przyjmuje zaproszenie i w „Twoich sprawach”
    przełącza się na sprawy mamy — może działać tylko w udzielonym zakresie, a każde jej działanie
@@ -62,10 +62,10 @@
   const t=os.tiles||[];
   return naglowek()+`
    <div class="pmimie"><span class="pmav" style="background-image:url(assets/foto-${KTO}.svg)"></span><span class="ptx"><b>Działasz w imieniu: ${nazwa(KTO)}</b><small>Upoważnienie ${doKiedy(u)} · ${zakresTxt(u.zakres)}</small></span></div>
-   <div class="pgr">Sprawy ${r?r.relB==='mamę'?'mamy':'córki':imie(KTO)} · ${t.length}</div>
+   <div class="pgr">${r?'Sprawy '+(r.relB==='mamę'?'mamy':'córki'):'Sprawy: '+nazwa(KTO)} · ${t.length}</div>
    <div class="plist">${t.map((x,i)=>{const moze=!x.z||u.zakres.includes(x.z);const ok=z.has(x.h);
     return `<button class="prow" data-h="${i}"><span class="pic ${x.u&&!ok?'pil':''}">${ico(moze?(x.i==='car'?'car':x.i==='coin'?'coin':x.i==='doc'?'doc':'mail'):'lock')}</span><span class="ptx"><b>${x.h}</b>${ok?'<small class="gotowe">Załatwione</small>':`<small class="${x.u?'pilne':''}">${x.d}</small>`}<small>${moze?'':'Bez dostępu: '+(ZAKRESY.find(q=>q[0]===x.z)||[,''])[1].toLowerCase()}</small></span>${ico('chev','pch')}</button>`}).join('')}</div>
-   <div class="pmstopka">${ico('shield')}<span>${imie(KTO)} widzi w swojej aplikacji wszystko, co tu zrobisz. Dokumentów ${r&&r.relB==='mamę'?'mamy':''} nie zobaczysz i niczego za nią nie podpiszesz.</span></div>`;
+   <div class="pmstopka">${ico('shield')}<span>${imie(KTO)} widzi w swojej aplikacji wszystko, co tu zrobisz. ${OSOBY[KTO].plec==='K'?'Jej':'Jego'} dokumentów nie zobaczysz i niczego za ${OSOBY[KTO].plec==='K'?'nią':'niego'} nie podpiszesz.</span></div>`;
  }
 
  /* sprawa osoby, która dała upoważnienie — akcje tylko w udzielonym zakresie */
@@ -73,16 +73,16 @@
   const u=aktywneDlaMnie().find(x=>x.od===KTO);if(!u)return;
   const t=OSOBY[KTO].tiles[i],kto=KTO,r=rel(OS.id,kto),moze=!t.z||u.zakres.includes(t.z);
   const z=zal(kto),s=SP.stan(t,z),d=D.data(t.d),kw=((/([\d\s]+(?:,\d{2})?)\s*zł/.exec(t.d)||[])[1]||'').trim();
-  const kogo=r?(r.relB==='mamę'?'mamy':'córki'):imie(kto);
+  const kogo=r?(r.relB==='mamę'?'mamy':'córki'):'tej osoby';   /* nie tylko rodzina: bez relacji piszemy ogólnie */
   const wiersze=[['W imieniu',nazwa(kto)]];if(d)wiersze.push(['Termin',d+(D.termin(d)?' ('+D.termin(d)+')':'')]);else wiersze.push(['Status',t.d]);
   let akcja='';
   if(!moze)akcja=`<div class="spnote pmlock">${ico('lock')}<span>${cap(r?r.rel:imie(kto))} nie dał${OSOBY[kto].plec==='K'?'a':''} Ci dostępu do: <b>${(ZAKRESY.find(q=>q[0]===t.z)||[,''])[1].toLowerCase()}</b>.</span></div>
     <button class="spbtn" id="pmpros">Poproś o dostęp</button>`;
   else if(z.has(t.h))akcja='';
-  else if(t.k==='pay')akcja=`<button class="spbtn" id="pmgo">Zapłać ${kw} zł za ${r&&r.relB==='mamę'?'mamę':imie(kto)}</button>`;
+  else if(t.k==='pay')akcja=`<button class="spbtn" id="pmgo">Zapłać ${kw} zł${r&&r.relB==='mamę'?' za mamę':''}</button>`;
   else if(t.k==='recepty')akcja=`<button class="spbtn" id="pmgo">Pokaż kody recept</button>`;
   else if(t.k==='letter')akcja=`<button class="spbtn" id="pmgo">Przeczytaj pismo</button>`;
-  SP.pokaz('Sprawa '+kogo,`
+  SP.pokaz(r?'Sprawa '+kogo:'Sprawa: '+nazwa(kto),`
    <div class="sphero"><span class="spic">${svg(t.i==='coin'?'coin':t.i==='doc'?'doc':t.i==='car'?'car':'mail')}</span>
     <h2>${t.h}</h2><span class="sppill ${s.cls}">${s.txt}</span></div>
    <div class="ui"><div class="rows">${rowsH(wiersze)}</div></div>
@@ -115,9 +115,8 @@
   const moje=odeMnie(),dla=dlaMnie(),rodz=(RODZ[OS.id]||[]);
   const pros=st.pros.filter(p=>p.do===OS.id&&p.status==='czeka');
   const hist=st.log.filter(l=>l.za===OS.id).slice(0,8);
-  const wolni=rodz.filter(r=>!moje.some(u=>u.do===r.id));
   SP.pokaz('Pomoc bliskiej osoby',`
-   <div class="sptxt" style="margin-top:0">Bliska osoba może pomagać Ci w sprawach urzędowych na swoim telefonie. Ty decydujesz, w czym, i w każdej chwili możesz to cofnąć.</div>
+   <div class="sptxt" style="margin-top:0">Ktoś, komu ufasz — z rodziny, przyjaciel albo sąsiad — może pomagać Ci w sprawach urzędowych na swoim telefonie. Ty decydujesz, w czym, i w każdej chwili możesz to cofnąć.</div>
    ${pros.length?`<div class="sppgr">Prośby</div><div class="plist">${pros.map(p=>`<div class="prow pmprow"><span class="pmav" style="background-image:url(assets/foto-${p.od}.svg)"></span><span class="ptx"><b>${nazwa(p.od)} prosi o dostęp</b><small>${(ZAKRESY.find(q=>q[0]===p.zakres)||[,''])[1]}</small>
      <span class="pmprz"><button class="pmmaly" data-pm="pros-tak" data-id="${p.id}">Zgadzam się</button><button class="pmmaly ghost" data-pm="pros-nie" data-id="${p.id}">Nie teraz</button></span></span></div>`).join('')}</div>`:''}
    <div class="sppgr">Pomagają Ci</div>
@@ -125,56 +124,134 @@
      <small>${u.status==='oczekuje'?'Czeka na przyjęcie zaproszenia':'Aktywne '+doKiedy(u)}</small><small>${cap(zakresTxt(u.zakres))}</small>
      <span class="pmprz"><button class="pmmaly ghost pmcofnij" data-pm="cofnij" data-id="${u.id}">${u.status==='oczekuje'?'Anuluj zaproszenie':'Cofnij dostęp'}</button></span></span></div>`).join('')}</div>`
     :`<div class="pmpusto">Nikt nie ma teraz dostępu do Twoich spraw.</div>`}
-   ${wolni.length||!rodz.length?`<button class="spbtn" data-pm="nowe">${ico('users')}Upoważnij bliską osobę</button>`:''}
+   <button class="spbtn" data-pm="nowe">${ico('users')}Upoważnij bliską osobę</button>
    ${hist.length?`<div class="sppgr">Co zrobiono w Twoim imieniu</div><div class="plist">${hist.map(l=>`<div class="prow pmprow"><span class="pic">${svg('check')}</span><span class="ptx"><b>${imie(l.kto)} ${esc(l.co)}</b><small>${D.fmt(new Date(l.t))}, ${new Date(l.t).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</small></span></div>`).join('')}</div>`:''}
    ${dla.length?`<div class="sppgr">Pomagasz</div><div class="plist">${dla.map(u=>`<div class="prow pmprow"><span class="pmav" style="background-image:url(assets/foto-${u.od}.svg)"></span><span class="ptx"><b>${nazwa(u.od)}${rel(OS.id,u.od)?', '+rel(OS.id,u.od).rel:''}</b>
      <small>${u.status==='oczekuje'?'Zaprasza Cię do pomocy':'Aktywne '+doKiedy(u)}</small><small>${cap(zakresTxt(u.zakres))}</small>
-     <span class="pmprz">${u.status==='oczekuje'?`<button class="pmmaly" data-pm="zapro" data-id="${u.id}">Zobacz zaproszenie</button>`:`<button class="pmmaly" data-pm="idz" data-k="${u.od}">Sprawy ${rel(OS.id,u.od)&&rel(OS.id,u.od).relB==='mamę'?'mamy':imie(u.od)}</button><button class="pmmaly ghost" data-pm="rezygnuj" data-id="${u.id}">Zrezygnuj</button>`}</span></span></div>`).join('')}</div>`:''}
+     <span class="pmprz">${u.status==='oczekuje'?`<button class="pmmaly" data-pm="zapro" data-id="${u.id}">Zobacz zaproszenie</button>`:`<button class="pmmaly" data-pm="idz" data-k="${u.od}">${rel(OS.id,u.od)&&rel(OS.id,u.od).relB==='mamę'?'Sprawy mamy':'Przejdź do spraw'}</button><button class="pmmaly ghost" data-pm="rezygnuj" data-id="${u.id}">Zrezygnuj</button>`}</span></span></div>`).join('')}</div>`:''}
+   <div class="sppgr">Chcesz pomagać komuś bliskiemu?</div>
+   <div class="plist"><button class="prow" data-pm="mojznak"><span class="pic">${ico('scan')}</span><span class="ptx"><b>Pokaż mój znak</b><small>Ta osoba skanuje go w swoim telefonie i sama decyduje, w czym możesz pomagać.</small></span>${ico('chev','pch')}</button></div>
+   ${OSTRZ}
    <div class="pmstopka">${ico('shield')}<span>Upoważniona osoba nie widzi Twoich dokumentów i niczego za Ciebie nie podpisze. Wszystko, co zrobi, zobaczysz tutaj i w „Kto sprawdzał moje dane”.</span></div>`,
    el=>el.querySelectorAll('[data-pm]').forEach(b=>b.onclick=()=>klik(b)));
  }
 
- /* kreator: komu → w czym → na jak długo → potwierdzenie */
+ /* ostrzeżenie przed oszustwem „na policjanta / urzędnika” — w kreatorze i na ekranie pomocy */
+ const OSTRZ=`<div class="pmostrz" role="note">${ico('alert')}<span><b>Policja, urząd, bank ani ZUS nigdy nie poproszą Cię o takie upoważnienie</b> — ani przez telefon, ani osobiście. Jeśli ktoś Cię do tego namawia albo pogania, to oszustwo. Przerwij i zadzwoń do kogoś bliskiego.</span></div>`;
+
+ /* PESEL: suma kontrolna; numer dowodu: 3 litery + 6 cyfr */
+ const peselOk=p=>{if(!/^\d{11}$/.test(p))return false;const w=[1,3,7,9,1,3,7,9,1,3];let s=0;for(let i=0;i<10;i++)s+=w[i]*+p[i];return (10-s%10)%10===+p[10]};
+ const nrDow=t=>String(t||'').toUpperCase().replace(/[\s-]/g,'');
+ function znajdz(pesel,dow){return Object.values(OSOBY).find(o=>o.moje&&o.moje.pesel===pesel&&nrDow(o.moje.nr_dowodu)===nrDow(dow))||null}
+ function czyMozna(id){
+  if(id===OS.id)return 'To Twoje własne dane. Wpisz dane osoby, która ma Ci pomagać.';
+  if(odeMnie().some(u=>u.do===id))return `${nazwa(id)} ma już Twoje upoważnienie albo zaproszenie.`;
+  return null;
+ }
+
+ /* Znak do upoważnienia: osoba pomagająca POKAZUJE swój znak, osoba starsza go SKANUJE w swoim telefonie.
+    W pokazie (bez serwera) znak „widzi” drugi telefon w tej samej przeglądarce. */
+ const KZNAK='mobPomocZnak';
+ const opublikowany=()=>{try{const z=JSON.parse(localStorage.getItem(KZNAK));if(z&&Date.now()-z.t<5*60e3)return z}catch(e){}return null};
+
+ /* kreator u osoby, która daje dostęp: jak znaleźć osobę → potwierdź osobę → w czym → na jak długo */
  function kreator(w){
   ekran='kreator';
-  const rodz=(RODZ[OS.id]||[]).filter(r=>!odeMnie().some(u=>u.do===r.id));
-  if(!rodz.length){SP.pokaz('Upoważnij bliską osobę',`<div class="sptxt" style="margin-top:0">W rejestrze PESEL nie ma dorosłych dzieci ani rodziców, którym możesz dać dostęp.</div>
-   <div class="spnote">${ico('help')}<span>W tym prototypie upoważnienie pokazujemy na przykładzie Haliny Lis i jej córki Ewy Nowak. Wybierz Halinę w panelu pokazu.</span></div>`);return}
-  w=w||{krok:1,do:rodz[0].id,zakres:['sprawy','oplaty'],okres:'rok'};
-  const kropki=`<div class="pmkroki" aria-label="Krok ${w.krok} z 3">${[1,2,3].map(n=>`<i class="${n<=w.krok?'on':''}"></i>`).join('')}</div>`;
+  w=w||{krok:1,do:null,przez:null,zakres:['sprawy','oplaty'],okres:'rok'};
+  const N=4,nr=typeof w.krok==='number'?w.krok:1,kropki=`<div class="pmkroki" aria-label="Krok ${nr} z ${N}">${Array.from({length:N},(_,n)=>`<i class="${n<nr?'on':''}"></i>`).join('')}</div>`;
+  const r=w.do?rel(OS.id,w.do):null,kogo=w.do?imie(w.do):'';
   let h='';
-  if(w.krok===1)h=`${kropki}<h2 class="pmh">Komu chcesz dać dostęp?</h2><div class="sptxt">Z rejestru PESEL: Twoja rodzina, która ma mObywatela.</div>
-   <div class="plist">${rodz.map(r=>`<button class="prow pmwyb ${w.do===r.id?'on':''}" data-do="${r.id}"><span class="pmav" style="background-image:url(assets/foto-${r.id}.svg)"></span><span class="ptx"><b>${nazwa(r.id)}</b><small>${cap(r.rel)}</small></span><span class="pmradio"></span></button>`).join('')}</div>
-   <button class="spbtn" data-dalej>Dalej</button>`;
-  if(w.krok===2)h=`${kropki}<h2 class="pmh">W czym ${imie(w.do)} może pomagać?</h2>
+  if(w.krok===1)h=`${kropki}<h2 class="pmh">Kto ma Ci pomagać?</h2>
+   <div class="sptxt" style="margin-top:4px">Może to być ktoś z rodziny, przyjaciel albo sąsiad — każda pełnoletnia osoba z mObywatelem.</div>
+   <div class="sptxt">Osobę dodajesz tylko na swoim telefonie. Ona nie może sama uzyskać dostępu do Twoich spraw.</div>
+   ${OSTRZ}
+   <div class="plist pmsposob">
+    <button class="prow" data-spos="znak"><span class="pic">${ico('scan')}</span><span class="ptx"><b>Zeskanuj jej znak</b><small>Gdy jesteście obok siebie. Ona pokazuje znak w swojej aplikacji, Ty go skanujesz.</small></span>${ico('chev','pch')}</button>
+    <button class="prow" data-spos="pesel"><span class="pic">${ico('id')}</span><span class="ptx"><b>Wpisz PESEL i numer dowodu</b><small>Obie dane muszą się zgadzać z rejestrem.</small></span>${ico('chev','pch')}</button>
+   </div>`;
+  if(w.krok==='pesel')h=`${kropki}<h2 class="pmh">Dane osoby, która ma pomagać</h2>
+   <div class="sptxt">Przepisz je z jej dowodu osobistego. Nie podawaj nikomu własnych.</div>
+   <label class="pmpole"><span>PESEL</span><input id="pmpesel" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="11 cyfr" value="${esc(w.pesel||'')}"></label>
+   <label class="pmpole"><span>Seria i numer dowodu osobistego</span><input id="pmdow" maxlength="10" autocomplete="off" autocapitalize="characters" placeholder="np. ABC 123456" value="${esc(w.dow||'')}"></label>
+   <div class="pmblad" id="pmblad" role="alert">${w.blad?esc(w.blad):''}</div>
+   <button class="spbtn" data-szukaj>Dalej</button>
+   ${opublikowany()||RODZ[OS.id]?`<button class="pmpokaz" data-przyklad>Pokaz: wpisz przykładowe dane ${RODZ[OS.id]?'('+nazwa(RODZ[OS.id][0].id)+')':''}</button>`:''}`;
+  if(w.krok==='znak'){const z=opublikowany();
+   h=`${kropki}<h2 class="pmh">Zeskanuj znak osoby obok</h2>
+   <div class="pmcel"><span class="pmramka"></span><p>${z&&z.osoba!==OS.id?'Rozpoznaję znak…':'Poproś ją, żeby w swojej aplikacji otworzyła <b>Więcej → Pomoc bliskiej osoby → Pokaż mój znak</b>.'}</p></div>
+   <div class="sptxt">Znak działa tylko kilka minut i tylko z bliska — nie da się go użyć przez telefon ani SMS.</div>`}
+  if(w.krok===2){const os=OSOBY[w.do];
+   h=`${kropki}<h2 class="pmh">Czy to ta osoba?</h2>
+   <div class="pmosoba"><span class="pmav duzy" style="background-image:url(assets/foto-${w.do}.svg)"></span><span><b>${nazwa(w.do)}</b><small>ur. ${os.moje.data_urodzenia} · ${(MIEJSCA[w.do]||{}).miasto||''}</small><small>${w.przez==='znak'?'Znak zeskanowany przed chwilą':'PESEL i numer dowodu zgadzają się z rejestrem'}</small></span></div>
+   <div class="sptxt">Daj dostęp tylko komuś, kogo znasz osobiście i komu ufasz.</div>
+   <button class="spbtn" data-dalej>Tak, to ${os.plec==='K'?'ona':'on'}</button><button class="spbtn ghost" data-od-nowa style="margin-top:10px;width:100%">Nie, zacznij od nowa</button>`}
+  if(w.krok===3)h=`${kropki}<h2 class="pmh">W czym ${kogo} może pomagać?</h2>
    <div class="plist">${ZAKRESY.map(([k,t,s,staly])=>SP.przelacznik(t,s+(staly?' · zawsze':''),w.zakres.includes(k)).replace('class="prow sw"',`class="prow sw" data-z="${k}" ${staly?'aria-disabled="true"':''}`)).join('')}</div>
-   <div class="spnote">${ico('lock')}<span>${imie(w.do)} nie zobaczy Twoich dokumentów i niczego za Ciebie nie podpisze.</span></div>
+   <div class="spnote">${ico('lock')}<span>${kogo} nie zobaczy Twoich dokumentów i niczego za Ciebie nie podpisze.</span></div>
    <button class="spbtn" data-dalej>Dalej</button>`;
-  if(w.krok===3){const ok=OKRESY.find(o=>o[0]===w.okres);
+  if(w.krok===4){const ok=OKRESY.find(o=>o[0]===w.okres);
    h=`${kropki}<h2 class="pmh">Na jak długo?</h2>
    <div class="pmokres">${OKRESY.map(([k,l])=>`<button data-ok="${k}" class="${w.okres===k?'on':''}">${l}</button>`).join('')}</div>
-   <div class="ui"><div class="rows">${rowsH([['Komu',nazwa(w.do)+', '+rel(OS.id,w.do).rel],['W czym',cap(zakresTxt(w.zakres))],['Do kiedy',ok[2]?D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania']])}</div></div>
-   <div class="sptxt">${imie(w.do)} dostanie zaproszenie w swojej aplikacji. Dostęp zacznie działać, gdy je przyjmie.</div>
+   <div class="ui"><div class="rows">${rowsH([['Komu',nazwa(w.do)+(r?', '+r.rel:'')],['W czym',cap(zakresTxt(w.zakres))],['Do kiedy',ok[2]?D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania']])}</div></div>
+   ${OSTRZ}
+   <div class="sptxt">${kogo} dostanie zaproszenie w swojej aplikacji. Dostęp zacznie działać, gdy je przyjmie. Cofniesz go w każdej chwili.</div>
    <button class="spbtn" data-dalej>Potwierdź i wyślij</button>`}
   SP.pokaz('Upoważnij bliską osobę',h,el=>{
-   el.querySelectorAll('[data-do]').forEach(b=>b.onclick=()=>{w.do=b.dataset.do;kreator(w)});
+   el.querySelectorAll('[data-spos]').forEach(b=>b.onclick=()=>{w.krok=b.dataset.spos;kreator(w)});
    el.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{if(b.getAttribute('aria-disabled')==='true')return;const k=b.dataset.z;w.zakres=w.zakres.includes(k)?w.zakres.filter(x=>x!==k):[...w.zakres,k];
     b.setAttribute('aria-checked',w.zakres.includes(k));b.querySelector('.spsw').classList.toggle('on',w.zakres.includes(k))});
    el.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{w.okres=b.dataset.ok;kreator(w)});
-   const d=el.querySelector('[data-dalej]');
+   const nowa=el.querySelector('[data-od-nowa]');if(nowa)nowa.onclick=()=>kreator();
+   /* PESEL + numer dowodu */
+   const sz=el.querySelector('[data-szukaj]');
+   if(sz){const pe=el.querySelector('#pmpesel'),dw=el.querySelector('#pmdow');
+    pe.addEventListener('input',()=>{pe.value=pe.value.replace(/\D/g,'')});
+    const pr=el.querySelector('[data-przyklad]');
+    if(pr)pr.onclick=()=>{const z=opublikowany(),id=(RODZ[OS.id]&&RODZ[OS.id][0].id)||(z&&z.osoba);if(!id)return;pe.value=OSOBY[id].moje.pesel;dw.value=OSOBY[id].moje.nr_dowodu};
+    sz.onclick=()=>{w.pesel=pe.value.trim();w.dow=dw.value.trim();
+     const bl=t=>{w.blad=t;el.querySelector('#pmblad').textContent=t};
+     if(!peselOk(w.pesel))return bl('Ten PESEL jest niepoprawny. Sprawdź cyfry.');
+     if(!/^[A-Z]{3}\d{6}$/.test(nrDow(w.dow)))return bl('Numer dowodu to 3 litery i 6 cyfr, np. ABC 123456.');
+     const o=znajdz(w.pesel,w.dow);
+     if(!o)return bl('Nie znaleźliśmy osoby z aplikacją mObywatel o tym PESEL i numerze dowodu.');
+     const n=czyMozna(o.id);if(n)return bl(n);
+     w.blad='';w.do=o.id;w.przez='pesel';w.krok=2;kreator(w)}}
+   /* skanowanie znaku: czekamy, aż drugi telefon go pokaże */
+   if(w.krok==='znak'){clearInterval(kreator._t);const start=Date.now();
+    kreator._t=setInterval(()=>{if(ekran!=='kreator'||!SP.sh.classList.contains('on')){clearInterval(kreator._t);return}
+     const z=opublikowany();if(!z||z.osoba===OS.id||Date.now()-start<1400)return;
+     clearInterval(kreator._t);const n=czyMozna(z.osoba);
+     if(n){const p=el.querySelector('.pmcel p');if(p)p.textContent=n;return}
+     try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
+     w.do=z.osoba;w.przez='znak';w.krok=2;kreator(w)},300)}
+   const d=el.querySelector('[data-dalej]');if(!d)return;
    d.onclick=async()=>{
-    if(w.krok<3){w.krok++;kreator(w);return}
+    if(w.krok<4){w.krok++;kreator(w);return}
     await faceid();
     st=wczytaj();const ok=OKRESY.find(o=>o[0]===w.okres);
-    st.up.unshift({id:'u'+Date.now(),od:OS.id,do:w.do,zakres:ZAKRESY.map(z=>z[0]).filter(k=>w.zakres.includes(k)),okres:w.okres,dni:ok[2],utw:Date.now(),status:'oczekuje'});
+    st.up.unshift({id:'u'+Date.now(),od:OS.id,do:w.do,przez:w.przez,zakres:ZAKRESY.map(z=>z[0]).filter(k=>w.zakres.includes(k)),okres:w.okres,dni:ok[2],utw:Date.now(),status:'oczekuje'});
     zapisz();ekran='pomoc';
     const box=SP.sh.querySelector('.body');
-    box.innerHTML=`<div class="spok">${svg('check')}<b>Zaproszenie wysłane</b><div class="sptxt">${imie(w.do)} zobaczy je w swojej aplikacji, w „Twoich sprawach”. Gdy je przyjmie, dostaniesz powiadomienie.</div></div>
+    box.innerHTML=`<div class="spok">${svg('check')}<b>Zaproszenie wysłane</b><div class="sptxt">${kogo} zobaczy je w swojej aplikacji, w „Twoich sprawach”. Gdy je przyjmie, dostaniesz powiadomienie.</div></div>
      <div id="spakcja"><button class="spbtn ghost" data-wroc>Gotowe</button></div>`;
     box.querySelector('[data-wroc]').onclick=()=>ekranPomocy();
    };
   });
  }
+
+ /* osoba pomagająca pokazuje swój znak (nic nie wpisuje i o nic nie prosi — tylko się identyfikuje) */
+ function mojZnak(){
+  ekran='mojznak';
+  const token=(Math.random()*65535)|0;
+  try{localStorage.setItem(KZNAK,JSON.stringify({osoba:OS.id,token,t:Date.now()}))}catch(e){}
+  SP.pokaz('Mój znak do upoważnienia',`
+   <div class="pmznak" id="pmZnak">${typeof ZNAK!=='undefined'?ZNAK.svg(token):''}</div>
+   <p class="sptxt c">Pokaż ten znak osobie, która chce dać Ci dostęp do swoich spraw. Ona skanuje go w <b>swoim</b> telefonie: Więcej → Pomoc bliskiej osoby → Upoważnij.</p>
+   <div class="wait pmczek"><i></i>Czekam, aż zeskanuje…</div>
+   <div class="spnote">${ico('lock')}<span>Znak niczego nie udostępnia. Wygasa po 5 minutach.</span></div>`,
+   el=>{const z=el.querySelector('#pmZnak');if(z&&typeof wejscieZnaku==='function')wejscieZnaku(z,200)});
+ }
+ const schowajZnak=()=>{try{const z=opublikowany();if(z&&z.osoba===OS.id)localStorage.removeItem(KZNAK)}catch(e){}};
 
  /* zaproszenie po stronie osoby pomagającej */
  function zaproszenie(id){
@@ -191,7 +268,7 @@
     el.querySelector('#pmtak').onclick=async()=>{await faceid();st=wczytaj();const x=st.up.find(y=>y.id===id);if(!x)return;
      x.status='aktywne';x.od_dnia=Date.now();x.do_dnia=x.dni?Date.now()+x.dni*DAY:null;loguj(OS.id,x.od,rodzaj('przyjęła','przyjął')+' upoważnienie');zapisz();
      KTO=x.od;ekran=null;
-     el.querySelector('#spakcja').innerHTML=`<div class="spok">${svg('check')}<b>Możesz już pomagać</b><div class="sptxt">Sprawy ${r&&r.relB==='mamę'?'mamy':imie(x.od)} są w „Twoich sprawach”.</div></div><button class="spbtn" id="pmidz">Przejdź do spraw</button>`;
+     el.querySelector('#spakcja').innerHTML=`<div class="spok">${svg('check')}<b>Możesz już pomagać</b><div class="sptxt">${r&&r.relB==='mamę'?'Sprawy mamy są':'Sprawy: '+nazwa(x.od)+' są'} w „Twoich sprawach”.</div></div><button class="spbtn" id="pmidz">Przejdź do spraw</button>`;
      el.querySelector('#pmidz').onclick=()=>{SP.zamknij();idzDoSpraw(x.od)}};
     el.querySelector('#pmnie').onclick=()=>{st=wczytaj();const x=st.up.find(y=>y.id===id);if(x){x.status='odrzucone';zapisz()}SP.zamknij()};
    });
@@ -204,6 +281,7 @@
   if(a==='kto'){KTO=b.dataset.k||null;if(window.odswiezStrone)odswiezStrone();return}
   if(a==='zapro'){zaproszenie(id);return}
   if(a==='nowe'){kreator();return}
+  if(a==='mojznak'){mojZnak();return}
   if(a==='idz'){SP.zamknij();idzDoSpraw(b.dataset.k);return}
   st=wczytaj();
   if(a==='cofnij'||a==='rezygnuj'){const u=st.up.find(x=>x.id===id);if(u){const by=u.status;u.status='cofniete';u.cofn=Date.now();u.kto_cofnal=OS.id;
@@ -229,7 +307,10 @@
   if(e.key!==KLUCZ)return;
   const stare=st;st=wczytaj();
   const nowe=(a,b)=>b.filter(x=>!a.some(y=>y.id===x.id));
-  nowe(stare.up,st.up).filter(u=>u.do===OS.id&&u.status==='oczekuje').forEach(u=>SP.toast(`${nazwa(u.od)} prosi Cię o pomoc w sprawach urzędowych`));
+  nowe(stare.up,st.up).filter(u=>u.do===OS.id&&u.status==='oczekuje').forEach(u=>{
+   /* pokazywany znak został zeskanowany: od razu zaproszenie */
+   if(ekran==='mojznak'&&SP.sh.classList.contains('on')){schowajZnak();zaproszenie(u.id);return}
+   SP.toast(`${nazwa(u.od)} prosi Cię o pomoc w sprawach urzędowych`)});
   st.up.forEach(u=>{const s=stare.up.find(x=>x.id===u.id);if(!s||s.status===u.status)return;
    if(u.od===OS.id&&u.status==='aktywne')SP.toast(`${imie(u.do)} ${OSOBY[u.do].plec==='K'?'przyjęła':'przyjął'} upoważnienie`);
    if(u.do===OS.id&&u.status==='cofniete'){SP.toast(`${nazwa(u.od)} ${OSOBY[u.od].plec==='K'?'cofnęła':'cofnął'} upoważnienie`);if(KTO===u.od){KTO=null;if(SP.sh.classList.contains('on')&&ekran!=='pomoc')SP.zamknij()}}
@@ -244,6 +325,9 @@
   odswiez();
  });
 
+ /* zamknięcie arkusza ze znakiem = znak przestaje działać */
+ new MutationObserver(()=>{if(!SP.sh.classList.contains('on')&&ekran==='mojznak'){schowajZnak();ekran=null}}).observe(SP.sh,{attributes:true,attributeFilter:['class']});
+ addEventListener('pagehide',schowajZnak);
  /* Więcej → „Pomoc bliskiej osoby” otwiera nasz ekran */
  const ow=window.otworzWiecej;
  window.otworzWiecej=n=>n==='Pomoc bliskiej osoby'?ekranPomocy():(ekran=null,ow(n));

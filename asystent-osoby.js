@@ -99,7 +99,7 @@
   if(OS.id==='halina'){
    await info({icon:'mail',title:'Pismo z Urzędu Miasta Lublin',source:'e-Doręczenia, Wydział Gospodarki Komunalnej',rows:[['Czego dotyczy','opłata za odpady'],['Nowa stawka','39 zł miesięcznie'],['Od kiedy','<span data-stala>01.01.2027</span>']],note:'Nie trzeba niczego składać ani odpisywać. Nowa kwota będzie na blankietach do opłat.'});
    await say('Mogę przypomnieć o pierwszej opłacie w nowej wysokości. Jeśli chcesz, córka też może dostawać takie pisma — wystarczy upoważnienie.');
-   chips([{label:'Upoważnienia dla rodziny',go:()=>otworzWiecej('Pomoc bliskiej osoby')},{label:'Nie, dziękuję'}]);
+   chips([{label:'Upoważnij zaufaną osobę',go:()=>otworzWiecej('Pomoc bliskiej osoby')},{label:'Nie, dziękuję'}]);
    return;
   }
   if(OS.id==='kacper'){
@@ -132,12 +132,12 @@
   }
   return recepty0();
  };
- /* upoważnienia w rodzinie */
+ /* upoważnienia dla zaufanych osób */
  S.pomoc=async()=>{
   const u=window.POMOC?POMOC.odeMnie():[],d=window.POMOC?POMOC.aktywneDlaMnie():[];
   if(u.length)await say('Dostęp do Twoich spraw '+(u.length>1?'mają: ':'ma: ')+u.map(x=>POMOC.nazwa(x.do)+(x.status==='oczekuje'?' (jeszcze nie przyjęła zaproszenia)':'')).join(', ')+'. Możesz to zmienić albo cofnąć w każdej chwili.');
   else if(d.length)await say('Pomagasz: '+d.map(x=>POMOC.nazwa(x.od)).join(', ')+'. Ich sprawy są w „Twoich sprawach”.');
-  else await say('Nikt nie ma teraz dostępu do Twoich spraw. Możesz upoważnić kogoś z rodziny: sam'+rodz('a','')+' wybierasz, w czym może pomagać i na jak długo.');
+  else await say('Nikt nie ma teraz dostępu do Twoich spraw. Możesz upoważnić kogoś, komu ufasz — z rodziny, przyjaciela albo sąsiada. Sam'+rodz('a','')+' wybierasz, w czym może pomagać i na jak długo.');
   chips([{label:'Pomoc bliskiej osoby',go:()=>otworzWiecej('Pomoc bliskiej osoby')}]);
  };
  S.peselOdblok=async()=>{

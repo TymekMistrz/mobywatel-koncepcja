@@ -91,7 +91,7 @@
   'Bezpieczeństwo':()=>`<div class="plist">${przelacznik('Face ID','logowanie i potwierdzanie spraw',true)}${przelacznik('Kod PIN','gdy Face ID nie zadziała',true)}${przelacznik('Ukrywaj dane dowodu','na ekranie głównym, do dotknięcia oka',true)}</div>
    <div class="sppgr">Zaufane urządzenia</div><div class="plist"><div class="prow"><span class="ptx"><b>Ten telefon</b><small>aktywny teraz</small></span></div></div>`,
   'Kto sprawdzał moje dane':()=>{const L=[
-    /* wpisy z upoważnień rodzinnych (pomoc.js): kto, zakres, data, za zgodą */
+    /* wpisy z upoważnień (pomoc.js): kto, zakres, data, za zgodą */
     ...((window.POMOC&&POMOC.wpisyKto())||[]),
     ...[['Sklep — weryfikacja wieku','tylko „ma ukończone 18 lat”',2,true],
     ['Bank — otwarcie konta','imię, nazwisko, PESEL, numer dowodu',5,true],
@@ -111,7 +111,7 @@
    const ask=el.querySelector('#spask');if(ask)ask.onclick=()=>doCzatu('Potrzebuję pomocy z aplikacją');
   });
  };
- /* dla pomoc.js (upoważnienia w rodzinie): ten sam arkusz i te same elementy */
+ /* dla pomoc.js (upoważnienia): ten sam arkusz i te same elementy */
  window.SP={pokaz,toast,sukces,stan,zamknij,sh,przelacznik,temu};
  document.addEventListener('keydown',e=>{if(e.key==='Escape')zamknij()});
 })();

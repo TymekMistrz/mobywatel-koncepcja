@@ -32,7 +32,7 @@ const USLUGI=[
 const WIECEJ=[
  ['user','Moje dane','Adres, kontakt, zgody'],
  ['lock','Bezpieczeństwo','PIN, biometria, zaufane urządzenia'],
- ['users','Pomoc bliskiej osoby','Upoważnienia w rodzinie'],
+ ['users','Pomoc bliskiej osoby','Upoważnienia dla zaufanych osób'],
  ['eye','Kto sprawdzał moje dane','Historia udostępnień'],
  ['bell','Powiadomienia','Terminy, pisma, przypomnienia'],
  ['help','Pomoc','Najczęstsze pytania i kontakt'],
@@ -79,7 +79,7 @@ const WIECEJ=[
  function listaH(items){return `<div class="plist">${items.map(([i,t,s,q])=>`<button class="prow" ${q?`data-q="${q.replace(/"/g,'&quot;')}"`:'data-soon="1"'}><span class="pic">${ico(i)}</span><span class="ptx"><b>${t}</b></span>${ico('chev','pch')}</button>`).join('')}</div>`}   /* same nazwy, bez opisów pod spodem */
  function stronaUslugi(){return `${USLUGI.map(([g,items])=>`<div class="pgr">${g}</div>${listaH(items)}`).join('')}`}
  function stronaSkrzynka(){
-  /* gdy ktoś z rodziny dał Ci upoważnienie: zaproszenie, przełącznik „Moje / Mama” i jej sprawy (pomoc.js) */
+  /* gdy ktoś dał Ci upoważnienie: zaproszenie, przełącznik „Moje / Mama” i jej sprawy (pomoc.js) */
   if(window.POMOC){const h=POMOC.strona();if(h!==null)return h}
   return (window.POMOC?POMOC.naglowek():'')+mojeSprawy();
  }
@@ -190,7 +190,7 @@ const WIECEJ=[
  };
  nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)ustawZakladke(b.dataset.tab)});
  page.addEventListener('click',e=>{
-  const pm=e.target.closest('[data-pm]');if(pm&&window.POMOC){POMOC.klik(pm);return}   /* upoważnienia w rodzinie (pomoc.js) */
+  const pm=e.target.closest('[data-pm]');if(pm&&window.POMOC){POMOC.klik(pm);return}   /* upoważnienia (pomoc.js) */
   const r=e.target.closest('.prow');if(!r)return;
   /* każda pozycja otwiera najpierw swój ekran (sprawy.js); rozmowa to jedna z akcji na nim */
   const nazwa=(r.querySelector('.ptx b')||{}).textContent||'';
