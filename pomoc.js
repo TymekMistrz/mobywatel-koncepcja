@@ -152,6 +152,11 @@
  /* Znak do upoważnienia: osoba pomagająca POKAZUJE swój znak, osoba starsza go SKANUJE w swoim telefonie.
     W pokazie (bez serwera) znak „widzi” drugi telefon w tej samej przeglądarce. */
  const KZNAK='mobPomocZnak';
+ /* żeton znaku do upoważnienia niesie, czyj to znak: 3 bity osoby + 5 bitów znacznika + 8 losowych.
+    Dzięki temu skaner rozpozna osobę także z drugiego urządzenia (w pokazie wszystkie osoby są w każdej przeglądarce). */
+ const IDS=Object.keys(OSOBY),TAG=22;
+ const tokenOsoby=id=>((IDS.indexOf(id)&7)<<13)|(TAG<<8)|(1+((Math.random()*254)|0));
+ const osobaZTokenu=t=>((t>>8)&31)===TAG?IDS[(t>>13)&7]||null:null;
  const opublikowany=()=>{try{const z=JSON.parse(localStorage.getItem(KZNAK));if(z&&Date.now()-z.t<5*60e3)return z}catch(e){}return null};
 
  /* kratki: jedna kratka na znak. D = cyfra, L = litera (A–Z). przerwy: indeksy, przed którymi jest odstęp */
@@ -255,7 +260,7 @@
 
  /* osoba pomagająca pokazuje swój znak — ten sam ekran co „Przyjmij dane” pod „Skanuj” (nic nie wpisuje i o nic nie prosi) */
  function mojZnak(){
-  const token=(Math.random()*65535)|0;
+  const token=tokenOsoby(OS.id);
   try{localStorage.setItem(KZNAK,JSON.stringify({osoba:OS.id,token,t:Date.now()}))}catch(e){}
   if(ZS)zFinish({ok:false});
   ekran='mojznak';
@@ -282,10 +287,13 @@
   (async()=>{let stream;try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false})}catch(e){return}
    if(PS!==st){stream.getTracks().forEach(t=>t.stop());return}
    st.stream=stream;const v=o.querySelector('video');v.srcObject=stream;try{await v.play()}catch(e){}o.querySelector('.cam').classList.add('live');
-   const cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});
+   const cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});let ost=null;
    const loop=()=>{if(!st.run||PS!==st||koniec)return;
-    if(v.readyState>=2){const W=480,H=Math.round(W*v.videoHeight/v.videoWidth)||360;cv.width=W;cv.height=H;cx.drawImage(v,0,0,W,H);
-     const r=ZNAK.decode(cx.getImageData(0,0,W,H).data,W,H),z=opublikowany();if(r&&z&&r.token===z.token&&z.osoba!==OS.id)trafiony(z)}
+    if(v.readyState>=2){const W=640,H=Math.round(W*v.videoHeight/v.videoWidth)||480;cv.width=W;cv.height=H;cx.drawImage(v,0,0,W,H);
+     /* ten sam znak w dwóch kolejnych klatkach, zanim go przyjmiemy — mniej fałszywych odczytów */
+     const r=ZNAK.decode(cx.getImageData(0,0,W,H).data,W,H),os=r?osobaZTokenu(r.token):null;
+     if(r&&!os)hint('To nie jest znak do upoważnienia. Poproś o „Pokaż mój znak”.');
+     if(os){if(ost===r.token){if(os===OS.id)hint('To Twój własny znak.');else trafiony({osoba:os})}ost=r.token}else ost=null}
     setTimeout(loop,120)};loop()})();
   st.tick=setInterval(()=>{if(PS!==st){clearInterval(st.tick);return}const z=opublikowany();if(z&&z.osoba!==OS.id&&Date.now()-start>1500)trafiony(z)},300);
  }
