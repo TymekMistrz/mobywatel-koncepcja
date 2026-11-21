@@ -32,7 +32,7 @@
  /* ---------- stan wspólny dla wszystkich okien ---------- */
  function wczytaj(){try{const s=JSON.parse(localStorage.getItem(KLUCZ));if(s&&s.up)return Object.assign(PUSTY(),s)}catch(e){}return PUSTY()}
  let st=wczytaj();
- function zapisz(){try{localStorage.setItem(KLUCZ,JSON.stringify(st))}catch(e){}odswiez()}
+ function zapisz(){try{localStorage.setItem(KLUCZ,JSON.stringify(st))}catch(e){}odswiez();rozeslij()}
  const nazwa=id=>OSOBY[id]?OSOBY[id].imie+' '+OSOBY[id].nazwisko:id;
  const imie=id=>OSOBY[id]?OSOBY[id].imie:id;
  const RODZ=typeof RODZINA!=='undefined'?RODZINA:{};
@@ -316,8 +316,10 @@
     if(w.krok<4){w.krok++;kreator(w);return}
     await faceid();
     st=wczytaj();const ok=OKRESY.find(o=>o[0]===w.okres);
-    st.up.unshift({id:'u'+Date.now(),od:OS.id,do:w.do,przez:w.przez,zakres:ZAKRESY.map(z=>z[0]).filter(k=>w.zakres.includes(k)),okres:w.okres,dni:ok[2]||0,koniec:koniecDla(w),utw:Date.now(),status:'oczekuje'});
+    st.up.unshift({zm:teraz(),id:'u'+Date.now(),od:OS.id,do:w.do,przez:w.przez,zakres:ZAKRESY.map(z=>z[0]).filter(k=>w.zakres.includes(k)),okres:w.okres,dni:ok[2]||0,koniec:koniecDla(w),utw:Date.now(),status:'oczekuje'});
     zapisz();ekran='pomoc';
+    /* zaproszenie do drugiego urządzenia: na temat zeskanowanego znaku albo (po PESEL) na temat osoby */
+    {const u=st.up[0];wyslij(w.przez==='znak'&&w.token!=null?tematZnaku(w.token):tematOsoby(w.do),paczka(u))}
     const box=SP.sh.querySelector('.body');
     box.innerHTML=`<div class="spok">${svg('check')}<b>Zaproszenie wysłane</b><div class="sptxt">${kogo} zobaczy je w swojej aplikacji, w „Twoich sprawach”. Gdy je przyjmie, dostaniesz powiadomienie.</div></div>
      <div id="spakcja"><button class="spbtn ghost" data-wroc>Gotowe</button></div>`;
@@ -331,6 +333,7 @@
  function mojZnak(){
   const token=tokenOsoby(OS.id);
   try{localStorage.setItem(KZNAK,JSON.stringify({osoba:OS.id,token,t:Date.now()}))}catch(e){}
+  if(znakTemat)odsubskrybuj(znakTemat);znakTemat=tematZnaku(token);subskrybuj(znakTemat,null);
   if(ZS)zFinish({ok:false});
   ekran='mojznak';
   ZS={resolve:()=>{schowajZnak();if(ekran==='mojznak')ekran=SP.sh.classList.contains('on')?'pomoc':null},opt:{pomoc:1}};
@@ -350,7 +353,7 @@
    <div class="qscanfoot"><p class="lh">Nakieruj aparat na znak w telefonie osoby, która ma Ci pomagać. Poproś ją, żeby otworzyła: Więcej → Pomoc bliskiej osoby → Pokaż mój znak.</p></div>`,'dark scan');
   const hint=t=>{const h=o.querySelector('.camhint');if(h)h.textContent=t};
   const start=Date.now();let koniec=false;
-  const trafiony=z=>{if(koniec||PS!==st)return;const n=czyMozna(z.osoba);if(n){hint(n);return}koniec=true;
+  const trafiony=z=>{if(koniec||PS!==st)return;w.token=z.token;const n=czyMozna(z.osoba);if(n){hint(n);return}koniec=true;
    const g=o.querySelector('.guide');if(g)g.classList.add('seen');hint('Rozpoznano znak');try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
    setTimeout(()=>{if(PS===st)pFinish({ok:true,osoba:z.osoba})},550)};
   (async()=>{let stream;try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false})}catch(e){return}
@@ -362,11 +365,12 @@
      /* ten sam znak w dwóch kolejnych klatkach, zanim go przyjmiemy — mniej fałszywych odczytów */
      const r=ZNAK.decode(cx.getImageData(0,0,W,H).data,W,H),os=r?osobaZTokenu(r.token):null;
      if(r&&!os)hint('To nie jest znak do upoważnienia. Poproś o „Pokaż mój znak”.');
-     if(os){if(ost===r.token){if(os===OS.id)hint('To Twój własny znak.');else trafiony({osoba:os})}ost=r.token}else ost=null}
+     if(os){if(ost===r.token){if(os===OS.id)hint('To Twój własny znak.');else trafiony({osoba:os,token:r.token})}ost=r.token}else ost=null}
     setTimeout(loop,120)};loop()})();
   st.tick=setInterval(()=>{if(PS!==st){clearInterval(st.tick);return}const z=opublikowany();if(z&&z.osoba!==OS.id&&Date.now()-start>1500)trafiony(z)},300);
  }
- const schowajZnak=()=>{try{const z=opublikowany();if(z&&z.osoba===OS.id)localStorage.removeItem(KZNAK)}catch(e){}};
+ let znakTemat=null;
+ const schowajZnak=()=>{if(znakTemat){odsubskrybuj(znakTemat);znakTemat=null}try{const z=opublikowany();if(z&&z.osoba===OS.id)localStorage.removeItem(KZNAK)}catch(e){}};
 
  /* zaproszenie po stronie osoby pomagającej */
  function zaproszenie(id){
@@ -381,11 +385,11 @@
    <div id="spakcja"><button class="spbtn" id="pmtak">Przyjmij</button><button class="spbtn ghost" id="pmnie">Odrzuć</button></div>`,
    el=>{
     el.querySelector('#pmtak').onclick=async()=>{await faceid();st=wczytaj();const x=st.up.find(y=>y.id===id);if(!x)return;
-     x.status='aktywne';x.od_dnia=Date.now();x.do_dnia=x.koniec||(x.dni?Date.now()+x.dni*DAY:null);loguj(OS.id,x.od,rodzaj('przyjęła','przyjął')+' upoważnienie');zapisz();
+     x.status='aktywne';x.zm=teraz();x.od_dnia=Date.now();x.do_dnia=x.koniec||(x.dni?Date.now()+x.dni*DAY:null);loguj(OS.id,x.od,rodzaj('przyjęła','przyjął')+' upoważnienie');zapisz();
      KTO=x.od;ekran=null;
      el.querySelector('#spakcja').innerHTML=`<div class="spok">${svg('check')}<b>Możesz już pomagać</b><div class="sptxt">${r&&r.relB==='mamę'?'Sprawy mamy są':'Sprawy: '+nazwa(x.od)+' są'} w „Twoich sprawach”.</div></div><button class="spbtn" id="pmidz">Przejdź do spraw</button>`;
      el.querySelector('#pmidz').onclick=()=>{SP.zamknij();idzDoSpraw(x.od)}};
-    el.querySelector('#pmnie').onclick=()=>{st=wczytaj();const x=st.up.find(y=>y.id===id);if(x){x.status='odrzucone';zapisz()}SP.zamknij()};
+    el.querySelector('#pmnie').onclick=()=>{st=wczytaj();const x=st.up.find(y=>y.id===id);if(x){x.status='odrzucone';x.zm=teraz();zapisz()}SP.zamknij()};
    });
  }
  function idzDoSpraw(k){KTO=k;if(window.ustawZakladke)ustawZakladke('skrzynka');if(window.odswiezStrone)odswiezStrone()}
@@ -412,11 +416,11 @@
    b.dataset.anim=1;row.querySelectorAll('button').forEach(x=>x.disabled=true);
    zwin(row,a==='pros-tak'?'Dostęp rozszerzony':null).then(()=>{byloKl=null;klik(b)});return}
   st=wczytaj();
-  if(a==='cofnij'||a==='rezygnuj'){const u=st.up.find(x=>x.id===id);if(u){const by=u.status;u.status='cofniete';u.cofn=Date.now();u.kto_cofnal=OS.id;
+  if(a==='cofnij'||a==='rezygnuj'){const u=st.up.find(x=>x.id===id);if(u){const by=u.status;u.status='cofniete';u.zm=teraz();u.cofn=Date.now();u.kto_cofnal=OS.id;
     if(a==='rezygnuj'&&by==='aktywne')loguj(OS.id,u.od,rodzaj('zrezygnowała','zrezygnował')+' z upoważnienia');zapisz()}
    SP.toast(a==='cofnij'?'Dostęp cofnięty. Zmiana działa od razu.':'Zrezygnowano z upoważnienia.');ekranPomocy();return}
   if(a==='pros-tak'||a==='pros-nie'){const p=st.pros.find(x=>x.id===id);if(p){p.status=a==='pros-tak'?'tak':'nie';
-    if(a==='pros-tak'){const u=st.up.find(x=>x.od===OS.id&&x.do===p.od&&zywe(x));if(u&&!u.zakres.includes(p.zakres))u.zakres=ZAKRESY.map(z=>z[0]).filter(k=>u.zakres.includes(k)||k===p.zakres)}zapisz()}
+    if(a==='pros-tak'){const u=st.up.find(x=>x.od===OS.id&&x.do===p.od&&zywe(x));if(u&&!u.zakres.includes(p.zakres))u.zm=teraz(),u.zakres=ZAKRESY.map(z=>z[0]).filter(k=>u.zakres.includes(k)||k===p.zakres)}zapisz()}
    SP.toast(a==='pros-tak'?'Dostęp rozszerzony.':'Prośba odrzucona.');ekranPomocy();return}
  }
 
@@ -425,15 +429,63 @@
   return st.log.filter(l=>l.za===OS.id&&!/upoważnieni/.test(l.co)).slice(0,6).map(l=>[`${nazwa(l.kto)} — upoważnienie`,l.co,D.fmt(new Date(l.t)),true]);
  }
 
+ /* ---------- przekaźnik między urządzeniami ----------
+    Bez własnego serwera: publiczny, darmowy przekaźnik ntfy.sh (wysyłka POST, odbiór przez SSE).
+    Tematy: znak (zaproszenie po zeskanowaniu), osoba (zaproszenie po PESEL), upoważnienie (każda późniejsza zmiana).
+    Idą tylko fikcyjne dane z prototypu. Gdy przekaźnik nie działa, zostaje synchronizacja w tej samej przeglądarce. */
+ const PRZ='https://ntfy.sh/',PREF='mobywatel-koncepcja-v1-';
+ const tematZnaku=t=>PREF+'znak-'+t,tematOsoby=id=>PREF+'osoba-'+id,tematUp=id=>PREF+'up-'+id;
+ const teraz=()=>performance.timeOrigin+performance.now();   /* prawdziwy czas — symulowana data pokazu go nie zmienia */
+ const subs=new Map(),wyslane={};
+ function subskrybuj(t,since){if(subs.has(t)||typeof EventSource==='undefined')return;
+  try{const es=new EventSource(PRZ+t+'/sse'+(since?'?since='+since:''));
+   es.onmessage=e=>{try{const m=JSON.parse(e.data);if(m.event&&m.event!=='message')return;odbierz(JSON.parse(m.message))}catch(x){}};
+   subs.set(t,es)}catch(e){}}
+ function odsubskrybuj(t){const es=subs.get(t);if(es){es.close();subs.delete(t)}}
+ function wyslij(t,o){try{fetch(PRZ+t,{method:'POST',body:JSON.stringify(o)}).catch(()=>{})}catch(e){}}
+ const para=(l,u)=>(l.kto===u.od&&l.za===u.do)||(l.kto===u.do&&l.za===u.od);
+ function paczka(u){return {v:1,up:u,log:st.log.filter(l=>para(l,u)).slice(0,10),pros:st.pros.filter(p=>p.od===u.do&&p.do===u.od).slice(0,6),zal:{[u.od]:st.zal[u.od]||[]}}}
+ const RANGA={oczekuje:0,aktywne:1,odrzucone:2,cofniete:2};
+ const lepszy=(a,b)=>RANGA[a.status]!==RANGA[b.status]?RANGA[a.status]>RANGA[b.status]:(a.zm||0)>(b.zm||0);
+ /* scalanie paczki z drugiego urządzenia — kolejność nie ma znaczenia, a powtórki niczego nie zmieniają */
+ function odbierz(p){
+  if(!p||p.v!==1||!p.up||!p.up.id)return;
+  const stare=wczytaj();st=wczytaj();let zm=false;
+  const x=st.up.find(y=>y.id===p.up.id);
+  if(!x){st.up.unshift(p.up);zm=true}else if(lepszy(p.up,x)){Object.assign(x,p.up);zm=true}
+  for(const l of p.log||[])if(!st.log.some(o=>o.t===l.t&&o.co===l.co&&o.kto===l.kto)){st.log.push(l);zm=true}
+  st.log.sort((a,b)=>b.t-a.t);st.log=st.log.slice(0,40);
+  for(const q of p.pros||[]){const o=st.pros.find(y=>y.id===q.id);if(!o){st.pros.unshift(q);zm=true}else if(o.status==='czeka'&&q.status!=='czeka'){o.status=q.status;zm=true}}
+  for(const [k,v] of Object.entries(p.zal||{})){const z=new Set(st.zal[k]||[]);const n=z.size;v.forEach(h=>z.add(h));if(z.size!==n){st.zal[k]=[...z];zm=true}}
+  wyslane[p.up.id]=JSON.stringify(paczka(st.up.find(y=>y.id===p.up.id)));
+  if(!zm)return;
+  try{localStorage.setItem(KLUCZ,JSON.stringify(st))}catch(e){}
+  poZmianie(stare);rozeslij();
+ }
+ /* po każdej zmianie: wysyłamy paczki upoważnień, które dotyczą tej osoby i się zmieniły */
+ function rozeslij(){
+  for(const u of st.up){if(u.od!==OS.id&&u.do!==OS.id)continue;const j=JSON.stringify(paczka(u));if(wyslane[u.id]===j)continue;wyslane[u.id]=j;wyslij(tematUp(u.id),paczka(u))}
+  synchronizuj();
+ }
+ /* słuchamy: swojego tematu osoby i każdego żywego upoważnienia, w którym biorę udział */
+ function synchronizuj(){
+  subskrybuj(tematOsoby(OS.id),null);
+  const chce=new Set(st.up.filter(u=>(u.od===OS.id||u.do===OS.id)&&(u.status==='oczekuje'||u.status==='aktywne')).map(u=>tematUp(u.id)));
+  chce.forEach(t=>subskrybuj(t,'2h'));
+  [...subs.keys()].forEach(t=>{if(t.startsWith(PREF+'up-')&&!chce.has(t))odsubskrybuj(t)});
+ }
+ st.up.forEach(u=>{wyslane[u.id]=JSON.stringify(paczka(u))});
+ setTimeout(synchronizuj,300);
+
  /* ---------- zmiany z drugiego telefonu: odśwież widok i powiedz, co się stało ---------- */
  function odswiez(){
   if(window.odswiezStrone){const p=document.querySelector('#page');const y=p?p.scrollTop:0;odswiezStrone();if(p)p.scrollTop=y}
   const otw=SP.sh.classList.contains('on');
   if(otw&&ekran==='pomoc')ekranPomocy();
  }
- addEventListener('storage',e=>{
-  if(e.key!==KLUCZ)return;
-  const stare=st;st=wczytaj();
+ addEventListener('storage',e=>{if(e.key!==KLUCZ)return;const stare=st;st=wczytaj();poZmianie(stare)});
+ /* po zmianie z drugiego telefonu (ta sama przeglądarka albo przekaźnik): powiadomienia i odświeżenie */
+ function poZmianie(stare){
   const nowe=(a,b)=>b.filter(x=>!a.some(y=>y.id===x.id));
   nowe(stare.up,st.up).filter(u=>u.do===OS.id&&u.status==='oczekuje').forEach(u=>{
    /* pokazywany znak został zeskanowany: od razu zaproszenie */
@@ -450,8 +502,8 @@
   nowe(stare.pros,st.pros).filter(p=>p.do===OS.id).forEach(p=>SP.toast(`${imie(p.od)} prosi o dostęp: ${(ZAKRESY.find(q=>q[0]===p.zakres)||[,''])[1].toLowerCase()}`));
   /* sprawy załatwione przez drugą osobę */
   if(window.ZALATWIONE)(st.zal[OS.id]||[]).forEach(h=>Set.prototype.add.call(ZALATWIONE,h));
-  odswiez();
- });
+  odswiez();synchronizuj();
+ }
 
  /* zamknięcie arkusza ze znakiem = znak przestaje działać */
  addEventListener('pagehide',schowajZnak);
