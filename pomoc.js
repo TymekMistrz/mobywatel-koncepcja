@@ -154,6 +154,31 @@
  const KZNAK='mobPomocZnak';
  const opublikowany=()=>{try{const z=JSON.parse(localStorage.getItem(KZNAK));if(z&&Date.now()-z.t<5*60e3)return z}catch(e){}return null};
 
+ /* kratki: jedna kratka na znak. D = cyfra, L = litera (A–Z). przerwy: indeksy, przed którymi jest odstęp */
+ function kratki(id,wzor,przerwy,wart,etyk){
+  return `<div class="pmkratki" id="${id}" role="group" aria-labelledby="${etyk}">${[...wzor].map((t,i)=>`<input class="${przerwy.includes(i)?'od':''}" data-t="${t}" maxlength="1" inputmode="${t==='D'?'numeric':'text'}" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" aria-label="${t==='D'?'cyfra':'litera'} ${i+1}" value="${esc((wart||'')[i]||'')}">`).join('')}</div>`}
+ const pasuje=(t,c)=>t==='D'?/^\d$/.test(c):/^[A-Z]$/.test(c);
+ const wartosc=g=>[...g.querySelectorAll('input')].map(x=>x.value).join('');
+ function ustawKratki(g,txt){const k=[...g.querySelectorAll('input')];let i=0;for(const c of String(txt).toUpperCase()){if(i>=k.length)break;if(pasuje(k[i].dataset.t,c)){k[i].value=c;i++}}k.slice(i).forEach(x=>x.value='')}
+ function kratkiDzialaj(g){
+  const k=[...g.querySelectorAll('input')];
+  const zly=x=>{x.classList.remove('zly');void x.offsetWidth;x.classList.add('zly')};
+  function wklej(od,txt){let i=od;for(const c of String(txt).toUpperCase()){if(i>=k.length)break;if(pasuje(k[i].dataset.t,c)){k[i].value=c;i++}}(k[i]||k[k.length-1]).focus()}
+  k.forEach((x,i)=>{
+   x.addEventListener('beforeinput',e=>{if(e.inputType!=='insertText'||!e.data)return;e.preventDefault();
+    if(e.data.length>1){wklej(i,e.data);return}
+    const c=e.data.toUpperCase();if(!pasuje(x.dataset.t,c)){zly(x);return}x.value=c;x.classList.remove('zly');if(k[i+1])k[i+1].focus();else x.blur()});
+   /* awaryjnie (klawiatury bez beforeinput, np. autouzupełnianie): czyścimy, co nie pasuje */
+   x.addEventListener('input',()=>{const v=x.value.toUpperCase();if(!v)return;if(v.length>1){x.value='';wklej(i,v);return}if(!pasuje(x.dataset.t,v)){x.value='';zly(x);return}x.value=v;if(k[i+1])k[i+1].focus()});
+   x.addEventListener('keydown',e=>{
+    if(e.key==='Backspace'){e.preventDefault();if(x.value)x.value='';else if(k[i-1]){k[i-1].value='';k[i-1].focus()}}
+    else if(e.key==='ArrowLeft'&&k[i-1]){e.preventDefault();k[i-1].focus()}
+    else if(e.key==='ArrowRight'&&k[i+1]){e.preventDefault();k[i+1].focus()}});
+   x.addEventListener('focus',()=>{try{x.select()}catch(e){}});
+   x.addEventListener('paste',e=>{e.preventDefault();wklej(i,(e.clipboardData||window.clipboardData).getData('text'))});
+  });
+ }
+
  /* kreator u osoby, która daje dostęp: jak znaleźć osobę → potwierdź osobę → w czym → na jak długo */
  function kreator(w){
   ekran='kreator';
@@ -171,22 +196,18 @@
    </div>`;
   if(w.krok==='pesel')h=`${kropki}<h2 class="pmh">Dane osoby, która ma pomagać</h2>
    <div class="sptxt">Przepisz je z jej dowodu osobistego. Nie podawaj nikomu własnych.</div>
-   <label class="pmpole"><span>PESEL</span><input id="pmpesel" inputmode="numeric" maxlength="11" autocomplete="off" placeholder="11 cyfr" value="${esc(w.pesel||'')}"></label>
-   <label class="pmpole"><span>Seria i numer dowodu osobistego</span><input id="pmdow" maxlength="10" autocomplete="off" autocapitalize="characters" placeholder="np. ABC 123456" value="${esc(w.dow||'')}"></label>
+   <div class="pmpole"><span id="pmlpes">PESEL</span>${kratki('pmpesel','DDDDDDDDDDD',[6],w.pesel,'pmlpes')}</div>
+   <div class="pmpole"><span id="pmldow">Seria i numer dowodu osobistego</span>${kratki('pmdow','LLLDDDDDD',[3],w.dow,'pmldow')}<small class="pmpodp">3 litery i 6 cyfr — jak na dowodzie</small></div>
    <div class="pmblad" id="pmblad" role="alert">${w.blad?esc(w.blad):''}</div>
    <button class="spbtn" data-szukaj>Dalej</button>
    ${opublikowany()||RODZ[OS.id]?`<button class="pmpokaz" data-przyklad>Pokaz: wpisz przykładowe dane ${RODZ[OS.id]?'('+nazwa(RODZ[OS.id][0].id)+')':''}</button>`:''}`;
-  if(w.krok==='znak'){const z=opublikowany();
-   h=`${kropki}<h2 class="pmh">Zeskanuj znak osoby obok</h2>
-   <div class="pmcel"><span class="pmramka"></span><p>${z&&z.osoba!==OS.id?'Rozpoznaję znak…':'Poproś ją, żeby w swojej aplikacji otworzyła <b>Więcej → Pomoc bliskiej osoby → Pokaż mój znak</b>.'}</p></div>
-   <div class="sptxt">Znak działa tylko kilka minut i tylko z bliska — nie da się go użyć przez telefon ani SMS.</div>`}
   if(w.krok===2){const os=OSOBY[w.do];
    h=`${kropki}<h2 class="pmh">Czy to ta osoba?</h2>
    <div class="pmosoba"><span class="pmav duzy" style="background-image:url(assets/foto-${w.do}.svg)"></span><span><b>${nazwa(w.do)}</b><small>ur. ${os.moje.data_urodzenia} · ${(MIEJSCA[w.do]||{}).miasto||''}</small><small>${w.przez==='znak'?'Znak zeskanowany przed chwilą':'PESEL i numer dowodu zgadzają się z rejestrem'}</small></span></div>
    <div class="sptxt">Daj dostęp tylko komuś, kogo znasz osobiście i komu ufasz.</div>
    <button class="spbtn" data-dalej>Tak, to ${os.plec==='K'?'ona':'on'}</button><button class="spbtn ghost" data-od-nowa style="margin-top:10px;width:100%">Nie, zacznij od nowa</button>`}
   if(w.krok===3)h=`${kropki}<h2 class="pmh">W czym ${kogo} może pomagać?</h2>
-   <div class="plist">${ZAKRESY.map(([k,t,s,staly])=>SP.przelacznik(t,s+(staly?' · zawsze':''),w.zakres.includes(k)).replace('class="prow sw"',`class="prow sw" data-z="${k}" ${staly?'aria-disabled="true"':''}`)).join('')}</div>
+   <div class="plist">${ZAKRESY.map(([k,t,s,staly])=>SP.przelacznik(t,s+(staly?' · zawsze':''),w.zakres.includes(k)).replace('class="prow sw"',`class="prow sw" data-zk="${k}" ${staly?'aria-disabled="true"':''}`)).join('')}</div>
    <div class="spnote">${ico('lock')}<span>${kogo} nie zobaczy Twoich dokumentów i niczego za Ciebie nie podpisze.</span></div>
    <button class="spbtn" data-dalej>Dalej</button>`;
   if(w.krok===4){const ok=OKRESY.find(o=>o[0]===w.okres);
@@ -197,33 +218,26 @@
    <div class="sptxt">${kogo} dostanie zaproszenie w swojej aplikacji. Dostęp zacznie działać, gdy je przyjmie. Cofniesz go w każdej chwili.</div>
    <button class="spbtn" data-dalej>Potwierdź i wyślij</button>`}
   SP.pokaz('Upoważnij bliską osobę',h,el=>{
-   el.querySelectorAll('[data-spos]').forEach(b=>b.onclick=()=>{w.krok=b.dataset.spos;kreator(w)});
-   el.querySelectorAll('[data-z]').forEach(b=>b.onclick=()=>{if(b.getAttribute('aria-disabled')==='true')return;const k=b.dataset.z;w.zakres=w.zakres.includes(k)?w.zakres.filter(x=>x!==k):[...w.zakres,k];
+   el.querySelectorAll('[data-spos]').forEach(b=>b.onclick=()=>{if(b.dataset.spos==='znak'){skanuj(w);return}w.krok=b.dataset.spos;kreator(w)});
+   el.querySelectorAll('[data-zk]').forEach(b=>b.onclick=()=>{if(b.getAttribute('aria-disabled')==='true')return;const k=b.dataset.zk;w.zakres=w.zakres.includes(k)?w.zakres.filter(x=>x!==k):[...w.zakres,k];
     b.setAttribute('aria-checked',w.zakres.includes(k));b.querySelector('.spsw').classList.toggle('on',w.zakres.includes(k))});
    el.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{w.okres=b.dataset.ok;kreator(w)});
    const nowa=el.querySelector('[data-od-nowa]');if(nowa)nowa.onclick=()=>kreator();
    /* PESEL + numer dowodu */
    const sz=el.querySelector('[data-szukaj]');
    if(sz){const pe=el.querySelector('#pmpesel'),dw=el.querySelector('#pmdow');
-    pe.addEventListener('input',()=>{pe.value=pe.value.replace(/\D/g,'')});
+    kratkiDzialaj(pe);kratkiDzialaj(dw);
     const pr=el.querySelector('[data-przyklad]');
-    if(pr)pr.onclick=()=>{const z=opublikowany(),id=(RODZ[OS.id]&&RODZ[OS.id][0].id)||(z&&z.osoba);if(!id)return;pe.value=OSOBY[id].moje.pesel;dw.value=OSOBY[id].moje.nr_dowodu};
-    sz.onclick=()=>{w.pesel=pe.value.trim();w.dow=dw.value.trim();
+    if(pr)pr.onclick=()=>{const z=opublikowany(),id=(RODZ[OS.id]&&RODZ[OS.id][0].id)||(z&&z.osoba);if(!id)return;ustawKratki(pe,OSOBY[id].moje.pesel);ustawKratki(dw,nrDow(OSOBY[id].moje.nr_dowodu))};
+    sz.onclick=()=>{w.pesel=wartosc(pe);w.dow=wartosc(dw);
      const bl=t=>{w.blad=t;el.querySelector('#pmblad').textContent=t};
+     if(w.pesel.length<11)return bl('Wpisz wszystkie 11 cyfr PESEL.');
      if(!peselOk(w.pesel))return bl('Ten PESEL jest niepoprawny. Sprawdź cyfry.');
-     if(!/^[A-Z]{3}\d{6}$/.test(nrDow(w.dow)))return bl('Numer dowodu to 3 litery i 6 cyfr, np. ABC 123456.');
+     if(!/^[A-Z]{3}\d{6}$/.test(w.dow))return bl('Uzupełnij numer dowodu: 3 litery i 6 cyfr.');
      const o=znajdz(w.pesel,w.dow);
      if(!o)return bl('Nie znaleźliśmy osoby z aplikacją mObywatel o tym PESEL i numerze dowodu.');
      const n=czyMozna(o.id);if(n)return bl(n);
      w.blad='';w.do=o.id;w.przez='pesel';w.krok=2;kreator(w)}}
-   /* skanowanie znaku: czekamy, aż drugi telefon go pokaże */
-   if(w.krok==='znak'){clearInterval(kreator._t);const start=Date.now();
-    kreator._t=setInterval(()=>{if(ekran!=='kreator'||!SP.sh.classList.contains('on')){clearInterval(kreator._t);return}
-     const z=opublikowany();if(!z||z.osoba===OS.id||Date.now()-start<1400)return;
-     clearInterval(kreator._t);const n=czyMozna(z.osoba);
-     if(n){const p=el.querySelector('.pmcel p');if(p)p.textContent=n;return}
-     try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
-     w.do=z.osoba;w.przez='znak';w.krok=2;kreator(w)},300)}
    const d=el.querySelector('[data-dalej]');if(!d)return;
    d.onclick=async()=>{
     if(w.krok<4){w.krok++;kreator(w);return}
@@ -239,17 +253,41 @@
   });
  }
 
- /* osoba pomagająca pokazuje swój znak (nic nie wpisuje i o nic nie prosi — tylko się identyfikuje) */
+ /* osoba pomagająca pokazuje swój znak — ten sam ekran co „Przyjmij dane” pod „Skanuj” (nic nie wpisuje i o nic nie prosi) */
  function mojZnak(){
-  ekran='mojznak';
   const token=(Math.random()*65535)|0;
   try{localStorage.setItem(KZNAK,JSON.stringify({osoba:OS.id,token,t:Date.now()}))}catch(e){}
-  SP.pokaz('Mój znak do upoważnienia',`
-   <div class="pmznak" id="pmZnak">${typeof ZNAK!=='undefined'?ZNAK.svg(token):''}</div>
-   <p class="sptxt c">Pokaż ten znak osobie, która chce dać Ci dostęp do swoich spraw. Ona skanuje go w <b>swoim</b> telefonie: Więcej → Pomoc bliskiej osoby → Upoważnij.</p>
-   <div class="wait pmczek"><i></i>Czekam, aż zeskanuje…</div>
-   <div class="spnote">${ico('lock')}<span>Znak niczego nie udostępnia. Wygasa po 5 minutach.</span></div>`,
-   el=>{const z=el.querySelector('#pmZnak');if(z&&typeof wejscieZnaku==='function')wejscieZnaku(z,200)});
+  if(ZS)zFinish({ok:false});
+  ekran='mojznak';
+  ZS={resolve:()=>{schowajZnak();if(ekran==='mojznak')ekran=SP.sh.classList.contains('on')?'pomoc':null},opt:{pomoc:1}};
+  const o=pScreen(`${pTop('Mój znak do upoważnienia')}<div class="qbody c mz">
+   <div class="mojznak" id="mojZnak">${ZNAK.svg(token)}</div>
+   <p class="qlead c">Pokaż ten znak osobie, która chce dać Ci dostęp do swoich spraw. Ona skanuje go w <b>swoim</b> telefonie: Więcej → Pomoc bliskiej osoby → Upoważnij.</p>
+   <div class="wait" data-odm="1"><i></i>Czekam, aż zeskanuje…</div>
+   <p class="qnote c">Znak niczego nie udostępnia. Wygasa po 5 minutach.</p></div>`,'light','zx');
+  const mz=o.querySelector('#mojZnak');if(mz&&typeof wejscieZnaku==='function')wejscieZnaku(mz,240);
+ }
+ /* osoba dająca dostęp skanuje znak — ten sam skaner co pod „Skanuj” na ekranie głównym.
+    W pokazie (bez serwera) znak z drugiego telefonu w tej samej przeglądarce rozpoznajemy po chwili sam. */
+ function skanuj(w){
+  if(PS)pFinish({ok:false});
+  const st={resolve:r=>{if(r&&r.ok){w.do=r.osoba;w.przez='znak';w.krok=2;kreator(w)}},opt:{},run:true};PS=st;
+  const o=pScreen(`${pTop('Zeskanuj znak')}<div class="cam"><video playsinline muted autoplay></video><div class="guide"><span></span></div><p class="camhint">Szukam znaku…</p></div>
+   <div class="qscanfoot"><p class="lh">Nakieruj aparat na znak w telefonie osoby, która ma Ci pomagać. Poproś ją, żeby otworzyła: Więcej → Pomoc bliskiej osoby → Pokaż mój znak.</p></div>`,'dark scan');
+  const hint=t=>{const h=o.querySelector('.camhint');if(h)h.textContent=t};
+  const start=Date.now();let koniec=false;
+  const trafiony=z=>{if(koniec||PS!==st)return;const n=czyMozna(z.osoba);if(n){hint(n);return}koniec=true;
+   const g=o.querySelector('.guide');if(g)g.classList.add('seen');hint('Rozpoznano znak');try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
+   setTimeout(()=>{if(PS===st)pFinish({ok:true,osoba:z.osoba})},550)};
+  (async()=>{let stream;try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false})}catch(e){return}
+   if(PS!==st){stream.getTracks().forEach(t=>t.stop());return}
+   st.stream=stream;const v=o.querySelector('video');v.srcObject=stream;try{await v.play()}catch(e){}o.querySelector('.cam').classList.add('live');
+   const cv=document.createElement('canvas'),cx=cv.getContext('2d',{willReadFrequently:true});
+   const loop=()=>{if(!st.run||PS!==st||koniec)return;
+    if(v.readyState>=2){const W=480,H=Math.round(W*v.videoHeight/v.videoWidth)||360;cv.width=W;cv.height=H;cx.drawImage(v,0,0,W,H);
+     const r=ZNAK.decode(cx.getImageData(0,0,W,H).data,W,H),z=opublikowany();if(r&&z&&r.token===z.token&&z.osoba!==OS.id)trafiony(z)}
+    setTimeout(loop,120)};loop()})();
+  st.tick=setInterval(()=>{if(PS!==st){clearInterval(st.tick);return}const z=opublikowany();if(z&&z.osoba!==OS.id&&Date.now()-start>1500)trafiony(z)},300);
  }
  const schowajZnak=()=>{try{const z=opublikowany();if(z&&z.osoba===OS.id)localStorage.removeItem(KZNAK)}catch(e){}};
 
@@ -309,7 +347,7 @@
   const nowe=(a,b)=>b.filter(x=>!a.some(y=>y.id===x.id));
   nowe(stare.up,st.up).filter(u=>u.do===OS.id&&u.status==='oczekuje').forEach(u=>{
    /* pokazywany znak został zeskanowany: od razu zaproszenie */
-   if(ekran==='mojznak'&&SP.sh.classList.contains('on')){schowajZnak();zaproszenie(u.id);return}
+   if(ekran==='mojznak'){schowajZnak();if(ZS)zFinish({ok:true});zaproszenie(u.id);return}
    SP.toast(`${nazwa(u.od)} prosi Cię o pomoc w sprawach urzędowych`)});
   st.up.forEach(u=>{const s=stare.up.find(x=>x.id===u.id);if(!s||s.status===u.status)return;
    if(u.od===OS.id&&u.status==='aktywne')SP.toast(`${imie(u.do)} ${OSOBY[u.do].plec==='K'?'przyjęła':'przyjął'} upoważnienie`);
@@ -326,7 +364,6 @@
  });
 
  /* zamknięcie arkusza ze znakiem = znak przestaje działać */
- new MutationObserver(()=>{if(!SP.sh.classList.contains('on')&&ekran==='mojznak'){schowajZnak();ekran=null}}).observe(SP.sh,{attributes:true,attributeFilter:['class']});
  addEventListener('pagehide',schowajZnak);
  /* Więcej → „Pomoc bliskiej osoby” otwiera nasz ekran */
  const ow=window.otworzWiecej;

@@ -170,3 +170,10 @@ html[data-motyw="urzedowy"] .qalt{border-radius:var(--r-s)}
 .pmczek{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink2);font-size:14px;margin:10px 0}
 .pmczek i{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pmpuls2 1.2s ease-in-out infinite}
 @keyframes pmpuls2{50%{opacity:.25}}
+.pmkratki{display:flex;gap:4px;width:100%}
+.pmkratki input{flex:1 1 0;min-width:0;max-width:38px;height:50px;padding:0;text-align:center;border:1px solid var(--line);border-radius:var(--r-s,6px);background:#fff;font:inherit;font-size:20px;font-weight:600;color:var(--ink);caret-color:var(--red);font-variant-numeric:tabular-nums}
+.pmkratki input.od{margin-left:8px}
+.pmkratki input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 2px rgba(212,33,61,.18)}
+.pmkratki input.zly{border-color:#b3122e;animation:pmzly .3s}
+@keyframes pmzly{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.pmpodp{display:block;font-size:12.5px;color:var(--ink2);margin:6px 2px 0}
