@@ -128,6 +128,7 @@ html[data-motyw="urzedowy"] .qalt{border-radius:var(--r-s)}
 .pmmaly{min-height:34px;padding:0 12px;border-radius:var(--r-s,6px);background:var(--red);color:#fff;font-weight:600;font-size:13.5px}
 .pmmaly.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
 .pmmaly.pmcofnij{color:#b3122e;border-color:#f0c3cb}
+.pmmaly{display:inline-flex;align-items:center;gap:6px}.pmmaly svg{width:15px;height:15px;flex:none}
 .pmpusto{background:#fff;border:1px dashed var(--line);border-radius:var(--r-m,8px);padding:14px;color:var(--ink2);font-size:14px;text-align:center}
 .sp .spbtn[data-pm="nowe"]{margin-top:12px;width:100%}
 .pmkroki{display:flex;gap:6px;margin:2px 4px 14px}
