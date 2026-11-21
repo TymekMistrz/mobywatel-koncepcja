@@ -3,8 +3,8 @@
 const OSOBY={
  marta:{id:'marta',plec:'K',imie:'Marta',nazwisko:'Kowalska',wolacz:'Marto',opis:'Warszawa, 35 lat, mama trójki dzieci',
   docs:[
-   {id:'dowod',name:'Dowód osobisty',img:'assets/karta-dowod.svg',strip:'assets/pasek-dowod.svg',sub:'Dowód ważny do 20.05.2031',photo:1,holder:'MARTA KOWALSKA',line:'PESEL 91071427765',f:[['PESEL','91071427765'],['Data urodzenia','14.07.1991'],['Dowód osobisty','ABC 123456'],['Dowód ważny do','20.05.2031']],rows:[['Imię','Marta'],['Nazwisko','Kowalska'],['PESEL','91071427765'],['Data urodzenia','14.07.1991'],['Dowód osobisty','ABC 123456, ważny do 20.05.2031']]},
-   {id:'kdr',name:'Karta Dużej Rodziny',img:'assets/karta-kdr.svg',strip:'assets/pasek-kdr.svg',sub:'Ważna bezterminowo',photo:1,holder:'MARTA KOWALSKA',line:'Nr KDR 2024/118 554',f:[['Nr karty','2024/118 554'],['Ważna','bezterminowo'],['PESEL','91071427765']],rows:[['Posiadaczka','Marta Kowalska'],['PESEL','91071427765'],['Numer karty','KDR 2024/118 554'],['Ważna','bezterminowo (rodzic)']]},
+   {id:'dowod',name:'Dowód osobisty',img:'assets/karta-dowod.svg',strip:'assets/pasek-dowod.svg',sub:'Dowód ważny do 20.05.2031',photo:1,holder:'MARTA KOWALSKA',line:'PESEL 91071427760',f:[['PESEL','91071427760'],['Data urodzenia','14.07.1991'],['Dowód osobisty','ABC 123456'],['Dowód ważny do','20.05.2031']],rows:[['Imię','Marta'],['Nazwisko','Kowalska'],['PESEL','91071427760'],['Data urodzenia','14.07.1991'],['Dowód osobisty','ABC 123456, ważny do 20.05.2031']]},
+   {id:'kdr',name:'Karta Dużej Rodziny',img:'assets/karta-kdr.svg',strip:'assets/pasek-kdr.svg',sub:'Ważna bezterminowo',photo:1,holder:'MARTA KOWALSKA',line:'Nr KDR 2024/118 554',f:[['Nr karty','2024/118 554'],['Ważna','bezterminowo'],['PESEL','91071427760']],rows:[['Posiadaczka','Marta Kowalska'],['PESEL','91071427760'],['Numer karty','KDR 2024/118 554'],['Ważna','bezterminowo (rodzic)']]},
    {id:'pj',name:'Prawo jazdy',img:'assets/karta-pj.svg',strip:'assets/pasek-pj.svg',sub:'Kat. B, 5 pkt karnych',photo:1,holder:'MARTA KOWALSKA',line:'Kategoria B, nr 01234/20/1465',f:[['Kategorie','B'],['Ważne do','30.06.2035'],['Nr blankietu','01234/20/1465'],['Punkty karne','5']],rows:[['Numer blankietu','01234/20/1465'],['Kategorie','B'],['Ważne do','30.06.2035'],['Punkty karne','5']]},
    {id:'auto',name:'Moje pojazdy',img:'assets/karta-pojazdy.svg',strip:'assets/pasek-pojazdy.svg',sub:'Toyota Corolla, WX 4521K',alert:'OC za 11 dni',plate:'WX 4521K',model:'Toyota Corolla',kolor:'srebrny',holder:'TOYOTA COROLLA 1.8 HYBRID',who:'Toyota Corolla 1.8 Hybrid',line:'OC do 29.10.2026, badanie do 12.04.2027',f:[['OC do','29.10.2026'],['Badanie do','12.04.2027']],rows:[['Pojazd','Toyota Corolla 1.8 Hybrid, 2021'],['Nr rejestracyjny','WX 4521K'],['Kolor','srebrny'],['OC','Warta, do 29.10.2026'],['Badanie techniczne','do 12.04.2027'],['Ostatni odczyt licznika','58 210 km']]}
   ],
@@ -13,7 +13,7 @@ const OSOBY={
    {i:'car',h:'Koniec okresu OC Toyoty',d:'Za 11 dni, 29.10',k:'oc',u:1,s:'Warta, WX 4521K, umowa zwykle przedłuża się sama, jeśli jej nie wypowiesz',q:'Kiedy kończy się OC Toyoty i co mam zrobić?'},
    {i:'coin',h:'Podatek od nieruchomości',d:'210 zł do 16.11',k:'pay',s:'IV rata 2026, Urząd m.st. Warszawy',q:'Chcę zapłacić podatek od nieruchomości'}
   ],
-  moje:{imie_nazwisko:'Marta Kowalska',data_urodzenia:'14.07.1991',pesel:'91071427765',dowod:'ABC 123456, ważny do 20.05.2031',nr_dowodu:'ABC 123456',
+  moje:{imie_nazwisko:'Marta Kowalska',data_urodzenia:'14.07.1991',pesel:'91071427760',dowod:'ABC 123456, ważny do 20.05.2031',nr_dowodu:'ABC 123456',
    pelnoletnosc:'tak, ukończone 18 lat',prawo_jazdy:'kat. B, ważne do 30.06.2035',pojazd:'Toyota Corolla, WX 4521K',pojazd_model:'Toyota Corolla',pojazd_kolor:'srebrny',oc:'Warta, polisa 908 123 456 789',adres:'ul. Kwiatowa 12, Warszawa'},
   sugg:[['Zgubiłam portfel','zastrzeżenie dokumentów'],['Miałam stłuczkę','oświadczenie bez druku'],['Kupuję używane auto','historia, OC i umowa'],['Urodziło nam się dziecko','zgłoszenie do USC'],['Dostałam dziwnego SMS-a','sprawdzę i zgłoszę']],
   ask:{dowod:'Kiedy mój dowód traci ważność?',pj:'Ile mam punktów karnych?',auto:'Kiedy kończy się OC?',kdr:'Gdzie mogę użyć Karty Dużej Rodziny?'}
@@ -38,7 +38,7 @@ const OSOBY={
   sugg:[['Zgubiłem portfel','zastrzeżenie dokumentów'],['Co chce ode mnie Urząd Skarbowy?','pismo w sprawie VAT'],['Chcę na chwilę odblokować PESEL','kredyt na nowe auto'],['Jedziemy z dziećmi do Egiptu','paszport Igora i ostrzeżenia MSZ'],['Miałem stłuczkę','oświadczenie bez druku']],
   ask:{dowod:'Kiedy mój dowód traci ważność?',pj:'Ile mam punktów karnych?',auto:'Kiedy kończy się OC moich aut?',kdr:'Gdzie mogę użyć Karty Dużej Rodziny?'}
  },
- ewa:{id:'ewa',plec:'K',imie:'Ewa',nazwisko:'Nowak',wolacz:'Ewo',opis:'Lublin, 57 lat, nauczycielka, opiekuje się mamą',
+ ewa:{id:'ewa',plec:'K',imie:'Ewa',nazwisko:'Nowak',wolacz:'Ewo',opis:'Lublin, 57 lat, nauczycielka',
   docs:[
    {id:'dowod',name:'Dowód osobisty',img:'assets/karta-dowod.svg',strip:'assets/pasek-dowod.svg',sub:'Dowód ważny do 05.12.2026',alert:'Ważny jeszcze 48 dni',photo:1,holder:'EWA NOWAK',line:'PESEL 69020312845',f:[['PESEL','69020312845'],['Data urodzenia','03.02.1969'],['Dowód osobisty','AXK 552190'],['Dowód ważny do','05.12.2026']],rows:[['Imię','Ewa'],['Nazwisko','Nowak'],['PESEL','69020312845'],['Data urodzenia','03.02.1969'],['Dowód osobisty','AXK 552190, ważny do 05.12.2026']]},
    {id:'kdr',name:'Karta Dużej Rodziny',img:'assets/karta-kdr.svg',strip:'assets/pasek-kdr.svg',sub:'Ważna bezterminowo',photo:1,holder:'EWA NOWAK',line:'Nr KDR 2019/302 881',f:[['Nr karty','2019/302 881'],['Ważna','bezterminowo'],['PESEL','69020312845']],rows:[['Posiadaczka','Ewa Nowak'],['PESEL','69020312845'],['Numer karty','KDR 2019/302 881'],['Ważna','bezterminowo (rodzic)']]},
@@ -53,10 +53,10 @@ const OSOBY={
   ],
   moje:{imie_nazwisko:'Ewa Nowak',data_urodzenia:'03.02.1969',pesel:'69020312845',dowod:'AXK 552190, ważny do 05.12.2026',nr_dowodu:'AXK 552190',
    pelnoletnosc:'tak, ukończone 18 lat',prawo_jazdy:'kat. B, bezterminowe',pojazd:'Fiat Panda, LU 5521P',pojazd_model:'Fiat Panda',pojazd_kolor:'czerwony',oc:'Link4, polisa L4 0071 226 908',adres:'ul. Narutowicza 18 m. 3, Lublin'},
-  sugg:[['Mój dowód traci ważność','wniosek tutaj, odciski w urzędzie'],['Ile będę miała emerytury?','prognoza z ZUS'],['Jakie recepty ma moja mama?','z upoważnienia od mamy'],['Dostałam dziwnego SMS-a','sprawdzę i zgłoszę'],['Zgubiłam portfel','zastrzeżenie dokumentów']],
+  sugg:[['Mój dowód traci ważność','wniosek tutaj, odciski w urzędzie'],['Ile będę miała emerytury?','prognoza z ZUS'],['Jakie recepty ma Halina Lis?','z upoważnienia w aplikacji'],['Dostałam dziwnego SMS-a','sprawdzę i zgłoszę'],['Zgubiłam portfel','zastrzeżenie dokumentów']],
   ask:{dowod:'Mój dowód traci ważność, co mam zrobić?',pj:'Kiedy muszę wymienić prawo jazdy?',auto:'Kiedy mam badanie techniczne?',kdr:'Gdzie mogę użyć Karty Dużej Rodziny?'}
  },
- halina:{id:'halina',plec:'K',imie:'Halina',nazwisko:'Lis',wolacz:'Pani Halino',opis:'Lublin, 84 lata, emerytka, mama Ewy',
+ halina:{id:'halina',plec:'K',imie:'Halina',nazwisko:'Lis',wolacz:'Pani Halino',opis:'Lublin, 84 lata, emerytka',
   docs:[
    {id:'dowod',name:'Dowód osobisty',img:'assets/karta-dowod.svg',strip:'assets/pasek-dowod.svg',sub:'Dowód ważny bezterminowo',photo:1,holder:'HALINA LIS',line:'PESEL 42030804867',f:[['PESEL','42030804867'],['Data urodzenia','08.03.1942'],['Dowód osobisty','AYB 104733'],['Dowód ważny','bezterminowo']],rows:[['Imię','Halina'],['Nazwisko','Lis'],['PESEL','42030804867'],['Data urodzenia','08.03.1942'],['Dowód osobisty','AYB 104733']]},
    {id:'kdr',name:'Karta Dużej Rodziny',img:'assets/karta-kdr.svg',strip:'assets/pasek-kdr.svg',sub:'Ważna bezterminowo',photo:1,holder:'HALINA LIS',line:'Nr KDR 2019/118 207',f:[['Nr karty','2019/118 207'],['Ważna','bezterminowo'],['PESEL','42030804867']],rows:[['Posiadaczka','Halina Lis'],['PESEL','42030804867'],['Nr karty','2019/118 207'],['Ważna','bezterminowo']]}
@@ -68,7 +68,7 @@ const OSOBY={
   ],
   moje:{imie_nazwisko:'Halina Lis',data_urodzenia:'08.03.1942',pesel:'42030804867',dowod:'AYB 104733, ważny bezterminowo',nr_dowodu:'AYB 104733',
    pelnoletnosc:'tak, ukończone 18 lat',prawo_jazdy:'brak',pojazd:'brak',pojazd_model:'',pojazd_kolor:'',oc:'brak',adres:'ul. Lipowa 7 m. 2, Lublin'},
-  sugg:[['Kto mi pomaga w sprawach?','upoważnienie dla córki'],['Chcę zapłacić podatek','98 zł do 16.11'],['Jakie mam recepty?','2 do wykupienia'],['Dostałam dziwnego SMS-a','sprawdzę i zgłoszę'],['Co jest w piśmie z urzędu?','opłata za odpady']],
+  sugg:[['Kto mi pomaga w sprawach?','upoważnienie dla zaufanej osoby'],['Chcę zapłacić podatek','98 zł do 16.11'],['Jakie mam recepty?','2 do wykupienia'],['Dostałam dziwnego SMS-a','sprawdzę i zgłoszę'],['Co jest w piśmie z urzędu?','opłata za odpady']],
   ask:{dowod:'Czy mój dowód jest ważny?',kdr:'Gdzie mogę użyć Karty Dużej Rodziny?'}
  },
  kacper:{id:'kacper',plec:'M',imie:'Kacper',nazwisko:'Zieliński',wolacz:'Kacprze',opis:'Gdańsk, 20 lat, student, prawo jazdy od stycznia',
@@ -90,9 +90,6 @@ const OSOBY={
   ask:{dowod:'Kiedy mój dowód traci ważność?',pj:'Ile mam punktów karnych?',auto:'Kiedy kończy się OC Golfa?',leg:'Jaką zniżkę na pociąg daje mi legitymacja?'}
  }
 };
-/* pary w pokazie: bliska osoba obok (panel: drugi telefon) i jak się do siebie zwracają.
-   Upoważnić można każdą osobę z mObywatelem — nie tylko krewnych (pomoc.js szuka po PESEL i dowodzie albo po znaku). */
-const RODZINA={halina:[{id:'ewa',rel:'córka',relD:'córce',relB:'córkę'}],ewa:[{id:'halina',rel:'mama',relD:'mamie',relB:'mamę'}]};
 const OSOBA_ID=(()=>{let q=null;try{q=new URLSearchParams(location.search).get('osoba')}catch(e){}
  if(q&&OSOBY[q]){try{localStorage.setItem('mobOsoba',q)}catch(e){}return q}
  try{const s=localStorage.getItem('mobOsoba');if(s&&OSOBY[s])return s}catch(e){}return 'marta'})();

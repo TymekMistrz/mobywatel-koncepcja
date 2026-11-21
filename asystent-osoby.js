@@ -98,7 +98,7 @@
   }
   if(OS.id==='halina'){
    await info({icon:'mail',title:'Pismo z Urzędu Miasta Lublin',source:'e-Doręczenia, Wydział Gospodarki Komunalnej',rows:[['Czego dotyczy','opłata za odpady'],['Nowa stawka','39 zł miesięcznie'],['Od kiedy','<span data-stala>01.01.2027</span>']],note:'Nie trzeba niczego składać ani odpisywać. Nowa kwota będzie na blankietach do opłat.'});
-   await say('Mogę przypomnieć o pierwszej opłacie w nowej wysokości. Jeśli chcesz, córka też może dostawać takie pisma — wystarczy upoważnienie.');
+   await say('Mogę przypomnieć o pierwszej opłacie w nowej wysokości. Jeśli chcesz, zaufana osoba też może widzieć takie pisma — wystarczy upoważnienie.');
    chips([{label:'Upoważnij zaufaną osobę',go:()=>otworzWiecej('Pomoc bliskiej osoby')},{label:'Nie, dziękuję'}]);
    return;
   }
@@ -113,24 +113,24 @@
  const kdr0=S.kdr;S.kdr=async()=>{if(!D.doc('kdr')){await say('Nie masz Karty Dużej Rodziny. Przysługuje rodzicom co najmniej trojga dzieci.');return}return kdr0()};
 
  /* dodatkowe sprawy z podpowiedzi osób */
- /* recepty: Halina — własne; Ewa — mamy, tylko z upoważnieniem w aplikacji (pomoc.js) */
- const recepty0=async()=>{
-  await info({icon:'doc',title:'Recepty mamy',source:'IKP, upoważnienie od mamy',rows:[['Recepty do realizacji','2'],['Leki','na nadciśnienie, ważne do 20.12'],['Upoważnienie','aktywne, bezterminowe']],note:'Recepty zrealizujesz w aptece, podając kod z aplikacji i PESEL mamy.'});
- };
- S.recepty=async()=>{
-  if(OS.id==='halina'){
-   await info({icon:'doc',title:'Twoje recepty',source:'Internetowe Konto Pacjenta',rows:[['Do wykupienia','2 recepty'],['Leki','na nadciśnienie'],['Ważne do','20.12']],note:'W aptece podaj PESEL i kod recepty. Może to zrobić także córka.'});
+ /* recepty: własne (gdy są) albo osoby, która dała Ci upoważnienie z dostępem do recept (pomoc.js).
+    Osoby nazywamy zawsze imieniem i nazwiskiem — bez stopni pokrewieństwa. */
+ S.recepty=async(n='')=>{
+  const nm=id=>OSOBY[id].imie+' '+OSOBY[id].nazwisko;
+  const g=window.POMOC?POMOC.aktywneDlaMnie():[];
+  const wymieniona=Object.keys(OSOBY).find(k=>k!==OS.id&&n.includes(norm(OSOBY[k].imie)));
+  const wlasne=(OS.tiles||[]).find(t=>t.k==='recepty');
+  const kto=wymieniona||(!wlasne&&g.length?(g.find(u=>u.zakres.includes('recepty'))||g[0]).od:null);
+  if(kto){
+   const u=g.find(x=>x.od===kto);
+   if(!u){await say(`${nm(kto)} nie dał${OSOBY[kto].plec==='K'?'a':''} Ci dostępu do swoich spraw. Może to zrobić w swojej aplikacji: Więcej, „Pomoc bliskiej osoby”.`);return}
+   if(!u.zakres.includes('recepty')){await say(`Masz upoważnienie od: ${nm(kto)}, ale bez recept. Możesz poprosić o dostęp w sprawie „Recepty do wykupienia”.`);
+    chips([{label:'Sprawy: '+nm(kto),go:()=>{wyjdzZCzatu();setTimeout(()=>POMOC.klik({dataset:{pm:'idz',k:kto}}),400)}}]);return}
+   await info({icon:'doc',title:'Recepty: '+nm(kto),source:'IKP, upoważnienie w mObywatelu',rows:[['Do wykupienia','2 recepty'],['Kody','4821 i 7716'],['Ważne do','20.12']],note:`W aptece podaj PESEL tej osoby i kody recept. ${nm(kto)} zobaczy w swojej aplikacji, że je sprawdzono.`});
    return;
   }
-  if(OS.id==='ewa'&&window.POMOC){
-   const u=POMOC.aktywneDlaMnie().find(x=>x.od==='halina');
-   if(!u){await say('Mama nie dała Ci jeszcze dostępu do swoich spraw. Może to zrobić w swojej aplikacji: Więcej, „Pomoc bliskiej osoby”. Zajmie jej to minutę.');return}
-   if(!u.zakres.includes('recepty')){await say('Masz upoważnienie od mamy, ale bez recept. Poproś ją o dostęp: otwórz sprawę „Recepty do wykupienia” w sprawach mamy.');
-    chips([{label:'Sprawy mamy',go:()=>{wyjdzZCzatu();setTimeout(()=>POMOC.klik({dataset:{pm:'idz',k:'halina'}}),400)}}]);return}
-   await info({icon:'doc',title:'Recepty mamy',source:'IKP, upoważnienie w mObywatelu',rows:[['Do wykupienia','2 recepty'],['Kody','4821 i 7716'],['Ważne do','20.12']],note:'W aptece podaj PESEL mamy i kody recept. Mama zobaczy w swojej aplikacji, że je sprawdziłaś.'});
-   return;
-  }
-  return recepty0();
+  if(wlasne){await info({icon:'doc',title:'Twoje recepty',source:'Internetowe Konto Pacjenta',rows:[['Do wykupienia','2 recepty'],['Ważne do','20.12']],note:'W aptece podaj PESEL i kod recepty. Może to zrobić także osoba, którą upoważnisz.'});return}
+  await say('Nie masz teraz recept do wykupienia.');
  };
  /* upoważnienia dla zaufanych osób */
  S.pomoc=async()=>{
@@ -161,7 +161,7 @@
   ostatnie=t;
   if(pending)return route0(t);
   const n=norm(t);
-  if(/recept/.test(n))return S.recepty();
+  if(/recept/.test(n))return S.recepty(n);
   if(/pomaga|upowazn|pomoc bliskiej|bliska osob|dostep dla|cork[aię]/.test(n))return S.pomoc();
   if(/odblok\w* pesel|pesel.*(odblok|cofn)|cofnij zastrz/.test(n))return S.peselOdblok();
   if(/egipt|paszport|wyjazd/.test(n))return S.egipt();

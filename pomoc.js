@@ -1,7 +1,7 @@
 /* ---------- Pomoc bliskiej osoby: upoważnienie dla zaufanej osoby (rodzina, przyjaciel, sąsiad) ----------
    Osoba starsza (Halina) daje bliskiej osobie (córce Ewie) dostęp do wybranych spraw:
    zakres, czas, potwierdzenie Face ID. Ewa przyjmuje zaproszenie i w „Twoich sprawach”
-   przełącza się na sprawy mamy — może działać tylko w udzielonym zakresie, a każde jej działanie
+   przełącza się na sprawy Haliny — może działać tylko w udzielonym zakresie, a każde jej działanie
    widać u Haliny (historia, „Kto sprawdzał moje dane”). Halina cofa dostęp jednym przyciskiem.
 
    Prototyp: stan trzymamy w localStorage tej przeglądarki (klucz „mobPomoc”). Zdarzenie „storage”
@@ -35,8 +35,9 @@
  function zapisz(){try{localStorage.setItem(KLUCZ,JSON.stringify(st))}catch(e){}odswiez();rozeslij()}
  const nazwa=id=>OSOBY[id]?OSOBY[id].imie+' '+OSOBY[id].nazwisko:id;
  const imie=id=>OSOBY[id]?OSOBY[id].imie:id;
- const RODZ=typeof RODZINA!=='undefined'?RODZINA:{};
- const rel=(ja,on)=>(RODZ[ja]||[]).find(r=>r.id===on)||null;
+ /* osoby zawsze imieniem i nazwiskiem, bez stopni pokrewieństwa; data urodzenia rozróżnia osoby o tym samym imieniu i nazwisku */
+ const urodz=id=>`<span data-stala>${OSOBY[id].moje.data_urodzenia}</span>`;
+ const etyk=(id,ids)=>ids.filter(k=>nazwa(k)===nazwa(id)).length>1?`${nazwa(id)} (${OSOBY[id].moje.data_urodzenia.slice(-4)})`:nazwa(id);
  const rodzaj=(k,m)=>OS.plec==='K'?k:m;
  const zywe=u=>u.status==='aktywne'&&(!u.do_dnia||Date.now()<u.do_dnia);
  const odeMnie=()=>st.up.filter(u=>u.od===OS.id&&(u.status==='oczekuje'||zywe(u)));
@@ -48,22 +49,22 @@
  const zal=id=>new Set(st.zal[id]||[]);
 
  /* sprawy załatwione przez kogokolwiek (właściciela albo upoważnioną osobę) widać u obu */
- if(window.ZALATWIONE&&(RODZ[OS.id]||[]).length){
+ if(window.ZALATWIONE){
   (st.zal[OS.id]||[]).forEach(h=>ZALATWIONE.add(h));
   const add=ZALATWIONE.add.bind(ZALATWIONE);
   ZALATWIONE.add=h=>{add(h);st=wczytaj();const z=new Set(st.zal[OS.id]||[]);if(!z.has(h)){z.add(h);st.zal[OS.id]=[...z];zapisz()}return ZALATWIONE};
  }
 
- /* ---------- „Twoje sprawy”: zaproszenie, przełącznik „Moje / Mama”, sprawy mamy ---------- */
- let KTO=null,segPrzed=null;   /* segPrzed: skąd ma ruszyć wskaźnik przełącznika „Moje / Mama” */   /* czyje sprawy oglądam: null = moje, albo id osoby, która dała mi upoważnienie */
+ /* ---------- „Twoje sprawy”: zaproszenie, przełącznik „Moje sprawy / osoba, której pomagasz”, jej sprawy ---------- */
+ let KTO=null,segPrzed=null;   /* segPrzed: skąd ma ruszyć wskaźnik przełącznika „Moje sprawy / osoba” */   /* czyje sprawy oglądam: null = moje, albo id osoby, która dała mi upoważnienie */
  function naglowek(){
   const p=st.up.filter(u=>u.do===OS.id&&u.status==='oczekuje');
   const a=aktywneDlaMnie();
   let h=p.map(u=>`<button class="pmbaner" data-pm="zapro" data-id="${u.id}"><span class="pmav" style="background-image:url(assets/foto-${u.od}.svg)"></span>
-    <span class="ptx"><b>${nazwa(u.od)} prosi Cię o pomoc</b><small>Zobacz, w czym możesz ${rel(OS.id,u.od)?'pomagać '+rel(OS.id,u.od).relD:'pomagać'}</small></span>${ico('chev','pch')}</button>`).join('');
-  const opcje=[['','Moje sprawy'],...a.map(u=>[u.od,rel(OS.id,u.od)?cap(rel(OS.id,u.od).rel):imie(u.od)])],teraz=Math.max(0,opcje.findIndex(o=>o[0]===(KTO||'')));
-  if(segPrzed===null||segPrzed>=opcje.length)segPrzed=teraz;
-  if(a.length)h+=`<div class="pmseg" role="tablist" style="--n:${opcje.length};--i:${segPrzed}"><span class="pmwsk" aria-hidden="true"></span>${opcje.map(([k,l])=>
+    <span class="ptx"><b>${nazwa(u.od)} prosi Cię o pomoc</b><small>Zobacz, w czym możesz pomagać</small></span>${ico('chev','pch')}</button>`).join('');
+  const opcje=[['','Moje sprawy'],...a.map(u=>[u.od,etyk(u.od,a.map(x=>x.od))])],teraz=Math.max(0,opcje.findIndex(o=>o[0]===(KTO||'')));
+  const start=segPrzed!==null&&segPrzed<opcje.length?segPrzed:teraz;   /* skąd rusza wskaźnik; poza kliknięciem stoi od razu na właściwej opcji */
+  if(a.length)h+=`<div class="pmseg" role="tablist" style="--n:${opcje.length};--i:${start}"><span class="pmwsk" aria-hidden="true"></span>${opcje.map(([k,l])=>
     `<button role="tab" data-pm="kto" data-k="${k}" aria-selected="${(KTO||'')===k}" class="${(KTO||'')===k?'on':''}">${l}</button>`).join('')}</div>`;
   return h;
  }
@@ -71,11 +72,11 @@
  function strona(){
   if(KTO&&!aktywneDlaMnie().some(u=>u.od===KTO))KTO=null;
   if(!KTO)return null;
-  const u=aktywneDlaMnie().find(x=>x.od===KTO),os=OSOBY[KTO],z=zal(KTO),r=rel(OS.id,KTO);
+  const u=aktywneDlaMnie().find(x=>x.od===KTO),os=OSOBY[KTO],z=zal(KTO);
   const t=os.tiles||[];
   return naglowek()+`
-   <div class="pmimie"><span class="pmav" style="background-image:url(assets/foto-${KTO}.svg)"></span><span class="ptx"><b>Działasz w imieniu: ${nazwa(KTO)}</b><small>Upoważnienie ${doKiedy(u)} · ${zakresTxt(u.zakres)}</small></span></div>
-   <div class="pgr">${r?'Sprawy '+(r.relB==='mamę'?'mamy':'córki'):'Sprawy: '+nazwa(KTO)} · ${t.length}</div>
+   <div class="pmimie"><span class="pmav" style="background-image:url(assets/foto-${KTO}.svg)"></span><span class="ptx"><b>Działasz w imieniu: ${nazwa(KTO)}</b><small>ur. ${urodz(KTO)} · upoważnienie ${doKiedy(u)}</small><small>${cap(zakresTxt(u.zakres))}</small></span></div>
+   <div class="pgr">Sprawy: ${nazwa(KTO)} · ${t.length}</div>
    <div class="plist">${t.map((x,i)=>{const moze=!x.z||u.zakres.includes(x.z);const ok=z.has(x.h);
     return `<button class="prow" data-h="${i}"><span class="pic ${x.u&&!ok?'pil':''}">${ico(moze?(x.i==='car'?'car':x.i==='coin'?'coin':x.i==='doc'?'doc':'mail'):'lock')}</span><span class="ptx"><b>${x.h}</b>${ok?'<small class="gotowe">Załatwione</small>':`<small class="${x.u?'pilne':''}">${x.d}</small>`}<small>${moze?'':'Bez dostępu: '+(ZAKRESY.find(q=>q[0]===x.z)||[,''])[1].toLowerCase()}</small></span>${ico('chev','pch')}</button>`}).join('')}</div>
    <div class="pmstopka">${ico('shield')}<span>${imie(KTO)} widzi w swojej aplikacji wszystko, co tu zrobisz. ${OSOBY[KTO].plec==='K'?'Jej':'Jego'} dokumentów nie zobaczysz i niczego za ${OSOBY[KTO].plec==='K'?'nią':'niego'} nie podpiszesz.</span></div>`;
@@ -84,18 +85,18 @@
  /* sprawa osoby, która dała upoważnienie — akcje tylko w udzielonym zakresie */
  function otworzSprawe(i){
   const u=aktywneDlaMnie().find(x=>x.od===KTO);if(!u)return;
-  const t=OSOBY[KTO].tiles[i],kto=KTO,r=rel(OS.id,kto),moze=!t.z||u.zakres.includes(t.z);
+  const t=OSOBY[KTO].tiles[i],kto=KTO,moze=!t.z||u.zakres.includes(t.z);
   const z=zal(kto),s=SP.stan(t,z),d=D.data(t.d),kw=((/([\d\s]+(?:,\d{2})?)\s*zł/.exec(t.d)||[])[1]||'').trim();
-  const kogo=r?(r.relB==='mamę'?'mamy':'córki'):'tej osoby';   /* nie tylko rodzina: bez relacji piszemy ogólnie */
+  const kogo='tej osoby';
   const wiersze=[['W imieniu',nazwa(kto)]];if(d)wiersze.push(['Termin',d+(D.termin(d)?' ('+D.termin(d)+')':'')]);else wiersze.push(['Status',t.d]);
   let akcja='';
-  if(!moze)akcja=`<div class="spnote pmlock">${ico('lock')}<span>${cap(r?r.rel:imie(kto))} nie dał${OSOBY[kto].plec==='K'?'a':''} Ci dostępu do: <b>${(ZAKRESY.find(q=>q[0]===t.z)||[,''])[1].toLowerCase()}</b>.</span></div>
+  if(!moze)akcja=`<div class="spnote pmlock">${ico('lock')}<span>${nazwa(kto)} nie dał${OSOBY[kto].plec==='K'?'a':''} Ci dostępu do: <b>${(ZAKRESY.find(q=>q[0]===t.z)||[,''])[1].toLowerCase()}</b>.</span></div>
     <button class="spbtn" id="pmpros">Poproś o dostęp</button>`;
   else if(z.has(t.h))akcja='';
-  else if(t.k==='pay')akcja=`<button class="spbtn" id="pmgo">Zapłać ${kw} zł${r&&r.relB==='mamę'?' za mamę':''}</button>`;
+  else if(t.k==='pay')akcja=`<button class="spbtn" id="pmgo">Zapłać ${kw} zł</button>`;
   else if(t.k==='recepty')akcja=`<button class="spbtn" id="pmgo">Pokaż kody recept</button>`;
   else if(t.k==='letter')akcja=`<button class="spbtn" id="pmgo">Przeczytaj pismo</button>`;
-  SP.pokaz(r?'Sprawa '+kogo:'Sprawa: '+nazwa(kto),`
+  SP.pokaz('Sprawa: '+nazwa(kto),`
    <div class="sphero"><span class="spic">${svg(t.i==='coin'?'coin':t.i==='doc'?'doc':t.i==='car'?'car':'mail')}</span>
     <h2>${t.h}</h2><span class="sppill ${s.cls}">${s.txt}</span></div>
    <div class="ui"><div class="rows">${rowsH(wiersze)}</div></div>
@@ -127,7 +128,7 @@
  function ekranPomocy(opt={}){
   const pierwszy=ekran!=='pomoc'&&!opt.nowe;
   ekran='pomoc';
-  const moje=odeMnie(),dla=dlaMnie(),rodz=(RODZ[OS.id]||[]);
+  const moje=odeMnie(),dla=dlaMnie();
   const pros=st.pros.filter(p=>p.do===OS.id&&p.status==='czeka');
   const hist=st.log.filter(l=>l.za===OS.id).slice(0,8);
   SP.pokaz('Pomoc bliskiej osoby',`
@@ -135,15 +136,15 @@
    ${pros.length?`<div class="sppgr">Prośby</div><div class="plist">${pros.map(p=>`<div class="prow pmprow" data-klucz="p${p.id}"><span class="pmav" style="background-image:url(assets/foto-${p.od}.svg)"></span><span class="ptx"><b>${nazwa(p.od)} prosi o dostęp</b><small>${(ZAKRESY.find(q=>q[0]===p.zakres)||[,''])[1]}</small>
      <span class="pmprz"><button class="pmmaly" data-pm="pros-tak" data-id="${p.id}">Zgadzam się</button><button class="pmmaly ghost" data-pm="pros-nie" data-id="${p.id}">Nie teraz</button></span></span></div>`).join('')}</div>`:''}
    <div class="sppgr">Pomagają Ci</div>
-   ${moje.length?`<div class="plist">${moje.map(u=>`<div class="prow pmprow" data-klucz="m${u.id}${u.status}"><span class="pmav" style="background-image:url(assets/foto-${u.do}.svg)"></span><span class="ptx"><b>${nazwa(u.do)}${rel(OS.id,u.do)?', '+rel(OS.id,u.do).rel:''}</b>
+   ${moje.length?`<div class="plist">${moje.map(u=>`<div class="prow pmprow" data-klucz="m${u.id}${u.status}"><span class="pmav" style="background-image:url(assets/foto-${u.do}.svg)"></span><span class="ptx"><b>${nazwa(u.do)}</b>
      <small>${u.status==='oczekuje'?'Czeka na przyjęcie zaproszenia':'Aktywne '+doKiedy(u)}</small><small>${cap(zakresTxt(u.zakres))}</small>
      <span class="pmprz"><button class="pmmaly ghost pmcofnij" data-pm="cofnij" data-id="${u.id}">${u.status==='oczekuje'?'Anuluj zaproszenie':'Cofnij dostęp'}</button></span></span></div>`).join('')}</div>`
     :`<div class="pmpusto">Nikt nie ma teraz dostępu do Twoich spraw.</div>`}
    <button class="spbtn" data-pm="nowe">${ico('users')}Upoważnij bliską osobę</button>
    ${hist.length?`<div class="sppgr">Co zrobiono w Twoim imieniu</div><div class="plist">${hist.map(l=>`<div class="prow pmprow" data-klucz="l${l.t}"><span class="pic">${svg('check')}</span><span class="ptx"><b>${imie(l.kto)} ${esc(l.co)}</b><small>${D.fmt(new Date(l.t))}, ${new Date(l.t).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</small></span></div>`).join('')}</div>`:''}
-   ${dla.length?`<div class="sppgr">Pomagasz</div><div class="plist">${dla.map(u=>`<div class="prow pmprow" data-klucz="d${u.id}${u.status}"><span class="pmav" style="background-image:url(assets/foto-${u.od}.svg)"></span><span class="ptx"><b>${nazwa(u.od)}${rel(OS.id,u.od)?', '+rel(OS.id,u.od).rel:''}</b>
+   ${dla.length?`<div class="sppgr">Pomagasz</div><div class="plist">${dla.map(u=>`<div class="prow pmprow" data-klucz="d${u.id}${u.status}"><span class="pmav" style="background-image:url(assets/foto-${u.od}.svg)"></span><span class="ptx"><b>${nazwa(u.od)}</b>
      <small>${u.status==='oczekuje'?'Zaprasza Cię do pomocy':'Aktywne '+doKiedy(u)}</small><small>${cap(zakresTxt(u.zakres))}</small>
-     <span class="pmprz">${u.status==='oczekuje'?`<button class="pmmaly" data-pm="zapro" data-id="${u.id}">Zobacz zaproszenie</button>`:`<button class="pmmaly" data-pm="idz" data-k="${u.od}">${rel(OS.id,u.od)&&rel(OS.id,u.od).relB==='mamę'?'Sprawy mamy':'Przejdź do spraw'}</button><button class="pmmaly ghost" data-pm="rezygnuj" data-id="${u.id}">Zrezygnuj</button>`}</span></span></div>`).join('')}</div>`:''}
+     <span class="pmprz">${u.status==='oczekuje'?`<button class="pmmaly" data-pm="zapro" data-id="${u.id}">Zobacz zaproszenie</button>`:`<button class="pmmaly" data-pm="idz" data-k="${u.od}">Przejdź do spraw</button><button class="pmmaly ghost" data-pm="rezygnuj" data-id="${u.id}">Zrezygnuj</button>`}</span></span></div>`).join('')}</div>`:''}
    <div class="sppgr">Chcesz pomagać komuś bliskiemu?</div>
    <div class="plist"><button class="prow" data-pm="mojznak"><span class="pic">${ico('scan')}</span><span class="ptx"><b>Pokaż mój znak</b><small>Ta osoba skanuje go w swoim telefonie i sama decyduje, w czym możesz pomagać.</small></span>${ico('chev','pch')}</button></div>
    ${OSTRZ}
@@ -240,7 +241,7 @@
   const N=4,nr=typeof w.krok==='number'?w.krok:1,bylo=w._nr||nr;
   /* pasek postępu: rysujemy stan poprzedni, a w następnej klatce przełączamy — wypełnienie płynnie rośnie albo się cofa */
   const kropki=`<div class="pmkroki" role="progressbar" aria-valuemin="1" aria-valuemax="${N}" aria-valuenow="${nr}" aria-label="Krok ${nr} z ${N}">${Array.from({length:N},(_,n)=>`<i class="${n<bylo?'on':''}"><b></b></i>`).join('')}</div>`;
-  const r=w.do?rel(OS.id,w.do):null,kogo=w.do?imie(w.do):'';
+  const kogo=w.do?imie(w.do):'';
   let h='';
   if(w.krok===1)h=`${kropki}<h2 class="pmh">Kto ma Ci pomagać?</h2>
    <div class="sptxt" style="margin-top:4px">Może to być ktoś z rodziny, przyjaciel albo sąsiad — każda pełnoletnia osoba z mObywatelem.</div>
@@ -256,10 +257,11 @@
    <div class="pmpole"><span id="pmldow">Seria i numer dowodu osobistego</span>${kratki('pmdow','LLLDDDDDD',[3],w.dow,'pmldow')}<small class="pmpodp">3 litery i 6 cyfr — jak na dowodzie</small></div>
    <div class="pmblad" id="pmblad" role="alert">${w.blad?esc(w.blad):''}</div>
    <button class="spbtn" data-szukaj>Dalej</button>
-   ${opublikowany()||RODZ[OS.id]?`<button class="pmpokaz" data-przyklad>Pokaz: wpisz przykładowe dane ${RODZ[OS.id]?'('+nazwa(RODZ[OS.id][0].id)+')':''}</button>`:''}`;
+   <div class="pmpokaz"><span>Pokaz — wpisz dane:</span>${(()=>{const z=opublikowany(),ids=Object.keys(OSOBY).filter(k=>k!==OS.id);if(z&&z.osoba!==OS.id)ids.sort((a,b)=>(b===z.osoba)-(a===z.osoba));
+    return ids.map(k=>`<button data-przyklad="${k}">${nazwa(k)}</button>`).join('')})()}</div>`;
   if(w.krok===2){const os=OSOBY[w.do];
    h=`${kropki}<h2 class="pmh">Czy to ta osoba?</h2>
-   <div class="pmosoba"><span class="pmav duzy" style="background-image:url(assets/foto-${w.do}.svg)"></span><span><b>${nazwa(w.do)}</b><small>ur. ${os.moje.data_urodzenia} · ${(MIEJSCA[w.do]||{}).miasto||''}</small><small>${w.przez==='znak'?'Znak zeskanowany przed chwilą':'PESEL i numer dowodu zgadzają się z rejestrem'}</small></span></div>
+   <div class="pmosoba"><span class="pmav duzy" style="background-image:url(assets/foto-${w.do}.svg)"></span><span><b>${nazwa(w.do)}</b><small>ur. ${urodz(w.do)} · ${(MIEJSCA[w.do]||{}).miasto||''}</small><small>${w.przez==='znak'?'Znak zeskanowany przed chwilą':'PESEL i numer dowodu zgadzają się z rejestrem'}</small></span></div>
    <div class="sptxt">Daj dostęp tylko komuś, kogo znasz osobiście i komu ufasz.</div>
    <button class="spbtn" data-dalej>Tak, to ${os.plec==='K'?'ona':'on'}</button><button class="spbtn ghost" data-od-nowa style="margin-top:10px;width:100%">Nie, zacznij od nowa</button>`}
   if(w.krok===3)h=`${kropki}<h2 class="pmh">W czym ${kogo} może pomagać?</h2>
@@ -271,7 +273,7 @@
    h=`${kropki}<h2 class="pmh">Na jak długo?</h2>
    <div class="pmokres" role="radiogroup" aria-label="Na jak długo">${OKRESY.map(([k,l])=>`<button role="radio" aria-checked="${w.okres===k}" data-ok="${k}" class="${w.okres===k?'on':''}">${l}</button>`).join('')}</div>
    <div class="pmdata ${w.okres==='wlasny'?'on':''}"><label class="pmpole"><span>Dostęp wygaśnie</span><input type="date" id="pmkoniec" min="${naEkran(isoDzien(jutro))}" max="${naEkran(isoDzien(max))}" value="${naEkran(w.koniec)}"></label></div>
-   <div class="ui"><div class="rows">${rowsH([['Komu',nazwa(w.do)+(r?', '+r.rel:'')],['W czym',cap(zakresTxt(w.zakres))],['Do kiedy',`<span class="pmdokiedy">${w.okres==='wlasny'?D.fmt(zIso(w.koniec)):ok[2]?D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania'}</span>`]])}</div></div>
+   <div class="ui"><div class="rows">${rowsH([['Komu',nazwa(w.do)],['Data urodzenia',urodz(w.do)],['W czym',cap(zakresTxt(w.zakres))],['Do kiedy',`<span class="pmdokiedy">${w.okres==='wlasny'?D.fmt(zIso(w.koniec)):ok[2]?D.fmt(new Date(Date.now()+ok[2]*DAY)):'do odwołania'}</span>`]])}</div></div>
    ${OSTRZ}
    <div class="sptxt">${kogo} dostanie zaproszenie w swojej aplikacji. Dostęp zacznie działać, gdy je przyjmie. Cofniesz go w każdej chwili.</div>
    <button class="spbtn" data-dalej>Potwierdź i wyślij</button>`}
@@ -300,8 +302,7 @@
    const sz=el.querySelector('[data-szukaj]');
    if(sz){const pe=el.querySelector('#pmpesel'),dw=el.querySelector('#pmdow');
     kratkiDzialaj(pe);kratkiDzialaj(dw);
-    const pr=el.querySelector('[data-przyklad]');
-    if(pr)pr.onclick=()=>{const z=opublikowany(),id=(RODZ[OS.id]&&RODZ[OS.id][0].id)||(z&&z.osoba);if(!id)return;ustawKratki(pe,OSOBY[id].moje.pesel);ustawKratki(dw,nrDow(OSOBY[id].moje.nr_dowodu))};
+    el.querySelectorAll('[data-przyklad]').forEach(pr=>pr.onclick=()=>{const id=pr.dataset.przyklad;ustawKratki(pe,OSOBY[id].moje.pesel);ustawKratki(dw,nrDow(OSOBY[id].moje.nr_dowodu))});
     sz.onclick=()=>{w.pesel=wartosc(pe);w.dow=wartosc(dw);
      const bl=t=>{w.blad=t;el.querySelector('#pmblad').textContent=t};
      if(w.pesel.length<11)return bl('Wpisz wszystkie 11 cyfr PESEL.');
@@ -376,9 +377,8 @@
  function zaproszenie(id){
   ekran='zapro';
   const u=st.up.find(x=>x.id===id);if(!u||u.status!=='oczekuje'){ekranPomocy();return}
-  const r=rel(OS.id,u.od);
   SP.pokaz('Zaproszenie',`
-   <div class="sphero"><span class="pmav duzy" style="background-image:url(assets/foto-${u.od}.svg)"></span><h2>${nazwa(u.od)}${r?', Twoja '+r.rel:''}, prosi Cię o pomoc w sprawach urzędowych</h2></div>
+   <div class="sphero"><span class="pmav duzy" style="background-image:url(assets/foto-${u.od}.svg)"></span><h2>${nazwa(u.od)} prosi Cię o pomoc w sprawach urzędowych</h2><small class="pmur">ur. ${urodz(u.od)}</small></div>
    <div class="sppgr">Będziesz ${OS.plec==='K'?'mogła':'mógł'}</div>
    <div class="plist">${ZAKRESY.filter(z=>u.zakres.includes(z[0])).map(([k,t,s])=>`<div class="prow pmprow"><span class="pic">${svg('check')}</span><span class="ptx"><b>${t}</b><small>${s.replace('Twoje','jej').replace('Twoim imieniu','jej imieniu')}</small></span></div>`).join('')}</div>
    <div class="ui"><div class="rows">${rowsH([['Na',okresTxt(u)],['Każde działanie','widzi '+imie(u.od)]])}</div></div>
@@ -387,7 +387,7 @@
     el.querySelector('#pmtak').onclick=async()=>{await faceid();st=wczytaj();const x=st.up.find(y=>y.id===id);if(!x)return;
      x.status='aktywne';x.zm=teraz();x.od_dnia=Date.now();x.do_dnia=x.koniec||(x.dni?Date.now()+x.dni*DAY:null);loguj(OS.id,x.od,rodzaj('przyjęła','przyjął')+' upoważnienie');zapisz();
      KTO=x.od;ekran=null;
-     el.querySelector('#spakcja').innerHTML=`<div class="spok">${svg('check')}<b>Możesz już pomagać</b><div class="sptxt">${r&&r.relB==='mamę'?'Sprawy mamy są':'Sprawy: '+nazwa(x.od)+' są'} w „Twoich sprawach”.</div></div><button class="spbtn" id="pmidz">Przejdź do spraw</button>`;
+     el.querySelector('#spakcja').innerHTML=`<div class="spok">${svg('check')}<b>Możesz już pomagać</b><div class="sptxt">Sprawy: ${nazwa(x.od)} są w „Twoich sprawach”.</div></div><button class="spbtn" id="pmidz">Przejdź do spraw</button>`;
      el.querySelector('#pmidz').onclick=()=>{SP.zamknij();idzDoSpraw(x.od)}};
     el.querySelector('#pmnie').onclick=()=>{st=wczytaj();const x=st.up.find(y=>y.id===id);if(x){x.status='odrzucone';x.zm=teraz();zapisz()}SP.zamknij()};
    });
@@ -403,7 +403,8 @@
    segPrzed=od;KTO=b.dataset.k||null;if(window.odswiezStrone)odswiezStrone();
    /* wskaźnik przejeżdża pod nową opcję, a lista wjeżdża z tej strony, w którą przesuwa się wskaźnik */
    const pg=document.querySelector('#page'),ns=pg&&pg.querySelector('.pmseg');
-   if(ns)requestAnimationFrame(()=>requestAnimationFrame(()=>{ns.style.setProperty('--i',do_);segPrzed=do_}));else segPrzed=do_;
+   segPrzed=null;
+   if(ns)requestAnimationFrame(()=>requestAnimationFrame(()=>ns.style.setProperty('--i',do_)));
    if(pg&&ns&&!SPOK()){const k=do_>od?1:-1;let i=0;for(let el=ns.nextElementSibling;el;el=el.nextElementSibling)
     el.animate([{opacity:0,transform:`translateX(${k*36}px)`},{opacity:1,transform:'none'}],{duration:380,delay:Math.min(i++,5)*25,easing:EASE,fill:'backwards'})}
    return}
@@ -512,6 +513,6 @@
  const ow=window.otworzWiecej;
  window.otworzWiecej=n=>n==='Pomoc bliskiej osoby'?ekranPomocy():(ekran=null,ow(n));
  window.POMOC={naglowek,strona,otworzSprawe,klik,wpisyKto,ekranPomocy,kreator,
-  stan:()=>st,aktywneDlaMnie,odeMnie,nazwa,rel,
+  stan:()=>st,aktywneDlaMnie,odeMnie,nazwa,
   reset:()=>{try{localStorage.removeItem(KLUCZ)}catch(e){}st=PUSTY();KTO=null;odswiez()}};
 })();
