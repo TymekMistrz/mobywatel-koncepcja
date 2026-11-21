@@ -24,15 +24,18 @@
  const naEkran=iso=>{const d=zIso(iso);d.setDate(d.getDate()+PR);return isoDzien(d)};
  const zEkranu=iso=>{const d=zIso(iso);d.setDate(d.getDate()-PR);return isoDzien(d)};
  const koniecDla=w=>w.okres==='wlasny'?zIso(w.koniec).getTime():null;
- const okresTxt=u=>u.koniec?'do '+D.fmt(new Date(u.koniec)):u.dni?'1 miesiąc':'do odwołania';
- const PUSTY=()=>({up:[],log:[],zal:{},pros:[]});
+ const okresTxt=u=>u.jedna?'jednorazowo — do załatwienia sprawy':u.koniec?'do '+D.fmt(new Date(u.koniec)):u.dni?'1 miesiąc':'do odwołania';
+ const PUSTY=()=>({up:[],log:[],zal:{},pros:[],pom:[]});   /* pom: prośby o pomoc w konkretnej sprawie */
  const ico=(k,c)=>window.icoH?icoH(k,c):'';
  const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 
  /* ---------- stan wspólny dla wszystkich okien ---------- */
  function wczytaj(){try{const s=JSON.parse(localStorage.getItem(KLUCZ));if(s&&s.up)return Object.assign(PUSTY(),s)}catch(e){}return PUSTY()}
  let st=wczytaj();
- function zapisz(){try{localStorage.setItem(KLUCZ,JSON.stringify(st))}catch(e){}odswiez();rozeslij()}
+ function zapisz(){domknij();try{localStorage.setItem(KLUCZ,JSON.stringify(st))}catch(e){}odswiez();rozeslij()}
+ /* upoważnienie jednorazowe wygasa samo, gdy jego sprawa jest załatwiona */
+ function domknij(){let z=false;for(const u of st.up){if(u.jedna&&(u.status==='aktywne'||u.status==='oczekuje')&&(st.zal[u.od]||[]).includes(u.jedna.h)){u.status='zakonczone';u.zm=teraz();z=true}
+   for(const q of st.pom)if(q.status==='czeka'&&(st.zal[q.od]||[]).includes(q.h)){q.status='zalatwione';z=true}}return z}
  const nazwa=id=>OSOBY[id]?OSOBY[id].imie+' '+OSOBY[id].nazwisko:id;
  const imie=id=>OSOBY[id]?OSOBY[id].imie:id;
  /* osoby zawsze imieniem i nazwiskiem, bez stopni pokrewieństwa; data urodzenia rozróżnia osoby o tym samym imieniu i nazwisku */
@@ -59,8 +62,10 @@
  let KTO=null,segPrzed=null;   /* segPrzed: skąd ma ruszyć wskaźnik przełącznika „Moje sprawy / osoba” */   /* czyje sprawy oglądam: null = moje, albo id osoby, która dała mi upoważnienie */
  function naglowek(){
   const p=st.up.filter(u=>u.do===OS.id&&u.status==='oczekuje');
+  const pm=st.pom.filter(q=>q.do===OS.id&&q.status==='czeka'&&aktywneDlaMnie().some(u=>u.od===q.od));
   const a=aktywneDlaMnie();
-  let h=p.map(u=>`<button class="pmbaner" data-pm="zapro" data-id="${u.id}"><span class="pmav" style="background-image:url(assets/foto-${u.od}.svg)"></span>
+  let h=pm.map(q=>`<button class="pmbaner pmprosi" data-pm="pom" data-id="${q.id}"><span class="pmav" style="background-image:url(assets/foto-${q.od}.svg)"></span>
+    <span class="ptx"><b>${nazwa(q.od)} prosi o pomoc</b><small>${esc(q.h)}</small></span>${ico('chev','pch')}</button>`).join('')+p.map(u=>`<button class="pmbaner" data-pm="zapro" data-id="${u.id}"><span class="pmav" style="background-image:url(assets/foto-${u.od}.svg)"></span>
     <span class="ptx"><b>${nazwa(u.od)} prosi Cię o pomoc</b><small>Zobacz, w czym możesz pomagać</small></span>${ico('chev','pch')}</button>`).join('');
   const opcje=[['','Moje sprawy'],...a.map(u=>[u.od,etyk(u.od,a.map(x=>x.od))])],teraz=Math.max(0,opcje.findIndex(o=>o[0]===(KTO||'')));
   const start=segPrzed!==null&&segPrzed<opcje.length?segPrzed:teraz;   /* skąd rusza wskaźnik; poza kliknięciem stoi od razu na właściwej opcji */
@@ -71,16 +76,35 @@
  const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
  function strona(){
   if(KTO&&!aktywneDlaMnie().some(u=>u.od===KTO))KTO=null;
-  if(!KTO)return null;
+  if(!KTO){const r=przypomnienia();if(!r.length)return null;
+   /* moje sprawy + terminy osób, którym pomagam */
+   return naglowek()+(window.mojeSprawyH?mojeSprawyH():'')+`<div class="pgr pmprzyp">${ico('bell')}Terminy osób, którym pomagasz · ${r.length}</div>
+    <div class="plist">${r.map(x=>`<button class="prow" data-pm="idzSprawa" data-k="${x.od}" data-i="${x.i}"><span class="pmav maly" style="background-image:url(assets/foto-${x.od}.svg)"></span><span class="ptx"><b>${x.t.h}</b><small class="${x.dni<=3?'pilne':''}">${nazwa(x.od)} · ${x.dni<0?'po terminie':x.dni===0?'dziś':'za '+x.dni+' '+(x.dni===1?'dzień':'dni')}</small></span>${ico('chev','pch')}</button>`).join('')}</div>`}
   const u=aktywneDlaMnie().find(x=>x.od===KTO),os=OSOBY[KTO],z=zal(KTO);
-  const t=os.tiles||[];
+  const t=(os.tiles||[]).map((x,i)=>[x,i]).filter(([x])=>!u.jedna||x.h===u.jedna.h);
+  const prosba=h=>st.pom.some(q=>q.od===KTO&&q.do===OS.id&&q.h===h&&q.status==='czeka');
   return naglowek()+`
-   <div class="pmimie"><span class="pmav" style="background-image:url(assets/foto-${KTO}.svg)"></span><span class="ptx"><b>Działasz w imieniu: ${nazwa(KTO)}</b><small>ur. ${urodz(KTO)} · upoważnienie ${doKiedy(u)}</small><small>${cap(zakresTxt(u.zakres))}</small></span></div>
+   <div class="pmimie"><span class="pmav" style="background-image:url(assets/foto-${KTO}.svg)"></span><span class="ptx"><b>Działasz w imieniu: ${nazwa(KTO)}</b><small>ur. ${urodz(KTO)} · upoważnienie ${u.jedna?'jednorazowe':doKiedy(u)}</small><small>${u.jedna?'Tylko: '+esc(u.jedna.h):cap(zakresTxt(u.zakres))}</small></span></div>
    <div class="pgr">Sprawy: ${nazwa(KTO)} · ${t.length}</div>
-   <div class="plist">${t.map((x,i)=>{const moze=!x.z||u.zakres.includes(x.z);const ok=z.has(x.h);
-    return `<button class="prow" data-h="${i}"><span class="pic ${x.u&&!ok?'pil':''}">${ico(moze?(x.i==='car'?'car':x.i==='coin'?'coin':x.i==='doc'?'doc':'mail'):'lock')}</span><span class="ptx"><b>${x.h}</b>${ok?'<small class="gotowe">Załatwione</small>':`<small class="${x.u?'pilne':''}">${x.d}</small>`}<small>${moze?'':'Bez dostępu: '+(ZAKRESY.find(q=>q[0]===x.z)||[,''])[1].toLowerCase()}</small></span>${ico('chev','pch')}</button>`}).join('')}</div>
+   <div class="plist">${t.map(([x,i])=>{const moze=!x.z||u.zakres.includes(x.z);const ok=z.has(x.h);
+    return `<button class="prow" data-h="${i}"><span class="pic ${x.u&&!ok?'pil':''}">${ico(moze?(x.i==='car'?'car':x.i==='coin'?'coin':x.i==='doc'?'doc':'mail'):'lock')}</span><span class="ptx"><b>${x.h}</b>${ok?'<small class="gotowe">Załatwione</small>':`<small class="${x.u?'pilne':''}">${x.d}</small>`}<small>${moze?(prosba(x.h)&&!ok?'<span class="pmtag">Prosi o pomoc</span>':''):'Bez dostępu: '+(ZAKRESY.find(q=>q[0]===x.z)||[,''])[1].toLowerCase()}</small></span>${ico('chev','pch')}</button>`}).join('')}</div>
    <div class="pmstopka">${ico('shield')}<span>${imie(KTO)} widzi w swojej aplikacji wszystko, co tu zrobisz. ${OSOBY[KTO].plec==='K'?'Jej':'Jego'} dokumentów nie zobaczysz i niczego za ${OSOBY[KTO].plec==='K'?'nią':'niego'} nie podpiszesz.</span></div>`;
  }
+
+ /* przypomnienia dla osoby pomagającej: terminy (do 14 dni) w sprawach, do których ma dostęp */
+ function przypomnienia(){
+  const w=[];
+  for(const u of aktywneDlaMnie()){if(u.przyp===false)continue;const z=zal(u.od);
+   (OSOBY[u.od].tiles||[]).forEach((t,i)=>{if(z.has(t.h)||(t.z&&!u.zakres.includes(t.z))||(u.jedna&&u.jedna.h!==t.h))return;
+    const d=D.data(t.d);if(!d)return;const n=D.dni(d);if(n===null||n>14)return;w.push({od:u.od,i,t,dni:n})})}
+  return w.sort((a,b)=>a.dni-b.dni);
+ }
+ let przypPokazane=false;
+ function przypomnijPrzyStarcie(){
+  if(przypPokazane)return;const r=przypomnienia().filter(x=>x.dni<=7);if(!r.length)return;przypPokazane=true;
+  const x=r[0];SP.toast(`Przypomnienie: ${x.t.h} (${nazwa(x.od)}) — ${x.dni<0?'po terminie':x.dni===0?'termin dziś':'za '+x.dni+' '+(x.dni===1?'dzień':'dni')}`);
+ }
+ setTimeout(przypomnijPrzyStarcie,1800);
 
  /* sprawa osoby, która dała upoważnienie — akcje tylko w udzielonym zakresie */
  function otworzSprawe(i){
@@ -112,7 +136,8 @@
      if(t.k==='pay'){await faceid();st=wczytaj();const zz=zal(kto);zz.add(t.h);st.zal[kto]=[...zz];loguj(OS.id,kto,`zapłacił${OS.plec==='K'?'a':''}: ${t.h}, ${kw} zł`);zapisz();
       SP.sukces(box,`Zapłacone w imieniu: ${nazwa(kto)}`,[['Kwota',kw+' zł'],['Tytuł',t.h],['Potwierdzenie','widzi je też '+imie(kto)]]);
       const pill=el.querySelector('.sppill');if(pill){pill.className='sppill ok';pill.textContent='Załatwione'}return}
-     if(t.k==='recepty'){st=wczytaj();loguj(OS.id,kto,'sprawdził'+(OS.plec==='K'?'a':'')+' recepty');zapisz();
+     if(t.k==='recepty'){st=wczytaj();loguj(OS.id,kto,'sprawdził'+(OS.plec==='K'?'a':'')+' recepty');st.pom.forEach(q=>{if(q.od===kto&&q.h===t.h&&q.status==='czeka')q.status='zalatwione'});
+      if(st.up.some(x=>x.od===kto&&x.do===OS.id&&x.jedna&&x.jedna.h===t.h)){const zz=zal(kto);zz.add(t.h);st.zal[kto]=[...zz]}zapisz();
       box.innerHTML=`<div class="ui"><div class="rows">${rowsH([['PESEL '+kogo,(OSOBY[kto].moje.pesel||'').slice(0,6)+'•••••'],['Recepta 1','kod 4821 · ważna do 20.12'],['Recepta 2','kod 7716 · ważna do 20.12']])}</div></div>
        <div class="sptxt">W aptece podaj PESEL ${kogo} i kod recepty. Farmaceuta wyda leki Tobie.</div>`;return}
      if(t.k==='letter'){st=wczytaj();loguj(OS.id,kto,'przeczytał'+(OS.plec==='K'?'a':'')+': '+t.h);const zz=zal(kto);zz.add(t.h);st.zal[kto]=[...zz];zapisz();
@@ -120,6 +145,38 @@
       const pill=el.querySelector('.sppill');if(pill){pill.className='sppill ok';pill.textContent='Załatwione'}}
     };
    });
+ }
+
+ /* ---------- „Poproś o pomoc w tej sprawie” (w mojej sprawie) ---------- */
+ function przyciskPomocy(i){
+  const t=(OS.tiles||[])[i];if(!t||(window.ZALATWIONE&&ZALATWIONE.has(t.h)))return '';
+  const c=st.pom.find(q=>q.od===OS.id&&q.h===t.h&&q.status==='czeka');
+  if(c)return `<div class="spnote pmczeka">${ico('users')}<span>Poprosił${OS.plec==='K'?'aś':'eś'} o pomoc: <b>${nazwa(c.do)}</b>. Czeka na odpowiedź.</span></div>`;
+  return `<button class="spbtn ghost" id="pmpomoc">${ico('users')}Poproś o pomoc w tej sprawie</button>`;
+ }
+ function bindPomocy(el,i){
+  const b=el.querySelector('#pmpomoc');if(!b)return;
+  b.onclick=()=>{
+   const t=OS.tiles[i],h=odeMnie().filter(zywe);
+   const box=document.createElement('div');box.className='pmkomu';
+   box.innerHTML=h.length?`<div class="sppgr">Kogo poprosić?</div><div class="plist">${h.map(u=>{const brak=t.z&&!u.zakres.includes(t.z)&&!(u.jedna&&u.jedna.h===t.h)||(u.jedna&&u.jedna.h!==t.h);
+      return `<button class="prow" data-komu="${u.do}"><span class="pmav" style="background-image:url(assets/foto-${u.do}.svg)"></span><span class="ptx"><b>${nazwa(u.do)}</b><small>${brak?'dostanie też dostęp do tej sprawy':'ma dostęp do tej sprawy'}</small></span>${ico('chev','pch')}</button>`}).join('')}</div>
+      <button class="pmlink" data-nowa>Albo upoważnij kogoś innego tylko do tej sprawy</button>`
+    :`<div class="pmpusto">Nikt Ci jeszcze nie pomaga.</div><button class="spbtn" data-nowa>${ico('users')}Upoważnij kogoś do tej sprawy</button>`;
+   b.replaceWith(box);
+   if(!SPOK())box.animate([{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:320,easing:EASE});
+   box.querySelectorAll('[data-nowa]').forEach(x=>x.onclick=()=>{const s0=zdejmij();kreator({krok:1,tryb:'jedna',sprawa:i,zakres:['sprawy'],okres:'raz'});przesun(s0,1,false)});
+   box.querySelectorAll('[data-komu]').forEach(x=>x.onclick=async()=>{
+    const kto=x.dataset.komu;st=wczytaj();const u=st.up.find(y=>y.od===OS.id&&y.do===kto&&zywe(y));if(!u)return;
+    const brak=(t.z&&!u.zakres.includes(t.z))||(u.jedna&&u.jedna.h!==t.h);
+    if(brak){await faceid();st=wczytaj();const v=st.up.find(y=>y.id===u.id);
+     if(v.jedna){v.jedna=null;v.zakres=['sprawy']}   /* jednorazowe przechodzi w stałe tylko dla tej sprawy nie ma sensu — dajemy zakres sprawy */
+     if(t.z&&!v.zakres.includes(t.z))v.zakres=ZAKRESY.map(z=>z[0]).filter(k=>v.zakres.includes(k)||k===t.z);v.zm=teraz()}
+    st.pom.unshift({id:'q'+Date.now(),od:OS.id,do:kto,i,h:t.h,t:Date.now(),status:'czeka'});zapisz();
+    box.innerHTML=`<div class="spok">${svg('check')}<b>Prośba wysłana</b><div class="sptxt">${nazwa(kto)} dostanie powiadomienie z tą sprawą.</div></div>`;
+    if(!SPOK())box.firstChild.animate([{opacity:0,transform:'scale(.96)'},{opacity:1,transform:'none'}],{duration:320,easing:EASE});
+   });
+  };
  }
 
  /* ---------- Więcej → „Pomoc bliskiej osoby” ---------- */
@@ -137,14 +194,14 @@
      <span class="pmprz"><button class="pmmaly" data-pm="pros-tak" data-id="${p.id}">Zgadzam się</button><button class="pmmaly ghost" data-pm="pros-nie" data-id="${p.id}">Nie teraz</button></span></span></div>`).join('')}</div>`:''}
    <div class="sppgr">Pomagają Ci</div>
    ${moje.length?`<div class="plist">${moje.map(u=>`<div class="prow pmprow" data-klucz="m${u.id}${u.status}"><span class="pmav" style="background-image:url(assets/foto-${u.do}.svg)"></span><span class="ptx"><b>${nazwa(u.do)}</b>
-     <small>${u.status==='oczekuje'?'Czeka na przyjęcie zaproszenia':'Aktywne '+doKiedy(u)}</small><small>${cap(zakresTxt(u.zakres))}</small>
+     <small>${u.status==='oczekuje'?'Czeka na przyjęcie zaproszenia':u.jedna?'Jednorazowo':'Aktywne '+doKiedy(u)}</small><small>${u.jedna?'Tylko: '+esc(u.jedna.h):cap(zakresTxt(u.zakres))}</small>
      <span class="pmprz"><button class="pmmaly ghost pmcofnij" data-pm="cofnij" data-id="${u.id}">${u.status==='oczekuje'?'Anuluj zaproszenie':'Cofnij dostęp'}</button></span></span></div>`).join('')}</div>`
     :`<div class="pmpusto">Nikt nie ma teraz dostępu do Twoich spraw.</div>`}
    <button class="spbtn" data-pm="nowe">${ico('users')}Upoważnij bliską osobę</button>
    ${hist.length?`<div class="sppgr">Co zrobiono w Twoim imieniu</div><div class="plist">${hist.map(l=>`<div class="prow pmprow" data-klucz="l${l.t}"><span class="pic">${svg('check')}</span><span class="ptx"><b>${imie(l.kto)} ${esc(l.co)}</b><small>${D.fmt(new Date(l.t))}, ${new Date(l.t).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})}</small></span></div>`).join('')}</div>`:''}
    ${dla.length?`<div class="sppgr">Pomagasz</div><div class="plist">${dla.map(u=>`<div class="prow pmprow" data-klucz="d${u.id}${u.status}"><span class="pmav" style="background-image:url(assets/foto-${u.od}.svg)"></span><span class="ptx"><b>${nazwa(u.od)}</b>
-     <small>${u.status==='oczekuje'?'Zaprasza Cię do pomocy':'Aktywne '+doKiedy(u)}</small><small>${cap(zakresTxt(u.zakres))}</small>
-     <span class="pmprz">${u.status==='oczekuje'?`<button class="pmmaly" data-pm="zapro" data-id="${u.id}">Zobacz zaproszenie</button>`:`<button class="pmmaly" data-pm="idz" data-k="${u.od}">Przejdź do spraw</button><button class="pmmaly ghost" data-pm="rezygnuj" data-id="${u.id}">Zrezygnuj</button>`}</span></span></div>`).join('')}</div>`:''}
+     <small>${u.status==='oczekuje'?'Zaprasza Cię do pomocy':u.jedna?'Jednorazowo':'Aktywne '+doKiedy(u)}</small><small>${u.jedna?'Tylko: '+esc(u.jedna.h):cap(zakresTxt(u.zakres))}</small>
+     <span class="pmprz">${u.status==='oczekuje'?`<button class="pmmaly" data-pm="zapro" data-id="${u.id}">Zobacz zaproszenie</button>`:`<button class="pmmaly" data-pm="idz" data-k="${u.od}">Przejdź do spraw</button><button class="pmmaly ghost" data-pm="przyp" data-id="${u.id}" aria-pressed="${u.przyp!==false}">${ico('bell')}${u.przyp!==false?'Przypomnienia: wł.':'Przypomnienia: wył.'}</button><button class="pmmaly ghost" data-pm="rezygnuj" data-id="${u.id}">Zrezygnuj</button>`}</span></span></div>`).join('')}</div>`:''}
    <div class="sppgr">Chcesz pomagać komuś bliskiemu?</div>
    <div class="plist"><button class="prow" data-pm="mojznak"><span class="pic">${ico('scan')}</span><span class="ptx"><b>Pokaż mój znak</b><small>Ta osoba skanuje go w swoim telefonie i sama decyduje, w czym możesz pomagać.</small></span>${ico('chev','pch')}</button></div>
    ${OSTRZ}
@@ -249,14 +306,15 @@
   const r=b.getBoundingClientRect(),rs=sh.getBoundingClientRect(),y=b.scrollTop;
   return {b,r,rs,y};
  }
+ let w2Staly=false;   /* przy przełączaniu „Stały dostęp / Jedna sprawa” nagłówek i przełącznik stoją, jedzie tylko treść */
  function przesun(st0,kier,bezPaska){
   const sh=SP.sh,b=sh.querySelector('.body');if(!b||SPOK())return;
   if(st0){const g=st0.b;g.classList.add('pmduch');
    Object.assign(g.style,{position:'absolute',left:(st0.r.left-st0.rs.left)+'px',top:(st0.r.top-st0.rs.top)+'px',width:st0.r.width+'px',height:st0.r.height+'px',pointerEvents:'none',zIndex:2,overflow:'hidden'});
-   if(bezPaska)g.querySelectorAll('.pmkroki').forEach(k=>k.style.visibility='hidden');
+   if(bezPaska)g.querySelectorAll('.pmkroki,.pmstaly').forEach(k=>k.style.visibility='hidden');
    sh.append(g);g.scrollTop=st0.y;
    g.animate([{opacity:1,transform:'none'},{opacity:0,transform:`translateX(${-kier*40}px)`}],{duration:200,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'}).finished.then(()=>g.remove(),()=>g.remove());}
-  [...b.children].filter(c=>!(bezPaska&&c.classList.contains('pmkroki'))).forEach((c,i)=>c.animate([{opacity:0,transform:`translateX(${kier*48}px)`},{opacity:1,transform:'none'}],{duration:400,delay:70+Math.min(i,6)*18,easing:EASE,fill:'backwards'}));
+  [...b.children].filter(c=>!(bezPaska&&(c.classList.contains('pmkroki')||(w2Staly&&c.classList.contains('pmstaly'))))).forEach((c,i)=>c.animate([{opacity:0,transform:`translateX(${kier*48}px)`},{opacity:1,transform:'none'}],{duration:400,delay:70+Math.min(i,6)*18,easing:EASE,fill:'backwards'}));
  }
  /* kreator u osoby, która daje dostęp: jak znaleźć osobę → potwierdź osobę → w czym → na jak długo */
  function kreator(w){
@@ -286,12 +344,27 @@
     <span class="pmzgod">${svg('check')}${w.przez==='znak'?'Znak zeskanowany':'Dane zgodne z rejestrem'}</span></div>
    <button class="spbtn" data-dalej>Tak, to ${os.plec==='K'?'ona':'on'}</button><button class="spbtn ghost" data-od-nowa style="margin-top:10px;width:100%">To nie ta osoba</button>
    <p class="pmpod">Daj dostęp tylko komuś, kogo znasz osobiście.</p>`}
-  if(w.krok===3)h=`${kropki}<h2 class="pmh">W czym ${kogo} może pomagać?</h2>
+  if(w.krok===3){const mt=(OS.tiles||[]).map((t,i)=>[t,i]).filter(([t])=>!(window.ZALATWIONE&&ZALATWIONE.has(t.h)));
+   h=`${kropki}<h2 class="pmh pmstaly">W czym ${kogo} może pomagać?</h2>
+   <div class="pmtryb pmstaly" role="tablist"><span class="pmwsk2" style="--i:${w._trybOd!=null?w._trybOd:(w.tryb==='jedna'?1:0)}"></span><button role="tab" data-tryb="staly" aria-selected="${w.tryb!=='jedna'}" class="${w.tryb!=='jedna'?'on':''}">Stały dostęp</button><button role="tab" data-tryb="jedna" aria-selected="${w.tryb==='jedna'}" class="${w.tryb==='jedna'?'on':''}">Jedna sprawa</button></div>
+   ${w.tryb==='jedna'?`<div class="plist pmjedna">${mt.length?mt.map(([t,i])=>`<button class="prow pmwyb ${w.sprawa===i?'on':''}" data-sprawa="${i}"><span class="pic">${ico(t.i==='coin'?'coin':t.i==='doc'?'doc':t.i==='car'?'car':'mail')}</span><span class="ptx"><b>${t.h}</b><small>${t.d}</small></span><span class="pmradio"></span></button>`).join(''):'<div class="pmpusto">Nie masz spraw do załatwienia.</div>'}</div>
+    <p class="pmpod">${ico('clock')}Dostęp wygaśnie po załatwieniu tej sprawy.</p>
+    <button class="spbtn" data-dalej ${w.sprawa==null?'disabled':''}>Dalej</button>`:`
    <div class="pmzakresy">${ZAKRESY.map(([k,t,s,staly])=>`<button type="button" class="pmzak ${w.zakres.includes(k)?'on':''} ${staly?'staly':''}" data-zk="${k}" aria-pressed="${w.zakres.includes(k)}" ${staly?'aria-disabled="true"':''}>
     <span class="pmzi">${ico(IKZ[k])}</span><b>${t}</b><small>${staly?'zawsze':KROT[k]}</small><span class="pmzc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span></button>`).join('')}</div>
    <p class="pmpod">${ico('lock')}Dokumentów nie zobaczy i niczego nie podpisze.</p>
-   <button class="spbtn" data-dalej>Dalej</button>`;
-  if(w.krok===4){const ok=OKRESY.find(o=>o[0]===w.okres);
+   <button class="spbtn" data-dalej>Dalej</button>`}`}
+  if(w.krok===4&&w.tryb==='jedna'){const t=OS.tiles[w.sprawa];
+   h=`${kropki}<h2 class="pmh">Sprawdź i wyślij</h2>
+   <div class="pmpodsum">
+    <div class="pmpk"><span class="pmav" style="background-image:url(assets/foto-${w.do}.svg)"></span><span><b>${nazwa(w.do)}</b><small>ur. ${urodz(w.do)}</small></span></div>
+    <div class="pmjednaS"><span class="pic">${ico(t.i==='coin'?'coin':t.i==='doc'?'doc':t.i==='car'?'car':'mail')}</span><span><b>${t.h}</b><small>${t.d}</small></span></div>
+    <div class="pmpd">${ico('clock')}<span>Ważne <b>do załatwienia tej sprawy</b> (maks. 7 dni)</span></div>
+   </div>
+   ${OSTRZ_K}
+   <button class="spbtn" data-dalej>Wyślij zaproszenie</button>
+   <p class="pmpod">Po załatwieniu sprawy dostęp wygaśnie sam.</p>`}
+  else if(w.krok===4){const ok=OKRESY.find(o=>o[0]===w.okres);
    h=`${kropki}<h2 class="pmh">Na jak długo?</h2>
    <div class="pmokres" role="radiogroup" aria-label="Na jak długo">${OKRESY.map(([k,l])=>`<button role="radio" aria-checked="${w.okres===k}" data-ok="${k}" class="${w.okres===k?'on':''}">${l}</button>`).join('')}</div>
    <div class="pmdata ${w.okres==='wlasny'?'on':''}"><div><div class="pmkal" id="pmkal">${kalendarz(w)}</div></div></div>
@@ -308,7 +381,7 @@
   const stary=w._klucz&&w._klucz!==klucz?zdejmij():null;
   w._klucz=klucz;w._nr=nr;
   SP.pokaz('Upoważnij bliską osobę',h,el=>{
-   przesun(stary,kier,true);
+   if(!w._cicho)przesun(stary,kier,true);w._cicho=false;
    requestAnimationFrame(()=>requestAnimationFrame(()=>el.querySelectorAll('.pmkroki i').forEach((x,n)=>{x.classList.toggle('on',n<nr);x.style.transitionDelay=Math.abs(n-(bylo-1))*60+'ms'})));
    el.querySelectorAll('[data-spos]').forEach(b=>b.onclick=()=>{if(b.dataset.spos==='znak'){skanuj(w);return}w.krok=b.dataset.spos;kreator(w)});
    el.querySelectorAll('[data-zk]').forEach(b=>b.onclick=()=>{
@@ -316,6 +389,11 @@
     const k=b.dataset.zk,on=!w.zakres.includes(k);w.zakres=on?[...w.zakres,k]:w.zakres.filter(x=>x!==k);
     b.classList.toggle('on',on);b.setAttribute('aria-pressed',on);
     if(on&&!SPOK())b.querySelector('.pmzc').animate([{transform:'scale(.4)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:260,easing:'cubic-bezier(.3,1.6,.5,1)'})});
+   {const tw=el.querySelector('.pmwsk2');if(tw&&w._trybOd!=null){w._trybOd=null;requestAnimationFrame(()=>requestAnimationFrame(()=>tw.style.setProperty('--i',w.tryb==='jedna'?1:0)))}}
+   el.querySelectorAll('[data-tryb]').forEach(b=>b.onclick=()=>{if((w.tryb||'staly')===b.dataset.tryb)return;w._trybOd=w.tryb==='jedna'?1:0;w.tryb=b.dataset.tryb;const k=w.tryb==='jedna'?1:-1;
+    /* przełącznik: wskaźnik przejeżdża, a treść poniżej wjeżdża z boku */
+    const s0=zdejmij();w._klucz=null;w._cicho=true;kreator(w);w2Staly=true;przesun(s0,k,true);w2Staly=false});
+   el.querySelectorAll('[data-sprawa]').forEach(b=>b.onclick=()=>{w.sprawa=+b.dataset.sprawa;el.querySelectorAll('[data-sprawa]').forEach(x=>x.classList.toggle('on',x===b));const d=el.querySelector('[data-dalej]');if(d)d.disabled=false});
    el.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{w.okres=b.dataset.ok;
     /* bez przeładowania kroku: zaznaczenie, pole daty i podsumowanie zmieniają się na miejscu */
     el.querySelectorAll('[data-ok]').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)});
@@ -361,7 +439,10 @@
     if(w.krok<4){w.krok++;kreator(w);return}
     await faceid();
     st=wczytaj();const ok=OKRESY.find(o=>o[0]===w.okres);
-    st.up.unshift({zm:teraz(),id:'u'+Date.now(),od:OS.id,do:w.do,przez:w.przez,zakres:ZAKRESY.map(z=>z[0]).filter(k=>w.zakres.includes(k)),okres:w.okres,dni:ok[2]||0,koniec:koniecDla(w),utw:Date.now(),status:'oczekuje'});
+    if(w.tryb==='jedna'){const t=OS.tiles[w.sprawa];
+     st.up.unshift({zm:teraz(),id:'u'+Date.now(),od:OS.id,do:w.do,przez:w.przez,zakres:['sprawy',...(t.z?[t.z]:[])],jedna:{h:t.h,i:w.sprawa},okres:'raz',dni:7,koniec:null,utw:Date.now(),status:'oczekuje'});
+     st.pom.unshift({id:'q'+Date.now(),od:OS.id,do:w.do,i:w.sprawa,h:t.h,t:Date.now(),status:'czeka'})}
+    else st.up.unshift({zm:teraz(),id:'u'+Date.now(),od:OS.id,do:w.do,przez:w.przez,zakres:ZAKRESY.map(z=>z[0]).filter(k=>w.zakres.includes(k)),okres:w.okres,dni:ok[2]||0,koniec:koniecDla(w),utw:Date.now(),status:'oczekuje'});
     zapisz();ekran='pomoc';
     /* zaproszenie do drugiego urządzenia: na temat zeskanowanego znaku albo (po PESEL) na temat osoby */
     {const u=st.up[0];wyslij(w.przez==='znak'&&w.token!=null?tematZnaku(w.token):tematOsoby(w.do),paczka(u))}
@@ -424,6 +505,7 @@
   SP.pokaz('Zaproszenie',`
    <div class="sphero"><span class="pmav duzy" style="background-image:url(assets/foto-${u.od}.svg)"></span><h2>${nazwa(u.od)} prosi Cię o pomoc w sprawach urzędowych</h2><small class="pmur">ur. ${urodz(u.od)}</small></div>
    <div class="sppgr">Będziesz ${OS.plec==='K'?'mogła':'mógł'}</div>
+   ${u.jedna?`<div class="pmjednaS duza"><span class="pic">${ico('doc')}</span><span><b>Jedna sprawa: ${esc(u.jedna.h)}</b><small>dostęp wygaśnie po jej załatwieniu</small></span></div>`:''}
    <div class="plist">${ZAKRESY.filter(z=>u.zakres.includes(z[0])).map(([k,t,s])=>`<div class="prow pmprow"><span class="pic">${svg('check')}</span><span class="ptx"><b>${t}</b><small>${s.replace('Twoje','jej').replace('Twoim imieniu','jej imieniu')}</small></span></div>`).join('')}</div>
    <div class="ui"><div class="rows">${rowsH([['Na',okresTxt(u)],['Każde działanie','widzi '+imie(u.od)]])}</div></div>
    <div id="spakcja"><button class="spbtn" id="pmtak">Przyjmij</button><button class="spbtn ghost" id="pmnie">Odrzuć</button></div>`,
@@ -453,6 +535,10 @@
     el.animate([{opacity:0,transform:`translateX(${k*36}px)`},{opacity:1,transform:'none'}],{duration:380,delay:Math.min(i++,5)*25,easing:EASE,fill:'backwards'})}
    return}
   if(a==='zapro'){zaproszenie(id);return}
+  if(a==='pom'){const q=st.pom.find(x=>x.id===id);if(!q)return;KTO=q.od;if(window.odswiezStrone)odswiezStrone();setTimeout(()=>otworzSprawe(q.i),60);return}
+  if(a==='idzSprawa'){KTO=b.dataset.k;if(window.odswiezStrone)odswiezStrone();setTimeout(()=>otworzSprawe(+b.dataset.i),60);return}
+  if(a==='przyp'){st=wczytaj();const u=st.up.find(x=>x.id===id);if(u){u.przyp=u.przyp===false;u.zm=teraz();zapisz()}
+   SP.toast(u&&u.przyp!==false?'Przypomnienia włączone.':'Przypomnienia wyłączone.');ekranPomocy();return}
   if(a==='nowe'){const s0=zdejmij();kreator();przesun(s0,1,false);return}
   if(a==='mojznak'){mojZnak();return}
   if(a==='idz'){SP.zamknij();idzDoSpraw(b.dataset.k);return}
@@ -489,8 +575,8 @@
  function odsubskrybuj(t){const es=subs.get(t);if(es){es.close();subs.delete(t)}}
  function wyslij(t,o){try{fetch(PRZ+t,{method:'POST',body:JSON.stringify(o)}).catch(()=>{})}catch(e){}}
  const para=(l,u)=>(l.kto===u.od&&l.za===u.do)||(l.kto===u.do&&l.za===u.od);
- function paczka(u){return {v:1,up:u,log:st.log.filter(l=>para(l,u)).slice(0,10),pros:st.pros.filter(p=>p.od===u.do&&p.do===u.od).slice(0,6),zal:{[u.od]:st.zal[u.od]||[]}}}
- const RANGA={oczekuje:0,aktywne:1,odrzucone:2,cofniete:2};
+ function paczka(u){return {v:1,up:u,log:st.log.filter(l=>para(l,u)).slice(0,10),pros:st.pros.filter(p=>p.od===u.do&&p.do===u.od).slice(0,6),pom:st.pom.filter(q=>q.od===u.od&&q.do===u.do).slice(0,6),zal:{[u.od]:st.zal[u.od]||[]}}}
+ const RANGA={oczekuje:0,aktywne:1,odrzucone:2,cofniete:2,zakonczone:2};
  const lepszy=(a,b)=>RANGA[a.status]!==RANGA[b.status]?RANGA[a.status]>RANGA[b.status]:(a.zm||0)>(b.zm||0);
  /* scalanie paczki z drugiego urządzenia — kolejność nie ma znaczenia, a powtórki niczego nie zmieniają */
  function odbierz(p){
@@ -500,6 +586,8 @@
   if(!x){st.up.unshift(p.up);zm=true}else if(lepszy(p.up,x)){Object.assign(x,p.up);zm=true}
   for(const l of p.log||[])if(!st.log.some(o=>o.t===l.t&&o.co===l.co&&o.kto===l.kto)){st.log.push(l);zm=true}
   st.log.sort((a,b)=>b.t-a.t);st.log=st.log.slice(0,40);
+  for(const q of p.pom||[]){const o=st.pom.find(y=>y.id===q.id);if(!o){st.pom.unshift(q);zm=true}else if(o.status==='czeka'&&q.status!=='czeka'){o.status=q.status;zm=true}}
+  if(domknij())zm=true;
   for(const q of p.pros||[]){const o=st.pros.find(y=>y.id===q.id);if(!o){st.pros.unshift(q);zm=true}else if(o.status==='czeka'&&q.status!=='czeka'){o.status=q.status;zm=true}}
   for(const [k,v] of Object.entries(p.zal||{})){const z=new Set(st.zal[k]||[]);const n=z.size;v.forEach(h=>z.add(h));if(z.size!==n){st.zal[k]=[...z];zm=true}}
   wyslane[p.up.id]=JSON.stringify(paczka(st.up.find(y=>y.id===p.up.id)));
@@ -544,6 +632,9 @@
   st.up.forEach(u=>{const s=stare.up.find(x=>x.id===u.id);if(s&&u.do===OS.id&&u.zakres.length>s.zakres.length)SP.toast(`${imie(u.od)} ${OSOBY[u.od].plec==='K'?'rozszerzyła':'rozszerzył'} Twój dostęp`)});
   const nl=st.log.filter(l=>l.za===OS.id&&!stare.log.some(o=>o.t===l.t&&o.co===l.co));
   if(nl.length)SP.toast(`${imie(nl[0].kto)} ${nl[0].co}`);
+  nowe(stare.pom||[],st.pom).filter(q=>q.do===OS.id&&q.status==='czeka').forEach(q=>SP.toast(`${nazwa(q.od)} prosi o pomoc: ${q.h}`));
+  st.pom.forEach(q=>{const s=(stare.pom||[]).find(x=>x.id===q.id);if(s&&s.status==='czeka'&&q.status==='zalatwione'&&q.od===OS.id)SP.toast(`${nazwa(q.do)} ${OSOBY[q.do].plec==='K'?'załatwiła':'załatwił'}: ${q.h}`)});
+  st.up.forEach(u=>{const s=stare.up.find(x=>x.id===u.id);if(s&&s.status!=='zakonczone'&&u.status==='zakonczone'&&u.do===OS.id){SP.toast(`Sprawa załatwiona — jednorazowe upoważnienie od: ${nazwa(u.od)} wygasło.`);if(KTO===u.od)KTO=null}});
   nowe(stare.pros,st.pros).filter(p=>p.do===OS.id).forEach(p=>SP.toast(`${imie(p.od)} prosi o dostęp: ${(ZAKRESY.find(q=>q[0]===p.zakres)||[,''])[1].toLowerCase()}`));
   /* sprawy załatwione przez drugą osobę */
   if(window.ZALATWIONE)(st.zal[OS.id]||[]).forEach(h=>Set.prototype.add.call(ZALATWIONE,h));
@@ -556,7 +647,7 @@
  /* Więcej → „Pomoc bliskiej osoby” otwiera nasz ekran */
  const ow=window.otworzWiecej;
  window.otworzWiecej=n=>n==='Pomoc bliskiej osoby'?ekranPomocy():(ekran=null,ow(n));
- window.POMOC={naglowek,strona,otworzSprawe,klik,wpisyKto,ekranPomocy,kreator,
+ window.POMOC={przyciskPomocy,bindPomocy,przypomnienia,naglowek,strona,otworzSprawe,klik,wpisyKto,ekranPomocy,kreator,
   stan:()=>st,aktywneDlaMnie,odeMnie,nazwa,
   reset:()=>{try{localStorage.removeItem(KLUCZ)}catch(e){}st=PUSTY();KTO=null;odswiez()}};
 })();

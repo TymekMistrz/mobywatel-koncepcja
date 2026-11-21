@@ -49,11 +49,13 @@
    <div class="ui"><div class="rows">${rowsH(wiersze)}</div></div>
    <div class="sptxt">${t.s||''}</div>
    <div id="spakcja">${a?`<button class="spbtn" id="spgo">${a.label}</button>`:''}
+    ${window.POMOC?POMOC.przyciskPomocy(i):''}
     <button class="spbtn ghost" id="spask">${svg('dots')}Zapytaj asystenta</button></div>`,
    el=>{
     const box=el.querySelector('#spakcja');
     if(a)el.querySelector('#spgo').onclick=()=>a.run(box).then(()=>{const st=el.querySelector('.sppill');if(st){st.className='sppill ok';st.textContent='Załatwione'}if(window.odswiezStrone)odswiezStrone()});
     el.querySelector('#spask').onclick=()=>doCzatu(t.q||t.h);
+    if(window.POMOC)POMOC.bindPomocy(el,i);   /* „Poproś o pomoc w tej sprawie” (pomoc.js) */
    });
  };
 

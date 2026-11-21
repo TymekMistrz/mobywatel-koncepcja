@@ -269,3 +269,22 @@ html[data-motyw="urzedowy"] .qalt{border-radius:var(--r-s)}
 .pmpd svg{width:18px;height:18px}
 .pmpd b{color:var(--ink);font-weight:600}
 .pmh{margin-top:2px}
+/* ---------- prośba o pomoc, przypomnienia, upoważnienie jednorazowe ---------- */
+.pmbaner.pmprosi{border-color:#e19a1c;box-shadow:0 0 0 3px rgba(225,154,28,.12)}
+.pmav.maly{width:30px;height:30px}
+.pgr.pmprzyp{display:flex;align-items:center;gap:6px;margin-top:18px}
+.pgr.pmprzyp svg{width:16px;height:16px;color:#b45309}
+.pmtag{display:inline-block;margin-top:3px;padding:2px 8px;border-radius:999px;background:#fff4e5;color:#8a5100;font-size:12px;font-weight:600}
+.spnote.pmczeka svg{color:#b45309}
+.pmkomu{margin-top:6px}
+.pmkomu .spbtn{width:100%;margin-top:10px}
+.pmlink{display:block;margin:12px auto 4px;font-size:13.5px;color:var(--red);font-weight:600;padding:6px}
+.pmtryb{position:relative;display:flex;border:1px solid var(--line);border-radius:var(--r-s,6px);background:#fff;padding:3px;margin:12px 0 2px}
+.pmtryb button{position:relative;z-index:1;flex:1;min-height:38px;font-size:14px;font-weight:600;color:var(--ink2);transition:color .25s}
+.pmtryb button.on{color:#fff}
+.pmtryb .pmwsk2{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:4px;background:var(--ink,#1b1f27);transform:translateX(calc(100% * var(--i,0)));transition:transform .38s cubic-bezier(.22,.8,.24,1)}
+.pmjedna{margin-top:12px}
+.pmjednaS{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r-s,6px);background:#f6f7f9}
+.pmjednaS b{display:block;font-size:14.5px;font-weight:600}.pmjednaS small{display:block;font-size:12.5px;color:var(--ink2)}
+.pmjednaS.duza{margin:12px 0 4px;background:#fff7e8;border:1px solid #f1d9a8}
+.spbtn[disabled]{opacity:.45;pointer-events:none}
