@@ -153,6 +153,11 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 .scaler.dwa .drugi{display:block}
 .device .etyk{position:absolute;left:50%;top:-30px;transform:translateX(-50%);font:600 15px/1 system-ui,sans-serif;color:#3b3f4a;white-space:nowrap;display:none}
 .scaler.dwa .device .etyk{display:block}
+.para .drugi{display:flex;align-items:center}
+.para .drugi select{min-height:40px;border:2px solid var(--line);border-radius:13px;background:#fff;padding:0 34px 0 12px;font:600 13.5px/1 inherit;color:inherit;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235b6170' stroke-width='1.8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer}
+.para .drugi.wyl{opacity:.45}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 /* panel sterowania bez animacji przejść */
 .panel *{transition:none!important}
 </style>
@@ -212,7 +217,7 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261121-2310"></script>
+<script src="osoby.js?v=20261121-2320"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
@@ -222,12 +227,14 @@ const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 const DZIS=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})(), PRZES=Math.round((DZIS-DZIEN_0)/DAY);
 const naEkran=d=>new Date(d.getTime()+PRZES*DAY);
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261121-2310';
+const WERSJA='20261121-2320';
 const q=new URLSearchParams(location.search);
-const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0)), dwa:q.get('dwa')!=='0'};   /* drugi telefon domyślnie włączony, gdy osoba ma kogoś bliskiego */
-/* drugi telefon: bliska osoba z rejestru (RODZINA w osoby.js) — tylko gdy wybrana osoba ją ma */
-const para=()=>(RODZINA[S.osoba]||[])[0]||null;
-const dwa=()=>S.dwa&&!!para();
+const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0)), drugi:OSOBY[q.get('drugi')]?q.get('drugi'):null};
+/* drugi telefon: dostępny przy każdej osobie. Domyślnie włączony dla pary z pokazu (Halina i Ewa), dla reszty na żądanie. */
+S.dwa=q.get('dwa')==='1'||(q.get('dwa')!=='0'&&!!RODZINA[S.osoba]);
+const para=()=>{const id=S.drugi&&S.drugi!==S.osoba?S.drugi:((RODZINA[S.osoba]||[])[0]||{}).id||Object.keys(OSOBY).find(k=>k!==S.osoba);
+  return {id,rel:(((RODZINA[S.osoba]||[]).find(r=>r.id===id))||{}).rel||''}};
+const dwa=()=>S.dwa;
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 m'],[90,'+3 m'],[180,'+6 m'],[365,'+1 rok']];
 const $=s=>document.querySelector(s);
 const fmt=d=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;   // dd/mm/rrrr
@@ -256,8 +263,9 @@ function render(){
   const pe=$('#people');
   if(!pe.children.length)pe.innerHTML=Object.values(OSOBY).map(o=>`<button class="person" data-o="${o.id}"><span class="av" style="background-image:url(assets/foto-${o.id}.svg)"></span><span><b>${o.imie} ${o.nazwisko}</b><small>${o.opis.split(',').slice(0,2).join(',')}</small></span></button>`).join('');
   pe.querySelectorAll('.person').forEach(b=>{const on=b.dataset.o===S.osoba;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
-  const pr=para(),pa=$('#para');pa.classList.toggle('on',!!pr);
-  if(pr){const os=OSOBY[pr.id],h=`<button class="tg ${dwa()?'on':''}" data-dwa aria-pressed="${dwa()}"><i></i><span>Drugi telefon obok<small>${os.imie} ${os.nazwisko}, ${pr.rel}</small></span></button><button class="reset" data-reset>Upoważnienie od nowa</button>`;if(pa.innerHTML!==h)pa.innerHTML=h}
+  const pr=para(),pa=$('#para');pa.classList.add('on');
+  {const h=`<button class="tg ${dwa()?'on':''}" data-dwa aria-pressed="${dwa()}"><i></i><span>Drugi telefon obok</span></button>
+   <label class="drugi ${dwa()?'':'wyl'}"><span class="sr">Osoba na drugim telefonie</span><select data-drugi ${dwa()?'':'disabled'}>${Object.keys(OSOBY).filter(k=>k!==S.osoba).map(k=>{const r=((RODZINA[S.osoba]||[]).find(x=>x.id===k)||{}).rel;return `<option value="${k}" ${k===pr.id?'selected':''}>${OSOBY[k].imie} ${OSOBY[k].nazwisko}${r?', '+r:''}</option>`}).join('')}</select></label><button class="reset" data-reset>Wyczyść upoważnienia</button>`;if(pa.innerHTML!==h)pa.innerHTML=h}
   const d=new Date(DZIS.getTime()+S.dzien*DAY),txt=fmt(d);
   if($('#dLabel').textContent!==txt){$('#dLabel').textContent=txt;if(!ciagnie)miekko($('#dLabel'))}
   const rel=`+${dni(S.dzien)}`;if($('#dRel').textContent!==rel){$('#dRel').textContent=rel;if(!ciagnie)miekko($('#dRel'))}
@@ -281,13 +289,13 @@ function fitEvents(){const box=$('#events');const items=[...box.children];if(!it
   [...box.children].sort((a,b)=>+a.dataset.d-+b.dataset.d).forEach(e=>box.append(e));}
 const MOTYW='';   /* motyw „urzędowy” jest domyślny w app.html */
 function appURL(o=S.osoba){return `app.html?osoba=${o}&dzien=${S.dzien}${MOTYW?'&motyw='+MOTYW:''}&v=${WERSJA}`}
-const adresPanelu=()=>`?osoba=${S.osoba}&dzien=${S.dzien}${para()&&!dwa()?'&dwa=0':''}${MOTYW?'&motyw='+MOTYW:''}`;
+const adresPanelu=()=>`?osoba=${S.osoba}&dzien=${S.dzien}${dwa()?'&dwa=1&drugi='+para().id:'&dwa=0'}${MOTYW?'&motyw='+MOTYW:''}`;
 let lastB='';
 function loadDrugi(){
   const sc=$('#scaler');sc.classList.toggle('dwa',dwa());fit();
   const pr=para();$('#etykA').textContent=OSOBY[S.osoba].imie+' '+OSOBY[S.osoba].nazwisko;
   if(!dwa()){if(lastB){$('#appDrugi').src='about:blank';lastB=''}return}
-  $('#etykB').textContent=OSOBY[pr.id].imie+' '+OSOBY[pr.id].nazwisko+', '+pr.rel;
+  $('#etykB').textContent=OSOBY[pr.id].imie+' '+OSOBY[pr.id].nazwisko+(pr.rel?', '+pr.rel:'');
   const u=appURL(pr.id);if(u!==lastB){lastB=u;$('#appDrugi').src=u}
 }
 let last='';
@@ -319,8 +327,10 @@ function synchronizuj(){
   try{const p=new URLSearchParams(ramA.contentWindow.location.search).get('osoba');if(p&&OSOBY[p]&&p!==S.osoba){S.osoba=p;last=appURL();render();history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}${MOTYW?'&motyw='+MOTYW:''}`)}}catch(e){}
 }
 ramA.addEventListener('load',()=>{if(pierwszy&&ramA.src!=='about:blank'){pierwszy=false;$('#loading').classList.add('off');synchronizuj()}});
+document.addEventListener('change',e=>{const s=e.target.closest('[data-drugi]');if(!s)return;S.drugi=s.value;render();loadDrugi();history.replaceState(null,'',adresPanelu())});
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-dwa]')){S.dwa=!dwa();render();load();loadDrugi();history.replaceState(null,'',adresPanelu());return}
+  if(e.target.closest('[data-drugi]'))return;
   if(e.target.closest('[data-reset]')){try{localStorage.removeItem('mobPomoc')}catch(x){}last='';lastB='';render();load();loadDrugi();return}
   const b=e.target.closest('[data-o],[data-d]'); if(!b)return;
   if(b.dataset.o)S.osoba=b.dataset.o;
