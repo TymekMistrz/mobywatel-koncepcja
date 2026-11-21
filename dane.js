@@ -6,6 +6,7 @@ const MIEJSCA={
  marta:{miasto:'Warszawa',urzad:'Urząd Dzielnicy Mokotów',urzadGminy:'Urząd m.st. Warszawy',zdarzenie:'ul. Puławska 145, Warszawa',szpital:'Szpital Bielański, Warszawa',partner:'Tomasz Kowalski'},
  jan:{miasto:'Kraków',urzad:'Urząd Miasta Krakowa, os. Zgody 2',urzadGminy:'Urząd Miasta Krakowa',zdarzenie:'ul. Kalwaryjska 60, Kraków',szpital:'Szpital Uniwersytecki, Kraków',partner:'Anna Wiśniewska'},
  ewa:{miasto:'Lublin',urzad:'Urząd Miasta Lublin, ul. Wieniawska 14',urzadGminy:'Urząd Miasta Lublin',zdarzenie:'al. Racławickie 12, Lublin',szpital:'SPSK nr 1, Lublin',partner:'Marek Nowak'},
+ halina:{miasto:'Lublin',urzad:'Urząd Miasta Lublin, ul. Wieniawska 14',urzadGminy:'Urząd Miasta Lublin',zdarzenie:'ul. Lipowa 7, Lublin',szpital:'SPSK nr 1, Lublin',partner:'Ewa Nowak'},
  kacper:{miasto:'Gdańsk',urzad:'Urząd Miejski w Gdańsku, ul. Partyzantów 74',urzadGminy:'Urząd Miejski w Gdańsku',zdarzenie:'ul. Grunwaldzka 211, Gdańsk',szpital:'Szpital Copernicus, Gdańsk',partner:'Julia Nowicka'},
 };
 const DANE=(()=>{

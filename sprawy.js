@@ -21,9 +21,9 @@
  const sukces=(box,tytul,wiersze=[])=>{box.innerHTML=`<div class="spok">${svg('check')}<b>${tytul}</b>${wiersze.length?`<div class="ui"><div class="rows">${rowsH(wiersze)}</div></div>`:''}</div>`};
 
  /* ---------- Twoje sprawy ---------- */
- function stan(t){
+ function stan(t,zal=ZALATWIONE){
   const d=D.data(t.d),x=d?D.dni(d):null;
-  if(ZALATWIONE.has(t.h))return {cls:'ok',txt:'Załatwione'};
+  if(zal.has(t.h))return {cls:'ok',txt:'Załatwione'};
   if(x===null)return /nowa/i.test(t.d)?{cls:'info',txt:'Nowa wiadomość'}:{cls:'info',txt:'Do sprawdzenia'};
   if(x<0)return {cls:'zle',txt:'Po terminie, '+D.ileDni(-x)};
   if(x<=7)return {cls:'pilne',txt:x===0?'Termin dziś':'Termin za '+D.ileDni(x)};
@@ -91,12 +91,14 @@
   'Bezpieczeństwo':()=>`<div class="plist">${przelacznik('Face ID','logowanie i potwierdzanie spraw',true)}${przelacznik('Kod PIN','gdy Face ID nie zadziała',true)}${przelacznik('Ukrywaj dane dowodu','na ekranie głównym, do dotknięcia oka',true)}</div>
    <div class="sppgr">Zaufane urządzenia</div><div class="plist"><div class="prow"><span class="ptx"><b>Ten telefon</b><small>aktywny teraz</small></span></div></div>`,
   'Kto sprawdzał moje dane':()=>{const L=[
-    ['Sklep — weryfikacja wieku','tylko „ma ukończone 18 lat”',2,true],
+    /* wpisy z upoważnień rodzinnych (pomoc.js): kto, zakres, data, za zgodą */
+    ...((window.POMOC&&POMOC.wpisyKto())||[]),
+    ...[['Sklep — weryfikacja wieku','tylko „ma ukończone 18 lat”',2,true],
     ['Bank — otwarcie konta','imię, nazwisko, PESEL, numer dowodu',5,true],
     ['Policja — kontrola drogowa','prawo jazdy, OC pojazdu',21,false],
-    ['Apteka — e-recepta','PESEL',40,true]];
+    ['Apteka — e-recepta','PESEL',40,true]].map(([a,b,n,z])=>[a,b,temu(n),z])];
    return `<div class="sptxt" style="margin-top:0">Ostatnie 60 dni. Każde sprawdzenie Twoich danych jest tu zapisane.</div>
-   <div class="plist">${L.map(([kto,co,n,zg])=>`<div class="prow spl"><span class="pic ${zg?'':'pil'}">${svg(zg?'check':'alert')}</span><span class="ptx"><b>${kto}</b><small>Zakres: ${co}</small><small>${temu(n)} · ${zg?'za Twoją zgodą':'z mocy prawa'}</small><button class="splink" data-zgl>Nie rozpoznaję</button></span></div>`).join('')}</div>`},
+   <div class="plist">${L.map(([kto,co,n,zg])=>`<div class="prow spl"><span class="pic ${zg?'':'pil'}">${svg(zg?'check':'alert')}</span><span class="ptx"><b>${kto}</b><small>Zakres: ${co}</small><small>${n} · ${zg?'za Twoją zgodą':'z mocy prawa'}</small><button class="splink" data-zgl>Nie rozpoznaję</button></span></div>`).join('')}</div>`},
   'Powiadomienia':()=>`<div class="plist">${przelacznik('Terminy dokumentów','dowód, prawo jazdy, OC, badanie',true)}${przelacznik('Pisma z urzędów','nowe wiadomości w e-Doręczeniach',true)}${przelacznik('Płatności','podatki, mandaty, składki',true)}${przelacznik('Kto sprawdzał moje dane','przy każdym sprawdzeniu',false)}</div>`,
   'Pomoc':()=>`<div class="plist">${[['Jak potwierdzić swoje dane w sklepie?','Dotknij „Skanuj”, wybierz „Pokaż mój znak” i zakres, np. tylko pełnoletność.'],['Co zrobić, gdy zgubię telefon?','Zaloguj się na innym urządzeniu i wyloguj zgubiony telefon w „Bezpieczeństwo”.'],['Czy asystent coś wyśle beze mnie?','Nie. Każde wysłanie wymaga Twojego potwierdzenia Face ID.']].map(([q,a])=>`<details class="spfaq"><summary>${q}</summary><p>${a}</p></details>`).join('')}</div>
    <div id="spakcja"><button class="spbtn ghost" id="spask">${svg('dots')}Zapytaj asystenta</button></div>`,
@@ -109,5 +111,7 @@
    const ask=el.querySelector('#spask');if(ask)ask.onclick=()=>doCzatu('Potrzebuję pomocy z aplikacją');
   });
  };
+ /* dla pomoc.js (upoważnienia w rodzinie): ten sam arkusz i te same elementy */
+ window.SP={pokaz,toast,sukces,stan,zamknij,sh,przelacznik,temu};
  document.addEventListener('keydown',e=>{if(e.key==='Escape')zamknij()});
 })();

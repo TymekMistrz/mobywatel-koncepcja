@@ -32,6 +32,7 @@ const USLUGI=[
 const WIECEJ=[
  ['user','Moje dane','Adres, kontakt, zgody'],
  ['lock','Bezpieczeństwo','PIN, biometria, zaufane urządzenia'],
+ ['users','Pomoc bliskiej osoby','Upoważnienia w rodzinie'],
  ['eye','Kto sprawdzał moje dane','Historia udostępnień'],
  ['bell','Powiadomienia','Terminy, pisma, przypomnienia'],
  ['help','Pomoc','Najczęstsze pytania i kontakt'],
@@ -62,6 +63,7 @@ const WIECEJ=[
   chev:'<path d="m9.5 6 6 6-6 6"/>',
  };
  const ico=(k,cls='')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IK[k]||''}</svg>`;
+ window.icoH=ico;   /* ikony listy dla pomoc.js */
  const ZAKLADKI=[['dok','Dokumenty','docs'],['uslugi','Usługi','grid'],['skrzynka','Twoje sprawy','mail'],['wiecej','Więcej','more']];   /* skanowanie: przycisk „Skanuj” w nagłówku */
 
  /* elementy w DOM */
@@ -77,6 +79,12 @@ const WIECEJ=[
  function listaH(items){return `<div class="plist">${items.map(([i,t,s,q])=>`<button class="prow" ${q?`data-q="${q.replace(/"/g,'&quot;')}"`:'data-soon="1"'}><span class="pic">${ico(i)}</span><span class="ptx"><b>${t}</b></span>${ico('chev','pch')}</button>`).join('')}</div>`}   /* same nazwy, bez opisów pod spodem */
  function stronaUslugi(){return `${USLUGI.map(([g,items])=>`<div class="pgr">${g}</div>${listaH(items)}`).join('')}`}
  function stronaSkrzynka(){
+  /* gdy ktoś z rodziny dał Ci upoważnienie: zaproszenie, przełącznik „Moje / Mama” i jej sprawy (pomoc.js) */
+  if(window.POMOC){const h=POMOC.strona();if(h!==null)return h}
+  return (window.POMOC?POMOC.naglowek():'')+mojeSprawy();
+ }
+ window.mojeSprawyH=()=>mojeSprawy();
+ function mojeSprawy(){
   const t=(typeof OS!=='undefined'&&OS.tiles)||[];
   return `<div class="pgr">Wymaga działania · ${t.length}</div>
    <div class="plist">${t.map((x,i)=>`<button class="prow" data-s="${i}" data-q="${(x.q||x.h).replace(/"/g,'&quot;')}"><span class="pic ${x.u?'pil':''}">${ico(x.i==='car'?'car':x.i==='coin'?'coin':'mail')}</span><span class="ptx"><b>${x.h}</b>${window.ZALATWIONE&&ZALATWIONE.has(x.h)?'<small class="gotowe">Załatwione</small>':`<small class="${/termin minął|po terminie/.test(x.d)?'zle':x.u?'pilne':''}">${x.d}</small>`}<small>${x.s||''}</small></span>${ico('chev','pch')}</button>`).join('')}</div>`}
@@ -182,10 +190,12 @@ const WIECEJ=[
  };
  nav.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)ustawZakladke(b.dataset.tab)});
  page.addEventListener('click',e=>{
+  const pm=e.target.closest('[data-pm]');if(pm&&window.POMOC){POMOC.klik(pm);return}   /* upoważnienia w rodzinie (pomoc.js) */
   const r=e.target.closest('.prow');if(!r)return;
   /* każda pozycja otwiera najpierw swój ekran (sprawy.js); rozmowa to jedna z akcji na nim */
   const nazwa=(r.querySelector('.ptx b')||{}).textContent||'';
   if(r.dataset.s!==undefined&&window.otworzSprawe){otworzSprawe(+r.dataset.s);return}
+  if(r.dataset.h!==undefined&&window.POMOC){POMOC.otworzSprawe(+r.dataset.h);return}
   if(TAB==='uslugi'&&window.otworzUsluge){otworzUsluge(nazwa,r.dataset.q);return}
   if(TAB==='wiecej'&&window.otworzWiecej){otworzWiecej(nazwa);return}
   if(r.dataset.q){window.doCzatu(r.dataset.q);return}

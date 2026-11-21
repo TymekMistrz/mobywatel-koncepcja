@@ -96,6 +96,12 @@
    await say('Przypomnieć Ci, kiedy będzie można złożyć wniosek?');
    chips([{label:'<span data-stala>Przypomnij 04.01.2029</span>',say:'Przypomnij 4 stycznia 2029',go:()=>result({title:'Przypomnienie ustawione',rows:[['Kiedy','<span data-stala>04.01.2029, 9:00</span>'],['O czym','wniosek o emeryturę']]})},{label:'Nie trzeba'}]);return;
   }
+  if(OS.id==='halina'){
+   await info({icon:'mail',title:'Pismo z Urzędu Miasta Lublin',source:'e-Doręczenia, Wydział Gospodarki Komunalnej',rows:[['Czego dotyczy','opłata za odpady'],['Nowa stawka','39 zł miesięcznie'],['Od kiedy','<span data-stala>01.01.2027</span>']],note:'Nie trzeba niczego składać ani odpisywać. Nowa kwota będzie na blankietach do opłat.'});
+   await say('Mogę przypomnieć o pierwszej opłacie w nowej wysokości. Jeśli chcesz, córka też może dostawać takie pisma — wystarczy upoważnienie.');
+   chips([{label:'Upoważnienia dla rodziny',go:()=>otworzWiecej('Pomoc bliskiej osoby')},{label:'Nie, dziękuję'}]);
+   return;
+  }
   if(OS.id==='kacper'){
    await info({icon:'mail',title:'Decyzja o stypendium rektora',source:'Politechnika Gdańska, e-Doręczenia',rows:[['Kwota','1 100 zł miesięcznie'],['Od','października 2026'],['Wypłata','na konto do 10. dnia miesiąca']],note:'Od decyzji możesz się odwołać w ciągu 14 dni od doręczenia.'});
    return;
@@ -107,8 +113,32 @@
  const kdr0=S.kdr;S.kdr=async()=>{if(!D.doc('kdr')){await say('Nie masz Karty Dużej Rodziny. Przysługuje rodzicom co najmniej trojga dzieci.');return}return kdr0()};
 
  /* dodatkowe sprawy z podpowiedzi osób */
- S.recepty=async()=>{
+ /* recepty: Halina — własne; Ewa — mamy, tylko z upoważnieniem w aplikacji (pomoc.js) */
+ const recepty0=async()=>{
   await info({icon:'doc',title:'Recepty mamy',source:'IKP, upoważnienie od mamy',rows:[['Recepty do realizacji','2'],['Leki','na nadciśnienie, ważne do 20.12'],['Upoważnienie','aktywne, bezterminowe']],note:'Recepty zrealizujesz w aptece, podając kod z aplikacji i PESEL mamy.'});
+ };
+ S.recepty=async()=>{
+  if(OS.id==='halina'){
+   await info({icon:'doc',title:'Twoje recepty',source:'Internetowe Konto Pacjenta',rows:[['Do wykupienia','2 recepty'],['Leki','na nadciśnienie'],['Ważne do','20.12']],note:'W aptece podaj PESEL i kod recepty. Może to zrobić także córka.'});
+   return;
+  }
+  if(OS.id==='ewa'&&window.POMOC){
+   const u=POMOC.aktywneDlaMnie().find(x=>x.od==='halina');
+   if(!u){await say('Mama nie dała Ci jeszcze dostępu do swoich spraw. Może to zrobić w swojej aplikacji: Więcej, „Pomoc bliskiej osoby”. Zajmie jej to minutę.');return}
+   if(!u.zakres.includes('recepty')){await say('Masz upoważnienie od mamy, ale bez recept. Poproś ją o dostęp: otwórz sprawę „Recepty do wykupienia” w sprawach mamy.');
+    chips([{label:'Sprawy mamy',go:()=>{wyjdzZCzatu();setTimeout(()=>POMOC.klik({dataset:{pm:'idz',k:'halina'}}),400)}}]);return}
+   await info({icon:'doc',title:'Recepty mamy',source:'IKP, upoważnienie w mObywatelu',rows:[['Do wykupienia','2 recepty'],['Kody','4821 i 7716'],['Ważne do','20.12']],note:'W aptece podaj PESEL mamy i kody recept. Mama zobaczy w swojej aplikacji, że je sprawdziłaś.'});
+   return;
+  }
+  return recepty0();
+ };
+ /* upoważnienia w rodzinie */
+ S.pomoc=async()=>{
+  const u=window.POMOC?POMOC.odeMnie():[],d=window.POMOC?POMOC.aktywneDlaMnie():[];
+  if(u.length)await say('Dostęp do Twoich spraw '+(u.length>1?'mają: ':'ma: ')+u.map(x=>POMOC.nazwa(x.do)+(x.status==='oczekuje'?' (jeszcze nie przyjęła zaproszenia)':'')).join(', ')+'. Możesz to zmienić albo cofnąć w każdej chwili.');
+  else if(d.length)await say('Pomagasz: '+d.map(x=>POMOC.nazwa(x.od)).join(', ')+'. Ich sprawy są w „Twoich sprawach”.');
+  else await say('Nikt nie ma teraz dostępu do Twoich spraw. Możesz upoważnić kogoś z rodziny: sam'+rodz('a','')+' wybierasz, w czym może pomagać i na jak długo.');
+  chips([{label:'Pomoc bliskiej osoby',go:()=>otworzWiecej('Pomoc bliskiej osoby')}]);
  };
  S.peselOdblok=async()=>{
   await say('Cofnę zastrzeżenie PESEL na czas, który wybierzesz. Po tym czasie wróci samo.');
@@ -132,10 +162,11 @@
   if(pending)return route0(t);
   const n=norm(t);
   if(/recept/.test(n))return S.recepty();
+  if(/pomaga|upowazn|pomoc bliskiej|bliska osob|dostep dla|cork[aię]/.test(n))return S.pomoc();
   if(/odblok\w* pesel|pesel.*(odblok|cofn)|cofnij zastrz/.test(n))return S.peselOdblok();
   if(/egipt|paszport|wyjazd/.test(n))return S.egipt();
   if(/glosow|wybor|obwod/.test(n))return S.glosowanie();
-  if(/emerytur|urz\w* skarbow|\bvat\b|decyzj|stypendi|politechnik/.test(n))return S.letter();
+  if(/emerytur|urz\w* skarbow|\bvat\b|decyzj|stypendi|politechnik|\bpism/.test(n))return S.letter();
   if(/mandat/.test(n)&&!/punkt/.test(n))return S.pay();
   if(/zus|skladk/.test(n))return S.pay();
   if(/badani|przeglad/.test(n))return S.badanie();

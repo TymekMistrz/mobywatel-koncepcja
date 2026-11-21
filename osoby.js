@@ -53,8 +53,23 @@ const OSOBY={
   ],
   moje:{imie_nazwisko:'Ewa Nowak',data_urodzenia:'03.02.1969',pesel:'69020312845',dowod:'AXK 552190, ważny do 05.12.2026',nr_dowodu:'AXK 552190',
    pelnoletnosc:'tak, ukończone 18 lat',prawo_jazdy:'kat. B, bezterminowe',pojazd:'Fiat Panda, LU 5521P',pojazd_model:'Fiat Panda',pojazd_kolor:'czerwony',oc:'Link4, polisa L4 0071 226 908',adres:'ul. Narutowicza 18 m. 3, Lublin'},
-  sugg:[['Mój dowód traci ważność','wniosek tutaj, odciski w urzędzie'],['Ile będę miała emerytury?','prognoza z ZUS'],['Jakie recepty ma moja mama?','upoważnienie od mamy w IKP'],['Dostałam dziwnego SMS-a','sprawdzę i zgłoszę'],['Zgubiłam portfel','zastrzeżenie dokumentów']],
+  sugg:[['Mój dowód traci ważność','wniosek tutaj, odciski w urzędzie'],['Ile będę miała emerytury?','prognoza z ZUS'],['Jakie recepty ma moja mama?','z upoważnienia od mamy'],['Dostałam dziwnego SMS-a','sprawdzę i zgłoszę'],['Zgubiłam portfel','zastrzeżenie dokumentów']],
   ask:{dowod:'Mój dowód traci ważność, co mam zrobić?',pj:'Kiedy muszę wymienić prawo jazdy?',auto:'Kiedy mam badanie techniczne?',kdr:'Gdzie mogę użyć Karty Dużej Rodziny?'}
+ },
+ halina:{id:'halina',plec:'K',imie:'Halina',nazwisko:'Lis',wolacz:'Pani Halino',opis:'Lublin, 84 lata, emerytka, mama Ewy',
+  docs:[
+   {id:'dowod',name:'Dowód osobisty',img:'assets/karta-dowod.svg',strip:'assets/pasek-dowod.svg',sub:'Dowód ważny bezterminowo',photo:1,holder:'HALINA LIS',line:'PESEL 42030804867',f:[['PESEL','42030804867'],['Data urodzenia','08.03.1942'],['Dowód osobisty','AYB 104733'],['Dowód ważny','bezterminowo']],rows:[['Imię','Halina'],['Nazwisko','Lis'],['PESEL','42030804867'],['Data urodzenia','08.03.1942'],['Dowód osobisty','AYB 104733']]},
+   {id:'kdr',name:'Karta Dużej Rodziny',img:'assets/karta-kdr.svg',strip:'assets/pasek-kdr.svg',sub:'Ważna bezterminowo',photo:1,holder:'HALINA LIS',line:'Nr KDR 2019/118 207',f:[['Nr karty','2019/118 207'],['Ważna','bezterminowo'],['PESEL','42030804867']],rows:[['Posiadaczka','Halina Lis'],['PESEL','42030804867'],['Nr karty','2019/118 207'],['Ważna','bezterminowo']]}
+  ],
+  tiles:[
+   {i:'coin',h:'Podatek od nieruchomości',d:'98 zł do 16.11',k:'pay',u:1,s:'IV rata 2026, Urząd Miasta Lublin',q:'Chcę zapłacić podatek od nieruchomości',z:'oplaty'},
+   {i:'doc',h:'Recepty do wykupienia',d:'2 recepty, ważne do 20.12',k:'recepty',s:'Leki na nadciśnienie. Apteka wyda je osobie, która poda Twój PESEL i kod recepty.',q:'Jakie mam recepty?',z:'recepty'},
+   {i:'mail',h:'Pismo z Urzędu Miasta',d:'Nowa wiadomość',k:'letter',s:'Od 01.01.2027 opłata za odpady wyniesie 39 zł miesięcznie. Nie trzeba nic składać, nowa kwota będzie na blankietach.',q:'Co jest w piśmie z Urzędu Miasta?',z:'pisma'}
+  ],
+  moje:{imie_nazwisko:'Halina Lis',data_urodzenia:'08.03.1942',pesel:'42030804867',dowod:'AYB 104733, ważny bezterminowo',nr_dowodu:'AYB 104733',
+   pelnoletnosc:'tak, ukończone 18 lat',prawo_jazdy:'brak',pojazd:'brak',pojazd_model:'',pojazd_kolor:'',oc:'brak',adres:'ul. Lipowa 7 m. 2, Lublin'},
+  sugg:[['Kto mi pomaga w sprawach?','upoważnienie dla córki'],['Chcę zapłacić podatek','98 zł do 16.11'],['Jakie mam recepty?','2 do wykupienia'],['Dostałam dziwnego SMS-a','sprawdzę i zgłoszę'],['Co jest w piśmie z urzędu?','opłata za odpady']],
+  ask:{dowod:'Czy mój dowód jest ważny?',kdr:'Gdzie mogę użyć Karty Dużej Rodziny?'}
  },
  kacper:{id:'kacper',plec:'M',imie:'Kacper',nazwisko:'Zieliński',wolacz:'Kacprze',opis:'Gdańsk, 20 lat, student, prawo jazdy od stycznia',
   docs:[
@@ -75,6 +90,8 @@ const OSOBY={
   ask:{dowod:'Kiedy mój dowód traci ważność?',pj:'Ile mam punktów karnych?',auto:'Kiedy kończy się OC Golfa?',leg:'Jaką zniżkę na pociąg daje mi legitymacja?'}
  }
 };
+/* rodzina z rejestru PESEL: kto może komu udzielić upoważnienia (pomoc.js, panel pokazu) */
+const RODZINA={halina:[{id:'ewa',rel:'córka',relD:'córce',relB:'córkę'}],ewa:[{id:'halina',rel:'mama',relD:'mamie',relB:'mamę'}]};
 const OSOBA_ID=(()=>{let q=null;try{q=new URLSearchParams(location.search).get('osoba')}catch(e){}
  if(q&&OSOBY[q]){try{localStorage.setItem('mobOsoba',q)}catch(e){}return q}
  try{const s=localStorage.getItem('mobOsoba');if(s&&OSOBY[s])return s}catch(e){}return 'marta'})();

@@ -48,3 +48,8 @@ Odpowiedzi asystenta w scenariuszach (`scenarios.js`) są pisane dla dnia 0.
 
 ## Wygląd
 `motyw.css` nadpisuje `style.css`: cienkie linie 1 px zamiast cieni, małe zaokrąglenia, płaskie karty z giloszem (`assets/karta2-*.svg`). Kolory i promienie zmieniasz w pierwszych linijkach `motyw.css`.
+
+## Pomoc bliskiej osoby (upoważnienia w rodzinie)
+`pomoc.js`. Halina Lis (84 l.) daje córce Ewie Nowak dostęp do wybranych spraw: Więcej → „Pomoc bliskiej osoby” → komu, w czym (sprawy i terminy, opłaty, pisma, recepty), na jak długo → Face ID. Ewa przyjmuje zaproszenie w „Twoich sprawach” i przełącza się na „Mama” — działa tylko w udzielonym zakresie, o resztę może poprosić. Halina widzi historię działań (też w „Kto sprawdzał moje dane”) i cofa dostęp jednym przyciskiem.
+
+Stan jest w `localStorage` (klucz `mobPomoc`) i przechodzi na żywo między oknami tej samej przeglądarki. W panelu pokazu przy Halinie lub Ewie drugi telefon pojawia się obok (przełącznik „Drugi telefon obok”), a „Upoważnienie od nowa” czyści stan pokazu. Rodzina z „rejestru PESEL” jest w `RODZINA` w `osoby.js`.

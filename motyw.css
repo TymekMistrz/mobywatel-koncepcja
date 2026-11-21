@@ -109,3 +109,40 @@ html[data-motyw="urzedowy"] #app.ukryte .face .reveal svg{width:6cqw!important;h
 /* licznik przy „Wymagane akcje”: cyfra dokładnie na środku (iOS dokładał wysokość linii pod cyfrą) */
 html[data-motyw="urzedowy"] .rsum .rdot{display:flex;align-items:center;justify-content:center;line-height:1;padding:0;font-variant-numeric:tabular-nums}
 html[data-motyw="urzedowy"] .qalt{border-radius:var(--r-s)}
+
+/* ---------- Pomoc bliskiej osoby (pomoc.js) ---------- */
+.pmav{width:40px;height:40px;border-radius:50%;flex:none;background:#dfe4ee center/cover no-repeat;border:1px solid var(--line)}
+.pmav.duzy{width:64px;height:64px}
+.pmbaner{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;margin:4px 0 12px;background:#fff;border:1px solid var(--red);border-radius:var(--r-m,8px);box-shadow:0 0 0 3px rgba(212,33,61,.08)}
+.pmbaner .ptx b{font-size:15px}.pmbaner .ptx small{color:var(--ink2);font-size:13px}
+.pmseg{display:flex;gap:0;margin:4px 0 12px;border:1px solid var(--line);border-radius:var(--r-s,6px);background:#fff;padding:3px}
+.pmseg button{flex:1;min-height:36px;border-radius:4px;font-size:14px;font-weight:600;color:var(--ink2)}
+.pmseg button.on{background:var(--ink,#1b1f27);color:#fff}
+.pmimie{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff7e8;border:1px solid #f1d9a8;border-radius:var(--r-m,8px);margin-bottom:4px}
+.pmimie .ptx b{font-size:14.5px}.pmimie .ptx small{color:#6a5320;font-size:12.5px}
+.pmstopka{display:flex;gap:8px;align-items:flex-start;color:var(--ink2);font-size:13px;line-height:1.4;margin:14px 6px 4px}
+.pmstopka svg{width:18px;height:18px;flex:none;color:#1b7a3d;margin-top:1px}
+.prow.pmprow{align-items:flex-start;cursor:default}
+.prow.pmprow .ptx small{display:block}
+.pmprz{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.pmmaly{min-height:34px;padding:0 12px;border-radius:var(--r-s,6px);background:var(--red);color:#fff;font-weight:600;font-size:13.5px}
+.pmmaly.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.pmmaly.pmcofnij{color:#b3122e;border-color:#f0c3cb}
+.pmpusto{background:#fff;border:1px dashed var(--line);border-radius:var(--r-m,8px);padding:14px;color:var(--ink2);font-size:14px;text-align:center}
+.sp .spbtn[data-pm="nowe"]{margin-top:12px;width:100%}
+.pmkroki{display:flex;gap:6px;margin:2px 4px 14px}
+.pmkroki i{flex:1;height:3px;border-radius:2px;background:var(--line)}
+.pmkroki i.on{background:var(--red)}
+.pmh{font-size:21px;font-weight:600;margin:0 4px 4px;line-height:1.25}
+.prow.pmwyb{cursor:pointer}
+.pmradio{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);flex:none;margin-left:auto}
+.pmwyb.on .pmradio{border:7px solid var(--red)}
+.pmokres{display:flex;gap:8px;margin:6px 0 14px}
+.pmokres button{flex:1;min-height:44px;border:1px solid var(--line);border-radius:var(--r-s,6px);background:#fff;font-weight:600;font-size:14px}
+.pmokres button.on{border-color:var(--red);color:var(--red);box-shadow:inset 0 0 0 1px var(--red)}
+.sp [data-dalej]{margin-top:16px;width:100%}
+.spnote.pmlock svg{color:#8a5100}
+.pmbaner .ptx,.pmimie .ptx{flex:1;min-width:0}
+.pmbaner b,.pmimie b{display:block;font-weight:600;line-height:1.25}
+.pmbaner small,.pmimie small{display:block;line-height:1.3;margin-top:2px}
+.pmbaner .pch{width:18px;height:18px;color:#a0a6b2;flex-shrink:0}

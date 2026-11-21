@@ -137,6 +137,22 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 .datebox #dRel{grid-area:r;color:var(--ink2);font-size:13px;font-weight:700;white-space:nowrap;text-align:left;width:var(--relw,64px)}   /* „+” zawsze w tej samej odległości od suwaka co data po lewej */
 .datebox input[type=range]{min-width:120px}
 .person.on{box-shadow:none}
+/* ---------- dwa telefony obok siebie (upoważnienie w rodzinie: Halina i Ewa) ---------- */
+.para{display:none;margin-top:8px;gap:8px;align-items:center;flex-wrap:wrap}
+.para.on{display:flex}
+.para .tg{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:13px;border:2px solid var(--line);background:#fff;font-weight:600;font-size:13.5px;text-align:left}
+.para .tg.on{border-color:var(--red);background:#fff5f7}
+.para .tg i{width:34px;height:20px;border-radius:999px;background:#d3d6de;position:relative;flex:none}
+.para .tg i::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.para .tg.on i{background:#34c759}.para .tg.on i::after{left:16px}
+.para .tg small{display:block;font-weight:500;color:var(--ink2,#5b6170);font-size:12px}
+.para .reset{font-size:12.5px;color:var(--ink2,#5b6170);text-decoration:underline;padding:4px}
+.scaler.dwa{width:904px}
+.scaler{display:flex;gap:40px}
+.scaler .drugi{display:none}
+.scaler.dwa .drugi{display:block}
+.device .etyk{position:absolute;left:50%;top:-30px;transform:translateX(-50%);font:600 15px/1 system-ui,sans-serif;color:#3b3f4a;white-space:nowrap;display:none}
+.scaler.dwa .device .etyk{display:block}
 /* panel sterowania bez animacji przejść */
 .panel *{transition:none!important}
 </style>
@@ -148,6 +164,7 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
 
     <div class="h">Osoba</div>
     <div class="people" id="people"></div>
+    <div class="para" id="para"></div>
 
     <div class="h">Data w aplikacji</div>
     <div class="datebox">
@@ -180,13 +197,22 @@ input[type=range]{width:100%;margin:8px 0 4px;accent-color:var(--red);height:22p
           <iframe id="app2" class="ekr ukryty" title="Aplikacja na telefonie" src="about:blank" aria-hidden="true" tabindex="-1"></iframe>
           <div class="loading" id="loading"><div class="spin"></div></div>
         </div></div>
+        <span class="etyk" id="etykA"></span>
+      </div>
+      <div class="device drugi" aria-label="Drugi telefon">
+        <span class="btn-s l b-action"></span><span class="btn-s l b-volup"></span><span class="btn-s l b-voldn"></span>
+        <span class="btn-s r b-power"></span><span class="btn-s r b-cam"></span>
+        <div class="bezel"><div class="screen">
+          <iframe id="appDrugi" class="ekr" title="Aplikacja na drugim telefonie" src="about:blank"></iframe>
+        </div></div>
+        <span class="etyk" id="etykB"></span>
       </div>
     </div>
   </main>
 </div>
 
 <script src="lib/qrcode.js"></script>
-<script src="osoby.js?v=20261114-0117"></script>
+<script src="osoby.js?v=20261121-2039"></script>
 <script>
 /* =========================================================
    STAN POKAZU: osoba, dzień (przesunięcie od dnia 0), układ
@@ -196,9 +222,12 @@ const DAY=864e5, DZIEN_0=new Date(2026,9,18);   // ta sama data co w czas.js
 const DZIS=(()=>{const d=new Date();d.setHours(0,0,0,0);return d})(), PRZES=Math.round((DZIS-DZIEN_0)/DAY);
 const naEkran=d=>new Date(d.getTime()+PRZES*DAY);
 /* WERSJA: zmieniana przy każdej zmianie aplikacji, żeby przeglądarka nie pokazywała starej kopii z pamięci */
-const WERSJA='20261114-0117';
+const WERSJA='20261121-2039';
 const q=new URLSearchParams(location.search);
-const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0))};
+const S={osoba:OSOBY[q.get('osoba')]?q.get('osoba'):'marta', dzien:Math.max(0,Math.min(730,+q.get('dzien')||0)), dwa:q.get('dwa')!=='0'};   /* drugi telefon domyślnie włączony, gdy osoba ma kogoś bliskiego */
+/* drugi telefon: bliska osoba z rejestru (RODZINA w osoby.js) — tylko gdy wybrana osoba ją ma */
+const para=()=>(RODZINA[S.osoba]||[])[0]||null;
+const dwa=()=>S.dwa&&!!para();
 const QUICK=[[0,'Dziś'],[14,'+2 tyg'],[30,'+1 m'],[90,'+3 m'],[180,'+6 m'],[365,'+1 rok']];
 const $=s=>document.querySelector(s);
 const fmt=d=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;   // dd/mm/rrrr
@@ -227,6 +256,8 @@ function render(){
   const pe=$('#people');
   if(!pe.children.length)pe.innerHTML=Object.values(OSOBY).map(o=>`<button class="person" data-o="${o.id}"><span class="av" style="background-image:url(assets/foto-${o.id}.svg)"></span><span><b>${o.imie} ${o.nazwisko}</b><small>${o.opis.split(',').slice(0,2).join(',')}</small></span></button>`).join('');
   pe.querySelectorAll('.person').forEach(b=>{const on=b.dataset.o===S.osoba;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+  const pr=para(),pa=$('#para');pa.classList.toggle('on',!!pr);
+  if(pr){const os=OSOBY[pr.id],h=`<button class="tg ${dwa()?'on':''}" data-dwa aria-pressed="${dwa()}"><i></i><span>Drugi telefon obok<small>${os.imie} ${os.nazwisko}, ${pr.rel}</small></span></button><button class="reset" data-reset>Upoważnienie od nowa</button>`;if(pa.innerHTML!==h)pa.innerHTML=h}
   const d=new Date(DZIS.getTime()+S.dzien*DAY),txt=fmt(d);
   if($('#dLabel').textContent!==txt){$('#dLabel').textContent=txt;if(!ciagnie)miekko($('#dLabel'))}
   const rel=`+${dni(S.dzien)}`;if($('#dRel').textContent!==rel){$('#dRel').textContent=rel;if(!ciagnie)miekko($('#dRel'))}
@@ -249,7 +280,16 @@ function fitEvents(){const box=$('#events');const items=[...box.children];if(!it
   while(box.children.length>1&&box.scrollHeight>box.clientHeight+1)box.lastElementChild.remove();
   [...box.children].sort((a,b)=>+a.dataset.d-+b.dataset.d).forEach(e=>box.append(e));}
 const MOTYW='';   /* motyw „urzędowy” jest domyślny w app.html */
-function appURL(){return `app.html?osoba=${S.osoba}&dzien=${S.dzien}${MOTYW?'&motyw='+MOTYW:''}&v=${WERSJA}`}
+function appURL(o=S.osoba){return `app.html?osoba=${o}&dzien=${S.dzien}${MOTYW?'&motyw='+MOTYW:''}&v=${WERSJA}`}
+const adresPanelu=()=>`?osoba=${S.osoba}&dzien=${S.dzien}${para()&&!dwa()?'&dwa=0':''}${MOTYW?'&motyw='+MOTYW:''}`;
+let lastB='';
+function loadDrugi(){
+  const sc=$('#scaler');sc.classList.toggle('dwa',dwa());fit();
+  const pr=para();$('#etykA').textContent=OSOBY[S.osoba].imie+' '+OSOBY[S.osoba].nazwisko;
+  if(!dwa()){if(lastB){$('#appDrugi').src='about:blank';lastB=''}return}
+  $('#etykB').textContent=OSOBY[pr.id].imie+' '+OSOBY[pr.id].nazwisko+', '+pr.rel;
+  const u=appURL(pr.id);if(u!==lastB){lastB=u;$('#appDrugi').src=u}
+}
 let last='';
 /* Płynna zmiana: nowa wersja aplikacji ładuje się w drugiej, ukrytej ramce, a gdy jest gotowa,
    przenika się z obecną (bez białego ekranu i „zacięcia”). */
@@ -257,7 +297,8 @@ let ramA=$('#app'),ramB=$('#app2'),pierwszy=true,nrLad=0;
 function load(){
   const u=appURL(); if(u===last)return; last=u;
   $('#openApp').href=u; rysujQR();
-  history.replaceState(null,'',`?osoba=${S.osoba}&dzien=${S.dzien}${MOTYW?'&motyw='+MOTYW:''}`);
+  history.replaceState(null,'',adresPanelu());
+  loadDrugi();
   if(pierwszy){ramA.src=u;return}
   /* krótki ekran ładowania przy każdej zmianie: zasłona wjeżdża, pod nią podmieniamy aplikację,
      zasłona znika najwcześniej po MIN ms — bez skakania między widokami */
@@ -279,6 +320,8 @@ function synchronizuj(){
 }
 ramA.addEventListener('load',()=>{if(pierwszy&&ramA.src!=='about:blank'){pierwszy=false;$('#loading').classList.add('off');synchronizuj()}});
 document.addEventListener('click',e=>{
+  if(e.target.closest('[data-dwa]')){S.dwa=!dwa();render();load();loadDrugi();history.replaceState(null,'',adresPanelu());return}
+  if(e.target.closest('[data-reset]')){try{localStorage.removeItem('mobPomoc')}catch(x){}last='';lastB='';render();load();loadDrugi();return}
   const b=e.target.closest('[data-o],[data-d]'); if(!b)return;
   if(b.dataset.o)S.osoba=b.dataset.o;
   if(b.dataset.d!==undefined)S.dzien=Math.min(730,+b.dataset.d);
@@ -302,7 +345,7 @@ $('#openApp').addEventListener('click',e=>{
   if(okno){e.preventDefault();okno.focus()}           // gdy przeglądarka zablokuje okno — otworzy się zwykła karta
 });
 /* telefon zawsze mieści się w oknie */
-function fit(){const r=$('.right').getBoundingClientRect();const s=Math.min(1,(r.height-8)/904,(r.width-8)/432);$('#scaler').style.setProperty('--s',s)}
+function fit(){const r=$('.right').getBoundingClientRect(),W=dwa()?904:432,H=dwa()?904+40:904;const s=Math.min(1,(r.height-8)/H,(r.width-8)/W);$('#scaler').style.setProperty('--s',s)}
 addEventListener('resize',()=>{fit();render()});
 render(); szerRel(); load(); fit();
 </script>
