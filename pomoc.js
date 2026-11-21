@@ -199,16 +199,18 @@
  const pasuje=(t,c)=>t==='D'?/^\d$/.test(c):/^[A-Z]$/.test(c);
  const wartosc=g=>[...g.querySelectorAll('input')].map(x=>x.value).join('');
  function ustawKratki(g,txt){const k=[...g.querySelectorAll('input')];let i=0;for(const c of String(txt).toUpperCase()){if(i>=k.length)break;if(pasuje(k[i].dataset.t,c)){k[i].value=c;i++}}k.slice(i).forEach(x=>x.value='')}
- function kratkiDzialaj(g){
+ /* koniec(): wywołane, gdy ostatnia kratka grupy zostanie wypełniona (wpisaniem albo wklejeniem) */
+ function kratkiDzialaj(g,koniec){
   const k=[...g.querySelectorAll('input')];
+  const dalej=i=>{if(k[i+1]){k[i+1].focus();return}if(koniec)koniec()};
   const zly=x=>{x.classList.remove('zly');void x.offsetWidth;x.classList.add('zly')};
-  function wklej(od,txt){let i=od;for(const c of String(txt).toUpperCase()){if(i>=k.length)break;if(pasuje(k[i].dataset.t,c)){k[i].value=c;i++}}(k[i]||k[k.length-1]).focus()}
+  function wklej(od,txt){let i=od;for(const c of String(txt).toUpperCase()){if(i>=k.length)break;if(pasuje(k[i].dataset.t,c)){k[i].value=c;i++}}if(i>=k.length&&koniec)koniec();else (k[i]||k[k.length-1]).focus()}
   k.forEach((x,i)=>{
    x.addEventListener('beforeinput',e=>{if(e.inputType!=='insertText'||!e.data)return;e.preventDefault();
     if(e.data.length>1){wklej(i,e.data);return}
-    const c=e.data.toUpperCase();if(!pasuje(x.dataset.t,c)){zly(x);return}x.value=c;x.classList.remove('zly');if(k[i+1])k[i+1].focus();else x.blur()});
+    const c=e.data.toUpperCase();if(!pasuje(x.dataset.t,c)){zly(x);return}x.value=c;x.classList.remove('zly');dalej(i)});
    /* awaryjnie (klawiatury bez beforeinput, np. autouzupełnianie): czyścimy, co nie pasuje */
-   x.addEventListener('input',()=>{const v=x.value.toUpperCase();if(!v)return;if(v.length>1){x.value='';wklej(i,v);return}if(!pasuje(x.dataset.t,v)){x.value='';zly(x);return}x.value=v;if(k[i+1])k[i+1].focus()});
+   x.addEventListener('input',()=>{const v=x.value.toUpperCase();if(!v)return;if(v.length>1){x.value='';wklej(i,v);return}if(!pasuje(x.dataset.t,v)){x.value='';zly(x);return}x.value=v;dalej(i)});
    x.addEventListener('keydown',e=>{
     if(e.key==='Backspace'){e.preventDefault();if(x.value)x.value='';else if(k[i-1]){k[i-1].value='';k[i-1].focus()}}
     else if(e.key==='ArrowLeft'&&k[i-1]){e.preventDefault();k[i-1].focus()}
@@ -301,12 +303,21 @@
    /* PESEL + numer dowodu */
    const sz=el.querySelector('[data-szukaj]');
    if(sz){const pe=el.querySelector('#pmpesel'),dw=el.querySelector('#pmdow');
-    kratkiDzialaj(pe);kratkiDzialaj(dw);
-    el.querySelectorAll('[data-przyklad]').forEach(pr=>pr.onclick=()=>{const id=pr.dataset.przyklad;ustawKratki(pe,OSOBY[id].moje.pesel);ustawKratki(dw,nrDow(OSOBY[id].moje.nr_dowodu))});
+    /* PESEL → dowód → automatyczne zatwierdzenie, gdy wszystkie kratki są pełne */
+    const pierwszaPusta=g=>[...g.querySelectorAll('input')].find(x=>!x.value);
+    const pelne=()=>wartosc(pe).length===11&&wartosc(dw).length===9;
+    let wyslano=false;
+    const dalejOba=()=>{if(pelne()){if(!wyslano){wyslano=true;document.activeElement&&document.activeElement.blur&&document.activeElement.blur();setTimeout(()=>{sz.click();wyslano=false},180)}return}
+     const p=pierwszaPusta(pe)||pierwszaPusta(dw);if(p)p.focus()};
+    kratkiDzialaj(pe,dalejOba);kratkiDzialaj(dw,dalejOba);
+    /* po otwarciu kroku kursor od razu w pierwszej kratce PESEL (po wjeździe ekranu) */
+    setTimeout(()=>{const p=pierwszaPusta(pe)||pierwszaPusta(dw);if(p&&document.body.contains(p))p.focus({preventScroll:true})},420);
+    el.querySelectorAll('[data-przyklad]').forEach(pr=>pr.onclick=()=>{const id=pr.dataset.przyklad;ustawKratki(pe,OSOBY[id].moje.pesel);ustawKratki(dw,nrDow(OSOBY[id].moje.nr_dowodu));dalejOba()});
     sz.onclick=()=>{w.pesel=wartosc(pe);w.dow=wartosc(dw);
-     const bl=t=>{w.blad=t;el.querySelector('#pmblad').textContent=t};
-     if(w.pesel.length<11)return bl('Wpisz wszystkie 11 cyfr PESEL.');
-     if(!peselOk(w.pesel))return bl('Ten PESEL jest niepoprawny. Sprawdź cyfry.');
+     /* błąd: komunikat i kursor w ostatniej kratce pola, którego dotyczy — można od razu poprawić Backspace'em */
+     const bl=(t,g=dw)=>{w.blad=t;el.querySelector('#pmblad').textContent=t;const k=[...g.querySelectorAll('input')];const x=k.find(y=>!y.value)||k[k.length-1];if(x)x.focus({preventScroll:true})};
+     if(w.pesel.length<11)return bl('Wpisz wszystkie 11 cyfr PESEL.',pe);
+     if(!peselOk(w.pesel))return bl('Ten PESEL jest niepoprawny. Sprawdź cyfry.',pe);
      if(!/^[A-Z]{3}\d{6}$/.test(w.dow))return bl('Uzupełnij numer dowodu: 3 litery i 6 cyfr.');
      const o=znajdz(w.pesel,w.dow);
      if(!o)return bl('Nie znaleźliśmy osoby z aplikacją mObywatel o tym PESEL i numerze dowodu.');

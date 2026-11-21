@@ -204,3 +204,5 @@ html[data-motyw="urzedowy"] .qalt{border-radius:var(--r-s)}
 .pmur{display:block;color:var(--ink2);font-size:13px;margin-top:4px}
 .pmimie small+small{margin-top:1px}
 .pmseg button{font-size:13px;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* numer dowodu: wyraźna przerwa między serią (litery) a numerem (cyfry) */
+#pmdow input.od{margin-left:18px}
