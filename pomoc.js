@@ -279,9 +279,7 @@
    <div class="pmpole"><span id="pmlpes">PESEL</span>${kratki('pmpesel','DDDDDDDDDDD',[6],w.pesel,'pmlpes')}</div>
    <div class="pmpole"><span id="pmldow">Seria i numer dowodu</span>${kratki('pmdow','LLLDDDDDD',[3],w.dow,'pmldow')}</div>
    <div class="pmblad" id="pmblad" role="alert">${w.blad?esc(w.blad):''}</div>
-   <button class="spbtn" data-szukaj>Dalej</button>
-   <div class="pmpokaz"><span>Pokaz — wpisz dane:</span>${(()=>{const z=opublikowany(),ids=Object.keys(OSOBY).filter(k=>k!==OS.id);if(z&&z.osoba!==OS.id)ids.sort((a,b)=>(b===z.osoba)-(a===z.osoba));
-    return ids.map(k=>`<button data-przyklad="${k}">${nazwa(k)}</button>`).join('')})()}</div>`;
+   <button class="spbtn" data-szukaj>Dalej</button>`;
   if(w.krok===2){const os=OSOBY[w.do];
    h=`${kropki}<h2 class="pmh">Czy to ta osoba?</h2>
    <div class="pmkto"><span class="pmav duzy" style="background-image:url(assets/foto-${w.do}.svg)"></span><b>${nazwa(w.do)}</b><small>ur. ${urodz(w.do)} · ${(MIEJSCA[w.do]||{}).miasto||''}</small>
@@ -348,7 +346,6 @@
     kratkiDzialaj(pe,dalejOba);kratkiDzialaj(dw,dalejOba);
     /* po otwarciu kroku kursor od razu w pierwszej kratce PESEL (po wjeździe ekranu) */
     setTimeout(()=>{const p=pierwszaPusta(pe)||pierwszaPusta(dw);if(p&&document.body.contains(p))p.focus({preventScroll:true})},420);
-    el.querySelectorAll('[data-przyklad]').forEach(pr=>pr.onclick=()=>{const id=pr.dataset.przyklad;ustawKratki(pe,OSOBY[id].moje.pesel);ustawKratki(dw,nrDow(OSOBY[id].moje.nr_dowodu));dalejOba()});
     sz.onclick=()=>{w.pesel=wartosc(pe);w.dow=wartosc(dw);
      /* błąd: komunikat i kursor w ostatniej kratce pola, którego dotyczy — można od razu poprawić Backspace'em */
      const bl=(t,g=dw)=>{w.blad=t;el.querySelector('#pmblad').textContent=t;const k=[...g.querySelectorAll('input')];const x=k.find(y=>!y.value)||k[k.length-1];if(x)x.focus({preventScroll:true})};
